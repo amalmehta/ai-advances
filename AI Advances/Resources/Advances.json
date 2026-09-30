@@ -1,0 +1,352 @@
+[
+  {
+    "date": "2026-09-29",
+    "datePrecision": "day",
+    "title": "OpenAI launches always-on Dots agents",
+    "lab": "OpenAI",
+    "category": "Agents",
+    "direction": "Agents",
+    "summary": "At DevDay, OpenAI introduced Dots: persistent Astra-powered agents with their own cloud computer and browser that pursue user goals in the background.",
+    "source": "https://techcrunch.com/2026/09/29/openai-launches-dots-its-bubbly-agentic-avatar/"
+  },
+  {
+    "date": "2026-09-28",
+    "datePrecision": "day",
+    "title": "Claude Sonnet 5.5 released",
+    "lab": "Anthropic",
+    "category": "Model release",
+    "direction": "Coding",
+    "summary": "Sonnet 5.5 keeps $2/$10 pricing, runs over 30% faster, and scores 70.6% on Terminal-Bench 4.0, nearly matching Opus 5.5 on GDPval-AA.",
+    "source": "https://www.unite.ai/anthropic-releases-claude-sonnet-5-5-at-unchanged-sonnet-5-pricing/"
+  },
+  {
+    "date": "2026-09-23",
+    "datePrecision": "day",
+    "title": "Claude agents find a CRISPR-like enzyme system",
+    "lab": "Anthropic",
+    "category": "Science",
+    "direction": "Agents",
+    "summary": "Roughly a thousand Claude agents searched DNA databases for 21 hours and flagged an uncharacterized CRISPR-like system; its function remains unknown and experts urge caution.",
+    "source": "https://www.aljazeera.com/economy/2026/9/24/ai-model-claude-discovers-crispr-like-enzyme-system-anthropic-says"
+  },
+  {
+    "date": "2026-09-22",
+    "datePrecision": "day",
+    "title": "GPT-6 Sol and Luna halve prices",
+    "lab": "OpenAI",
+    "category": "Cost & efficiency",
+    "direction": "Efficiency",
+    "summary": "OpenAI brought Astra-derived training to cheaper tiers: Sol at $2/$10 and Luna at $0.10/$0.50 per million tokens, about half their GPT-5.6 predecessors.",
+    "source": "https://www.macrumors.com/2026/09/22/openai-gpt-6-sol-luna/"
+  },
+  {
+    "date": "2026-09-22",
+    "datePrecision": "day",
+    "title": "Claude Opus 5.5 released",
+    "lab": "Anthropic",
+    "category": "Model release",
+    "direction": "Coding",
+    "summary": "Opus 5.5 matches Fable 5.1 on most work at $4/$20 per million tokens, jumping from 52.3% to 66.4% on Terminal-Bench 4.0.",
+    "source": "https://www.anthropic.com/news/claude-opus-5-5"
+  },
+  {
+    "date": "2026-09-21",
+    "datePrecision": "day",
+    "title": "xAI ships Grok 4.7 for long coding tasks",
+    "lab": "xAI",
+    "category": "Coding",
+    "direction": "Coding",
+    "summary": "Grok 4.7 adds a larger base model and longer RL on multi-hour coding, reaching 71.0% on DeepSWE v1.1 at unchanged $2/$6 pricing.",
+    "source": "https://sqmagazine.co.uk/xai-launches-grok-4-7-coding-model/"
+  },
+  {
+    "date": "2026-09-11",
+    "datePrecision": "day",
+    "title": "GPT-6 Astra scores 97.6% on FrontierMath Tier 4",
+    "lab": "OpenAI",
+    "category": "Reasoning",
+    "direction": "Reasoning",
+    "summary": "Epoch AI's hardest research-math tier is now close to solved: GPT-6 Astra scored 97.6%, up from a 22% best a year earlier.",
+    "source": "https://epoch.ai/benchmarks/frontiermath-tier-4-v2"
+  },
+  {
+    "date": "2026-09-03",
+    "datePrecision": "day",
+    "title": "GPT-6 Astra launches",
+    "lab": "OpenAI",
+    "category": "Model release",
+    "direction": "Agents",
+    "summary": "OpenAI's most powerful model targets computer use, coding and cybersecurity, but drew criticism because its opaque recurrent reasoning makes chain-of-thought harder to monitor.",
+    "source": "https://techcrunch.com/2026/09/03/openai-launches-astra-its-powerful-and-controversial-new-model/"
+  },
+  {
+    "date": "2026-09-03",
+    "datePrecision": "day",
+    "title": "Astra scores 62.7% on ARC-AGI-3",
+    "lab": "ARC Prize Foundation",
+    "category": "Reasoning",
+    "direction": "Reasoning",
+    "summary": "Six months after frontier models scored under 1%, GPT-6 Astra reached 62.7% on the interactive benchmark, using fewer actions than humans on most levels.",
+    "source": "https://arcprize.org/blog/astra"
+  },
+  {
+    "date": "2026-09-02",
+    "datePrecision": "day",
+    "title": "Gemini 3.8 Flash pushes cheap near-frontier AI",
+    "lab": "Google DeepMind",
+    "category": "Cost & efficiency",
+    "direction": "Efficiency",
+    "summary": "Google's fourth Flash model in four months ties GPT-5.6 Sol on the Artificial Analysis index at an introductory $0.75/$3.75 per million tokens.",
+    "source": "https://www.theregister.com/ai-and-ml/2026/09/02/with-gemini-38-flash-google-reminds-everyone-its-still-in-the-race/5294049"
+  },
+  {
+    "date": "2026-08-12",
+    "datePrecision": "day",
+    "title": "Qwen3.8 flagship released as open weights",
+    "lab": "Alibaba (Qwen)",
+    "category": "Open weights",
+    "direction": "Openness",
+    "summary": "Alibaba published Qwen3.8-2.4T-A95B, a 2.4-trillion-parameter mixture-of-experts model with 95B active parameters, its largest open-weight model yet.",
+    "source": "https://developer.nvidia.com/blog/serve-qwen3-8-2-4t-a95b-a-2-4t-parameter-model-with-configurable-reasoning-on-nvidia-gb300-nvl72/"
+  },
+  {
+    "date": "2026-08-01",
+    "datePrecision": "day",
+    "title": "Astra delivers a batch of new math results",
+    "lab": "OpenAI",
+    "category": "Science",
+    "direction": "Reasoning",
+    "summary": "OpenAI's then-unreleased Astra model produced ten mathematical advances, including solutions to three more open Erdős problems.",
+    "source": "https://www.quantamagazine.org/why-the-legendary-erdos-problems-are-falling-to-ai-20260803/"
+  },
+  {
+    "date": "2026-07-30",
+    "datePrecision": "day",
+    "title": "Gemini Robotics 2 brings whole-body humanoid control",
+    "lab": "Google DeepMind",
+    "category": "Robotics",
+    "direction": "Multimodal",
+    "summary": "DeepMind released Gemini Robotics 2 for humanoid whole-body control and Gemini Robotics ER 2, an embodied-reasoning model available to developers via the Gemini API.",
+    "source": "https://blog.google/innovation-and-ai/models-and-research/google-deepmind/gemini-robotics-er-2/"
+  },
+  {
+    "date": "2026-07-27",
+    "datePrecision": "day",
+    "title": "Kimi K3 becomes the largest open-weight model",
+    "lab": "Moonshot AI",
+    "category": "Open weights",
+    "direction": "Openness",
+    "summary": "Moonshot released weights for its 2.8-trillion-parameter Kimi K3, which Artificial Analysis rated alongside GPT-5.5 and Claude Opus 4.8.",
+    "source": "https://www.opensourceforu.com/2026/07/moonshot-ai-unveils-2-8t-parameter-open-source-kimi-k3/"
+  },
+  {
+    "date": "2026-07-24",
+    "datePrecision": "day",
+    "title": "Claude Opus 5 released",
+    "lab": "Anthropic",
+    "category": "Model release",
+    "direction": "Agents",
+    "summary": "Opus 5 kept $5/$25 pricing while reporting 96% on SWE-bench Verified, 70.6% on OSWorld 2.0 and about 30% on ARC-AGI-3.",
+    "source": "https://www.marktechpost.com/2026/07/24/meet-the-new-claude-opus-5-frontier-class-agentic-coding-and-computer-use-at-unchanged-opus-pricing/"
+  },
+  {
+    "date": "2026-07-23",
+    "datePrecision": "day",
+    "title": "First officially graded perfect AI scores at the IMO",
+    "lab": "Huawei / Xiaohongshu",
+    "category": "Reasoning",
+    "direction": "Reasoning",
+    "summary": "Huawei's Celia and Xiaohongshu's dots-note-3.0 scored 42/42 under official IMO grading; other labs' perfect scores came from unofficial, AI-graded runs.",
+    "source": "https://www.digitalapplied.com/blog/imo-2026-perfect-scores-ai-benchmark-saturation"
+  },
+  {
+    "date": "2026-07-09",
+    "datePrecision": "day",
+    "title": "GPT-5.6 Sol, Terra and Luna go public",
+    "lab": "OpenAI",
+    "category": "Model release",
+    "direction": "Agents",
+    "summary": "OpenAI's three-tier GPT-5.6 family reached general availability with a roughly 1M-token context window, led by Sol for agentic coding and science.",
+    "source": "https://www.startuphub.ai/ai-news/artificial-intelligence/2026/openai-launches-gpt-5-6-sol-leads-charge"
+  },
+  {
+    "date": "2026-06-09",
+    "datePrecision": "day",
+    "title": "Claude Fable 5 and Mythos 5 launch",
+    "lab": "Anthropic",
+    "category": "Model release",
+    "direction": "Scale",
+    "summary": "Anthropic's first public Mythos-class model debuted at $10/$50 with 1M context, but a US export directive forced it offline three days later.",
+    "source": "https://www.infoq.com/news/2026/06/claude-5-release/"
+  },
+  {
+    "date": "2026-05-20",
+    "datePrecision": "day",
+    "title": "AI disproves an 80-year-old Erdős conjecture",
+    "lab": "OpenAI",
+    "category": "Science",
+    "direction": "Reasoning",
+    "summary": "An OpenAI general reasoning model found a new construction refuting Erdős's 1946 unit-distance conjecture, with supporting remarks from leading mathematicians.",
+    "source": "https://techcrunch.com/2026/05/20/openai-claims-it-solved-an-80-year-old-math-problem-for-real-this-time/"
+  },
+  {
+    "date": "2026-05-19",
+    "datePrecision": "day",
+    "title": "Google I/O: Gemini 3.5 Flash and Gemini Omni",
+    "lab": "Google DeepMind",
+    "category": "Multimodal",
+    "direction": "Multimodal",
+    "summary": "Google launched Gemini 3.5 Flash and Gemini Omni, a model that turns text, image, audio or video input into editable video.",
+    "source": "https://www.macrumors.com/2026/05/19/google-io-2026-roundup/"
+  },
+  {
+    "date": "2026-05-08",
+    "datePrecision": "day",
+    "title": "METR: Mythos can handle 16-hour tasks",
+    "lab": "METR",
+    "category": "Agents",
+    "direction": "Agents",
+    "summary": "METR estimated an early Claude Mythos Preview has a 50% time horizon of at least 16 hours, the upper limit of what its tasks can measure.",
+    "source": "https://the-decoder.com/metr-says-it-can-barely-measure-claude-mythos-palo-alto-networks-warns-of-autonomous-ai-attackers/"
+  },
+  {
+    "date": "2026-04-24",
+    "datePrecision": "day",
+    "title": "DeepSeek V4 ships with 1M context, open weights",
+    "lab": "DeepSeek",
+    "category": "Open weights",
+    "direction": "Openness",
+    "summary": "DeepSeek released MIT-licensed V4-Pro (1.6T parameters) and V4-Flash with 1M-token context, pricing Pro output around a tenth of GPT-5.5's.",
+    "source": "https://winbuzzer.com/2026/04/27/deepseek-v4-open-weights-launch-xcxwbn/"
+  },
+  {
+    "date": "2026-04-23",
+    "datePrecision": "day",
+    "title": "GPT-5.5 released",
+    "lab": "OpenAI",
+    "category": "Model release",
+    "direction": "Coding",
+    "summary": "GPT-5.5 posted 82.7% on Terminal-Bench 2.0 and 58.6% on SWE-Bench Pro, but raised API prices to $5/$30 per million tokens.",
+    "source": "https://decrypt.co/365333/openai-gpt-5-5-release-agentic-coding-benchmarks"
+  },
+  {
+    "date": "2026-04-08",
+    "datePrecision": "day",
+    "title": "Meta debuts Muse Spark",
+    "lab": "Meta",
+    "category": "Model release",
+    "direction": "Multimodal",
+    "summary": "Meta Superintelligence Labs' first model is a proprietary multimodal reasoner whose multi-agent Contemplating mode hits 58% on Humanity's Last Exam.",
+    "source": "https://ai.meta.com/blog/introducing-muse-spark-msl/"
+  },
+  {
+    "date": "2026-04-07",
+    "datePrecision": "day",
+    "title": "Claude Mythos Preview and Project Glasswing",
+    "lab": "Anthropic",
+    "category": "Research",
+    "direction": "Coding",
+    "summary": "Anthropic withheld Mythos Preview from release after it found thousands of zero-days across major operating systems and browsers, sharing it with defenders instead.",
+    "source": "https://www.anthropic.com/glasswing"
+  },
+  {
+    "date": "2026-03-25",
+    "datePrecision": "day",
+    "title": "ARC-AGI-3 launches; frontier AI scores under 1%",
+    "lab": "ARC Prize Foundation",
+    "category": "Research",
+    "direction": "Reasoning",
+    "summary": "The interactive ARC-AGI-3 benchmark debuted with humans solving every environment while the best frontier model, Gemini 3.1 Pro, managed 0.37%.",
+    "source": "https://officechai.com/ai/arc-agi-3/"
+  },
+  {
+    "date": "2026-03-05",
+    "datePrecision": "day",
+    "title": "GPT-5.4 adds native computer use",
+    "lab": "OpenAI",
+    "category": "Agents",
+    "direction": "Agents",
+    "summary": "GPT-5.4 built computer use into the model and scored 75% on OSWorld-Verified, above the 72.4% human baseline.",
+    "source": "https://en.wikipedia.org/wiki/GPT-5.4"
+  },
+  {
+    "date": "2026-02-19",
+    "datePrecision": "day",
+    "title": "Gemini 3.1 Pro hits 77.1% on ARC-AGI-2",
+    "lab": "Google DeepMind",
+    "category": "Reasoning",
+    "direction": "Reasoning",
+    "summary": "Gemini 3.1 Pro more than doubled its predecessor on ARC-AGI-2 and offered a 1M-token context window aimed at agent workloads.",
+    "source": "https://www.marktechpost.com/2026/02/19/google-ai-releases-gemini-3-1-pro-with-1-million-token-context-and-77-1-percent-arc-agi-2-reasoning-for-ai-agents/"
+  },
+  {
+    "date": "2026-02-11",
+    "datePrecision": "day",
+    "title": "Z.ai releases GLM-5",
+    "lab": "Z.ai",
+    "category": "Open weights",
+    "direction": "Openness",
+    "summary": "GLM-5, a 744B MIT-licensed mixture-of-experts model reportedly trained on Huawei chips, became the top open-weight model on Artificial Analysis.",
+    "source": "https://huggingface.co/blog/mlabonne/glm-5"
+  },
+  {
+    "date": "2025-12-11",
+    "datePrecision": "day",
+    "title": "GPT-5.2 breaks 50% on ARC-AGI-2",
+    "lab": "OpenAI",
+    "category": "Model release",
+    "direction": "Reasoning",
+    "summary": "OpenAI's rushed GPT-5.2 reached 52.9% on ARC-AGI-2 and 70.9% on GDPval knowledge-work tasks.",
+    "source": "https://simonwillison.net/2025/Dec/11/gpt-52/"
+  },
+  {
+    "date": "2025-12-02",
+    "datePrecision": "day",
+    "title": "Mistral 3 family goes open under Apache 2.0",
+    "lab": "Mistral AI",
+    "category": "Open weights",
+    "direction": "Openness",
+    "summary": "Mistral released Mistral Large 3, a 675B-parameter sparse MoE, plus three small Ministral 3 models, all multimodal and Apache 2.0.",
+    "source": "https://mistral.ai/news/mistral-3"
+  },
+  {
+    "date": "2025-12-01",
+    "datePrecision": "day",
+    "title": "DeepSeek V3.2-Speciale hits olympiad gold level",
+    "lab": "DeepSeek",
+    "category": "Open weights",
+    "direction": "Reasoning",
+    "summary": "DeepSeek released open-weight V3.2 and V3.2-Speciale, claiming gold-level results at IMO, IOI, CMO and the ICPC World Finals 2025.",
+    "source": "https://api-docs.deepseek.com/news/news251201/"
+  },
+  {
+    "date": "2025-11-18",
+    "datePrecision": "day",
+    "title": "Gemini 3 tops the leaderboards",
+    "lab": "Google DeepMind",
+    "category": "Model release",
+    "direction": "Reasoning",
+    "summary": "Gemini 3 Pro debuted at 1501 LMArena Elo and 37.5% on Humanity's Last Exam, with Deep Think reaching 45.1% on ARC-AGI-2.",
+    "source": "https://blog.google/products/gemini/gemini-3/"
+  },
+  {
+    "date": "2025-11-06",
+    "datePrecision": "day",
+    "title": "Kimi K2 Thinking open-sourced",
+    "lab": "Moonshot AI",
+    "category": "Open weights",
+    "direction": "Openness",
+    "summary": "Moonshot's 1T-parameter open reasoning model can chain 200–300 tool calls and scored about 43% on Humanity's Last Exam.",
+    "source": "https://siliconangle.com/2025/11/07/moonshot-launches-open-source-kimi-k2-thinking-ai-trillion-parameters-reasoning-capabilities/"
+  },
+  {
+    "date": "2025-10-15",
+    "datePrecision": "day",
+    "title": "Claude Haiku 4.5 brings reasoning to the small tier",
+    "lab": "Anthropic",
+    "category": "Cost & efficiency",
+    "direction": "Efficiency",
+    "summary": "Haiku 4.5 matched Sonnet 4-level coding at a third of the cost, $1/$5 per million tokens, and was the first Haiku with reasoning.",
+    "source": "https://simonwillison.net/2025/Oct/15/claude-haiku-45/"
+  }
+]

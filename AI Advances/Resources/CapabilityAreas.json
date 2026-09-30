@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Reasoning & knowledge",
+    "summary": "Graduate-level science questions, expert-written hard questions, and factual recall.",
+    "benchmarks": ["GPQA diamond", "HLE", "SimpleQA Verified"]
+  },
+  {
+    "name": "Math",
+    "summary": "Research-level math problems and formal proofs.",
+    "benchmarks": ["FrontierMath-Tiers-1-3-v2-Private", "FrontierMath-Tier-4-v2-Private", "ProofBench"]
+  },
+  {
+    "name": "Coding",
+    "summary": "Hard programming problems, terminal tasks, and long software-engineering projects.",
+    "benchmarks": ["FrontierCode", "Terminal Bench", "DeepSWE", "FrontierSWE"]
+  },
+  {
+    "name": "Agents & real work",
+    "summary": "Operating computers, professional tasks, and paid freelance-style projects.",
+    "benchmarks": ["OSWorld 2.0", "APEX-Agents", "Remote Labor Index", "GDPval"]
+  },
+  {
+    "name": "Novel problem solving",
+    "summary": "Puzzles designed to resist memorization: abstract patterns, trick questions, chess.",
+    "benchmarks": ["ARC-AGI-2", "SimpleBench", "Chess Puzzles"]
+  },
+  {
+    "name": "Vision & spatial",
+    "summary": "Physical intuition from images and locating photos on a map.",
+    "benchmarks": ["VPCT", "GeoBench"]
+  }
+]

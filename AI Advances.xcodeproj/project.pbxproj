@@ -1,0 +1,541 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		14E19AC59DDB4B890A9B6876 /* FeedbackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7300ECC1D4FA8D99F20454FF /* FeedbackView.swift */; };
+		16EABE5FB5194C7E8BC5BDCD /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3941A03A148EC0D834977D74 /* Theme.swift */; };
+		257A0F0D08FC966DD8567D38 /* Records.swift in Sources */ = {isa = PBXBuildFile; fileRef = E018176D32D98DD92CC086A3 /* Records.swift */; };
+		28CF3C611EE61B9D46A3A856 /* Parsers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E2323A25A3505D87537691 /* Parsers.swift */; };
+		461796727A8DFA03D8650757 /* ComputeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC30FAEF6055D42E82091489 /* ComputeView.swift */; };
+		6048885BF8C46519C8FBB48C /* AdvancesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D545A338DCB0791BA827BC0 /* AdvancesView.swift */; };
+		6CF48239D1C3C9B34B7520A6 /* Advances.json in Resources */ = {isa = PBXBuildFile; fileRef = C1882CB7004FEC7E2C6C23B3 /* Advances.json */; };
+		704E9E4BCACE91821D882104 /* ModelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCE094D777591301829656E /* ModelsView.swift */; };
+		8254946A84C83E0F074E0BA7 /* openrouter_models.json in Resources */ = {isa = PBXBuildFile; fileRef = 9EC2B8F8D51EDA36FEE1944E /* openrouter_models.json */; };
+		8FA2ECE8EBA210AFB09AF215 /* ContextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8E71E26FD97C819E95FD40C /* ContextView.swift */; };
+		A3AE5FDFAB4F97F15A54927B /* CapabilitiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CD35CF3AD0A8C576F676851 /* CapabilitiesView.swift */; };
+		A7BC9BACB1002532F91D906D /* DataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5DED13EF03DE42F1A1B63F2E /* DataStore.swift */; };
+		AAA6C9CA5DDE0BC805FE9790 /* Analysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012F19DFF2596D74158B02C7 /* Analysis.swift */; };
+		AAF64C89A5C250B2DBF3ECF7 /* AIAdvancesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D224F1FFBFE52F8D74A68741 /* AIAdvancesApp.swift */; };
+		ADE259A8A8FCEF68BC0B28EA /* TrendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB23824C56A207579553B9A7 /* TrendsView.swift */; };
+		B2A08B8A5BCA518296E87056 /* notable_ai_models.csv in Resources */ = {isa = PBXBuildFile; fileRef = FC55FDECE34989CBAE37EAAF /* notable_ai_models.csv */; };
+		BE9081239115F98EC6394971 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3690E0AA33AF496F406C248D /* Assets.xcassets */; };
+		C56D470E41163E3A3A42B491 /* CapabilityAreas.json in Resources */ = {isa = PBXBuildFile; fileRef = F8C3EC2B5D6B0F0581BFA243 /* CapabilityAreas.json */; };
+		C9A15942ACDD64BA83988B68 /* CSV.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3A4A06288BF252B291D4972 /* CSV.swift */; };
+		CFF5F2C644FC2811E3E21AEB /* AIAdvancesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F14677CCEE26AA3A4E8094 /* AIAdvancesTests.swift */; };
+		E39507997B616EE04869E842 /* CostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73FB40E12AFF8DDB3836B1C /* CostView.swift */; };
+		E82EC44663E62637BA7223F8 /* FrontierChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C022C9D23C87A45A21957C2 /* FrontierChart.swift */; };
+		EEBB85A1B368F8C9BC3B45FD /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745365E2E21268DAD3C942DF /* ContentView.swift */; };
+		F2A24E1B0CB84CA057213ECB /* benchmark_data.zip in Resources */ = {isa = PBXBuildFile; fileRef = 24FA30095ADCC0A6FDBBF893 /* benchmark_data.zip */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		BDE13AE0430AE75F4A089090 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B338C0D13B2028D86ECDC711 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4D8F87DDEC1AC1314839EAE4;
+			remoteInfo = "AI Advances";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		012F19DFF2596D74158B02C7 /* Analysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analysis.swift; sourceTree = "<group>"; };
+		0C022C9D23C87A45A21957C2 /* FrontierChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrontierChart.swift; sourceTree = "<group>"; };
+		13E2323A25A3505D87537691 /* Parsers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Parsers.swift; sourceTree = "<group>"; };
+		24FA30095ADCC0A6FDBBF893 /* benchmark_data.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = benchmark_data.zip; sourceTree = "<group>"; };
+		3690E0AA33AF496F406C248D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		3941A03A148EC0D834977D74 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		4CD35CF3AD0A8C576F676851 /* CapabilitiesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CapabilitiesView.swift; sourceTree = "<group>"; };
+		5DED13EF03DE42F1A1B63F2E /* DataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataStore.swift; sourceTree = "<group>"; };
+		7300ECC1D4FA8D99F20454FF /* FeedbackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackView.swift; sourceTree = "<group>"; };
+		745365E2E21268DAD3C942DF /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		96F14677CCEE26AA3A4E8094 /* AIAdvancesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAdvancesTests.swift; sourceTree = "<group>"; };
+		9D545A338DCB0791BA827BC0 /* AdvancesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdvancesView.swift; sourceTree = "<group>"; };
+		9EC2B8F8D51EDA36FEE1944E /* openrouter_models.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = openrouter_models.json; sourceTree = "<group>"; };
+		A8E71E26FD97C819E95FD40C /* ContextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextView.swift; sourceTree = "<group>"; };
+		A90DABA4CACBAFC7EC25764C /* AI Advances.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "AI Advances.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC30FAEF6055D42E82091489 /* ComputeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComputeView.swift; sourceTree = "<group>"; };
+		C1882CB7004FEC7E2C6C23B3 /* Advances.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Advances.json; sourceTree = "<group>"; };
+		C3A4A06288BF252B291D4972 /* CSV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSV.swift; sourceTree = "<group>"; };
+		C73FB40E12AFF8DDB3836B1C /* CostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CostView.swift; sourceTree = "<group>"; };
+		D224F1FFBFE52F8D74A68741 /* AIAdvancesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAdvancesApp.swift; sourceTree = "<group>"; };
+		E018176D32D98DD92CC086A3 /* Records.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Records.swift; sourceTree = "<group>"; };
+		E4E70BE58B020469987DD9E5 /* AI Advances Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AI Advances Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		ECCE094D777591301829656E /* ModelsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelsView.swift; sourceTree = "<group>"; };
+		F8C3EC2B5D6B0F0581BFA243 /* CapabilityAreas.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CapabilityAreas.json; sourceTree = "<group>"; };
+		FB23824C56A207579553B9A7 /* TrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsView.swift; sourceTree = "<group>"; };
+		FC55FDECE34989CBAE37EAAF /* notable_ai_models.csv */ = {isa = PBXFileReference; path = notable_ai_models.csv; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		2F31210278FEF50BD88ADF45 /* Seed */ = {
+			isa = PBXGroup;
+			children = (
+				24FA30095ADCC0A6FDBBF893 /* benchmark_data.zip */,
+				FC55FDECE34989CBAE37EAAF /* notable_ai_models.csv */,
+				9EC2B8F8D51EDA36FEE1944E /* openrouter_models.json */,
+			);
+			path = Seed;
+			sourceTree = "<group>";
+		};
+		346FD548615EB6DE0DE55240 /* AI Advances Tests */ = {
+			isa = PBXGroup;
+			children = (
+				96F14677CCEE26AA3A4E8094 /* AIAdvancesTests.swift */,
+			);
+			path = "AI Advances Tests";
+			sourceTree = "<group>";
+		};
+		3DED3927D494A108AC775AE4 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				9D545A338DCB0791BA827BC0 /* AdvancesView.swift */,
+				4CD35CF3AD0A8C576F676851 /* CapabilitiesView.swift */,
+				AC30FAEF6055D42E82091489 /* ComputeView.swift */,
+				745365E2E21268DAD3C942DF /* ContentView.swift */,
+				A8E71E26FD97C819E95FD40C /* ContextView.swift */,
+				C73FB40E12AFF8DDB3836B1C /* CostView.swift */,
+				7300ECC1D4FA8D99F20454FF /* FeedbackView.swift */,
+				0C022C9D23C87A45A21957C2 /* FrontierChart.swift */,
+				ECCE094D777591301829656E /* ModelsView.swift */,
+				3941A03A148EC0D834977D74 /* Theme.swift */,
+				FB23824C56A207579553B9A7 /* TrendsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		4DE9B1AEEB4098D9EE1DA2A8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E4E70BE58B020469987DD9E5 /* AI Advances Tests.xctest */,
+				A90DABA4CACBAFC7EC25764C /* AI Advances.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		7F4F7820973DA47E06C64071 /* AI Advances */ = {
+			isa = PBXGroup;
+			children = (
+				DB3B79906203DBA914A6A708 /* App */,
+				B2128D07FDD5604BCCB0E4B0 /* Data */,
+				EE948F2F374A72576741F1BF /* Resources */,
+				3DED3927D494A108AC775AE4 /* Views */,
+			);
+			path = "AI Advances";
+			sourceTree = "<group>";
+		};
+		A4545146DDB53143C81FB965 = {
+			isa = PBXGroup;
+			children = (
+				7F4F7820973DA47E06C64071 /* AI Advances */,
+				346FD548615EB6DE0DE55240 /* AI Advances Tests */,
+				4DE9B1AEEB4098D9EE1DA2A8 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B2128D07FDD5604BCCB0E4B0 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				012F19DFF2596D74158B02C7 /* Analysis.swift */,
+				C3A4A06288BF252B291D4972 /* CSV.swift */,
+				5DED13EF03DE42F1A1B63F2E /* DataStore.swift */,
+				13E2323A25A3505D87537691 /* Parsers.swift */,
+				E018176D32D98DD92CC086A3 /* Records.swift */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
+		DB3B79906203DBA914A6A708 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				D224F1FFBFE52F8D74A68741 /* AIAdvancesApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		EE948F2F374A72576741F1BF /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				C1882CB7004FEC7E2C6C23B3 /* Advances.json */,
+				3690E0AA33AF496F406C248D /* Assets.xcassets */,
+				F8C3EC2B5D6B0F0581BFA243 /* CapabilityAreas.json */,
+				2F31210278FEF50BD88ADF45 /* Seed */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		4D8F87DDEC1AC1314839EAE4 /* AI Advances */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 718C057D36E5E187AFA8CAD1 /* Build configuration list for PBXNativeTarget "AI Advances" */;
+			buildPhases = (
+				36CFF125615302215210B252 /* Sources */,
+				0840FCE9A3CE4EAF4110686A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "AI Advances";
+			packageProductDependencies = (
+			);
+			productName = "AI Advances";
+			productReference = A90DABA4CACBAFC7EC25764C /* AI Advances.app */;
+			productType = "com.apple.product-type.application";
+		};
+		ECCDEB25F510455BBA88B373 /* AI Advances Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8FE58C2FB60B11F54C6A4AC5 /* Build configuration list for PBXNativeTarget "AI Advances Tests" */;
+			buildPhases = (
+				A8A87A6E97FFDA39F9129BF0 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				C8378D215AE3AD66069EF78A /* PBXTargetDependency */,
+			);
+			name = "AI Advances Tests";
+			packageProductDependencies = (
+			);
+			productName = "AI Advances Tests";
+			productReference = E4E70BE58B020469987DD9E5 /* AI Advances Tests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B338C0D13B2028D86ECDC711 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					4D8F87DDEC1AC1314839EAE4 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 0553752052E6D84CF1AD4763 /* Build configuration list for PBXProject "AI Advances" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = A4545146DDB53143C81FB965;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 4DE9B1AEEB4098D9EE1DA2A8 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				4D8F87DDEC1AC1314839EAE4 /* AI Advances */,
+				ECCDEB25F510455BBA88B373 /* AI Advances Tests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0840FCE9A3CE4EAF4110686A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6CF48239D1C3C9B34B7520A6 /* Advances.json in Resources */,
+				BE9081239115F98EC6394971 /* Assets.xcassets in Resources */,
+				C56D470E41163E3A3A42B491 /* CapabilityAreas.json in Resources */,
+				F2A24E1B0CB84CA057213ECB /* benchmark_data.zip in Resources */,
+				B2A08B8A5BCA518296E87056 /* notable_ai_models.csv in Resources */,
+				8254946A84C83E0F074E0BA7 /* openrouter_models.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		36CFF125615302215210B252 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AAF64C89A5C250B2DBF3ECF7 /* AIAdvancesApp.swift in Sources */,
+				6048885BF8C46519C8FBB48C /* AdvancesView.swift in Sources */,
+				AAA6C9CA5DDE0BC805FE9790 /* Analysis.swift in Sources */,
+				C9A15942ACDD64BA83988B68 /* CSV.swift in Sources */,
+				A3AE5FDFAB4F97F15A54927B /* CapabilitiesView.swift in Sources */,
+				461796727A8DFA03D8650757 /* ComputeView.swift in Sources */,
+				EEBB85A1B368F8C9BC3B45FD /* ContentView.swift in Sources */,
+				8FA2ECE8EBA210AFB09AF215 /* ContextView.swift in Sources */,
+				E39507997B616EE04869E842 /* CostView.swift in Sources */,
+				A7BC9BACB1002532F91D906D /* DataStore.swift in Sources */,
+				14E19AC59DDB4B890A9B6876 /* FeedbackView.swift in Sources */,
+				E82EC44663E62637BA7223F8 /* FrontierChart.swift in Sources */,
+				704E9E4BCACE91821D882104 /* ModelsView.swift in Sources */,
+				28CF3C611EE61B9D46A3A856 /* Parsers.swift in Sources */,
+				257A0F0D08FC966DD8567D38 /* Records.swift in Sources */,
+				16EABE5FB5194C7E8BC5BDCD /* Theme.swift in Sources */,
+				ADE259A8A8FCEF68BC0B28EA /* TrendsView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A8A87A6E97FFDA39F9129BF0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CFF5F2C644FC2811E3E21AEB /* AIAdvancesTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		C8378D215AE3AD66069EF78A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4D8F87DDEC1AC1314839EAE4 /* AI Advances */;
+			targetProxy = BDE13AE0430AE75F4A089090 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		3077843DCE948FB2CFF8E6DE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.amalmehta.ai-advances-tests";
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AI Advances.app/Contents/MacOS/AI Advances";
+			};
+			name = Release;
+		};
+		9C9D5D9D339B3E15C4779CE9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "AI Advances";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Data: Epoch AI (CC BY 4.0) and OpenRouter";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.amalmehta.ai-advances";
+				PRODUCT_NAME = "AI Advances";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		D64DCA180B1F2D1BB26F0C88 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		E2B0345A0816E45B66172B2B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		E3853650F6BF28CB5BBB9CA1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "-";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "AI Advances";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Data: Epoch AI (CC BY 4.0) and OpenRouter";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.amalmehta.ai-advances";
+				PRODUCT_NAME = "AI Advances";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		F2B564C580CFE3BC866A727A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.amalmehta.ai-advances-tests";
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AI Advances.app/Contents/MacOS/AI Advances";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0553752052E6D84CF1AD4763 /* Build configuration list for PBXProject "AI Advances" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D64DCA180B1F2D1BB26F0C88 /* Debug */,
+				E2B0345A0816E45B66172B2B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		718C057D36E5E187AFA8CAD1 /* Build configuration list for PBXNativeTarget "AI Advances" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E3853650F6BF28CB5BBB9CA1 /* Debug */,
+				9C9D5D9D339B3E15C4779CE9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8FE58C2FB60B11F54C6A4AC5 /* Build configuration list for PBXNativeTarget "AI Advances Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F2B564C580CFE3BC866A727A /* Debug */,
+				3077843DCE948FB2CFF8E6DE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = B338C0D13B2028D86ECDC711 /* Project object */;
+}

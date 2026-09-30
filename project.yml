@@ -1,0 +1,52 @@
+name: AI Advances
+options:
+  bundleIdPrefix: com.amalmehta
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  AI Advances:
+    type: application
+    platform: macOS
+    sources:
+      - path: AI Advances
+    settings:
+      base:
+        PRODUCT_NAME: AI Advances
+        PRODUCT_BUNDLE_IDENTIFIER: com.amalmehta.ai-advances
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: AI Advances
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        INFOPLIST_KEY_NSHumanReadableCopyright: "Data: Epoch AI (CC BY 4.0) and OpenRouter"
+        ENABLE_APP_SANDBOX: NO
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "-"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  AI Advances Tests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: AI Advances Tests
+    dependencies:
+      - target: AI Advances
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.amalmehta.ai-advances-tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/AI Advances.app/Contents/MacOS/AI Advances"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+schemes:
+  AI Advances:
+    build:
+      targets:
+        AI Advances: all
+        AI Advances Tests: [test]
+    test:
+      targets:
+        - AI Advances Tests
