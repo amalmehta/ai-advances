@@ -14,51 +14,13 @@ struct AdvancesView: View {
         var id: String { rawValue }
     }
 
-    struct Item: Identifiable {
-        let id: String
-        let date: Date
-        let title: String
-        let detail: String
-        let lab: String
-        let kind: Kind
-        let direction: String
-        let link: URL?
-    }
-
-    static let areaDirection: [String: String] = [
-        "Reasoning & knowledge": "Reasoning", "Math": "Reasoning", "Novel problem solving": "Reasoning",
-        "Coding": "Coding", "Agents & real work": "Agents", "Vision & spatial": "Multimodal",
-    ]
-
-    private func items(now: Date) -> [Item] {
-        let data = store.data
-        let curated = data.advances.map {
-            Item(id: "c" + $0.id, date: $0.day, title: $0.title, detail: $0.summary, lab: $0.lab,
-                 kind: .curated, direction: $0.direction, link: URL(string: $0.source))
-        }
-        let areaOf = Dictionary(data.areas.flatMap { a in a.benchmarks.map { ($0, a.name) } }, uniquingKeysWith: { a, _ in a })
-        let records = Analysis.recentRecords(data, since: yearsAgo(1, from: now)).map { r in
-            Item(id: "r" + r.id, date: r.point.date,
-                 title: "\(r.point.model) sets a \(Analysis.shortName(r.point.benchmark)) record",
-                 detail: "\(Format.percent(r.point.score, digits: 1)), up from \(Format.percent(r.previous, digits: 1)). \(areaOf[r.point.benchmark] ?? "") benchmark.",
-                 lab: r.point.organization, kind: .records,
-                 direction: Self.areaDirection[areaOf[r.point.benchmark] ?? ""] ?? "Reasoning",
-                 link: URL(string: "https://epoch.ai/benchmarks"))
-        }
-        let models = data.listed.filter { $0.created >= yearsAgo(60 / 365.25, from: now) }.map { m in
-            Item(id: "m" + m.id, date: m.created, title: "\(m.lab) lists \(m.name)",
-                 detail: "\(Format.tokens(m.contextLength)) context · \(m.isFree ? "free" : Format.price(m.blendedPrice) + " / M tokens") · takes \(m.inputModalities.sorted().joined(separator: ", "))",
-                 lab: m.lab, kind: .models, direction: "New models",
-                 link: URL(string: "https://openrouter.ai/\(m.id)"))
-        }
-        return (curated + records + models).sorted { $0.date > $1.date }
-    }
+    typealias Item = FeedItem
 
     var body: some View {
         let now = Date()
-        let all = items(now: now)
+        let all = Feed.items(store.data, now: now)
         let directions = ["All directions"] + Array(Set(all.map(\.direction))).sorted()
-        let shown = all.filter { (kind == .all || $0.kind == kind) && (direction == "All directions" || $0.direction == direction) }
+        let shown = all.filter { (kind == .all || $0.kind.rawValue == kind.rawValue) && (direction == "All directions" || $0.direction == direction) }
 
         VStack(alignment: .leading, spacing: 20) {
             PageHeader(title: "Latest advances",
@@ -99,7 +61,7 @@ struct AdvancesView: View {
             Image(systemName: symbol(item.kind)).foregroundStyle(.secondary).frame(width: 18)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(alignment: .firstTextBaseline) {
-                    if let link = item.link { Link(item.title, destination: link).font(.body.weight(.medium)) }
+                    if let link = item.link.flatMap(URL.init(string:)) { Link(item.title, destination: link).font(.body.weight(.medium)) }
                     else { Text(item.title).font(.body.weight(.medium)) }
                 }
                 Text(item.detail).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
@@ -110,12 +72,11 @@ struct AdvancesView: View {
         .padding(.vertical, 10)
     }
 
-    private func symbol(_ k: Kind) -> String {
+    private func symbol(_ k: FeedItem.Kind) -> String {
         switch k {
         case .curated: "sparkles"
         case .records: "trophy"
         case .models: "shippingbox"
-        case .all: "circle"
         }
     }
 

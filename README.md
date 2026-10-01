@@ -2,7 +2,13 @@
 
 ![Forecasts: a timeline of dated predictions with 90% ranges, under an auto-written outlook](docs/images/forecasts.png)
 
-**A Mac app that tracks where AI is heading.** It follows the latest model releases, what each model and lab is working on, and the long-run trends in capability, cost, context and compute, and turns those trends into dated forecasts that update themselves from public data.
+**A Mac app and website that track where AI is heading.** They follow the latest model releases, what each model and lab is working on, and the long-run trends in capability, cost, context and compute, and turn those trends into dated forecasts that update themselves from public data.
+
+**Website:** [amalmehta.github.io/ai-advances](https://amalmehta.github.io/ai-advances/), rebuilt daily.
+
+| Website | |
+|---|---|
+| ![The AI Advances website on the Forecasts page](docs/images/website.jpg) | Same nine pages as the Mac app, in the browser, on phones too. A GitHub Action rebuilds it every day with the same Swift analysis code. |
 
 | Direction Trends | Labs |
 |---|---|
@@ -31,9 +37,11 @@ flowchart LR
     T --> A[AI Advances<br>Mac app]
     F --> A
     G --> A
+    T --> W[Website<br>rebuilt daily by GitHub Actions]
+    F --> W
 ```
 
-The app checks for fresh data on launch and every 6 hours while it's open. It needs no API keys, and a snapshot is bundled so it works offline.
+The app checks for fresh data on launch and every 6 hours while it's open; the website is rebuilt every morning (06:17 UTC). Neither needs API keys.
 
 **[Setup and usage guide →](docs/GUIDE.md)**
 

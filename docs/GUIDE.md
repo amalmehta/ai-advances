@@ -25,7 +25,32 @@ xcodebuild -project "AI Advances.xcodeproj" -scheme "AI Advances" -derivedDataPa
 
 To render the Forecasts and Labs pages to full-length PNGs for review, set `TEST_RUNNER_RENDER_PAGES` to an output folder when running the tests.
 
-The Xcode project is generated from `project.yml`. After adding or moving files, regenerate it with `xcodegen generate` (install it with `brew install xcodegen`).
+The Xcode project is generated from `project.yml`; `Package.swift` only builds the website's data exporter. After adding or moving files, regenerate it with `xcodegen generate` (install it with `brew install xcodegen`).
+
+## Website
+
+The website at **https://amalmehta.github.io/ai-advances/** has the same nine pages as the app. It's built by `.github/workflows/update-website.yml`, which runs every day at 06:17 UTC, on every push that touches the site or the analysis code, and on demand (Actions → *Update website* → *Run workflow*). Each run:
+
+1. Downloads the three sources (falling back to the snapshot in the repo if one fails).
+2. Builds `ai-advances-export` (the `Package.swift` target) from the same `AI Advances/Data` code as the Mac app, and writes `site/data/site.json`.
+3. Adds the day's forecasts to `forecast-log.json` on the `data` branch, as a commit by `github-actions[bot]`. This is the website's forecast history; `main` stays clean.
+4. Publishes `site/` to GitHub Pages.
+
+To work on the site locally:
+
+```bash
+swift build -c release
+```
+
+```bash
+.build/release/ai-advances-export --sources "AI Advances/Resources/Seed" --resources "AI Advances/Resources" --out site/data
+```
+
+```bash
+python3 -m http.server 8765 --directory site
+```
+
+Then open http://localhost:8765. The site is plain HTML, CSS and JavaScript (`site/index.html`, `site/styles.css`, `site/app.js`), with charts from Observable Plot loaded from jsDelivr. There's no build step.
 
 ## Pages
 

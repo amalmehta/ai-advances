@@ -13,6 +13,7 @@
 		16EABE5FB5194C7E8BC5BDCD /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3941A03A148EC0D834977D74 /* Theme.swift */; };
 		257A0F0D08FC966DD8567D38 /* Records.swift in Sources */ = {isa = PBXBuildFile; fileRef = E018176D32D98DD92CC086A3 /* Records.swift */; };
 		28CF3C611EE61B9D46A3A856 /* Parsers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13E2323A25A3505D87537691 /* Parsers.swift */; };
+		2DB1E1B42AF36CDCFC3C4046 /* Outlook.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0BD65C55F8978D60B2922D /* Outlook.swift */; };
 		40A0B182B3FECC97ED2C7A58 /* Forecasts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 696CBCD211757892F5C5EA12 /* Forecasts.swift */; };
 		4548B0383C66DED0EAE6B68B /* Labs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C95544E7FF28208B00779CA /* Labs.swift */; };
 		461796727A8DFA03D8650757 /* ComputeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC30FAEF6055D42E82091489 /* ComputeView.swift */; };
@@ -33,10 +34,12 @@
 		C615A414BD7E6C61CE0ACF01 /* Labs.json in Resources */ = {isa = PBXBuildFile; fileRef = F5B301DDFC8B5E2B8CD10102 /* Labs.json */; };
 		C9A15942ACDD64BA83988B68 /* CSV.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3A4A06288BF252B291D4972 /* CSV.swift */; };
 		CFF5F2C644FC2811E3E21AEB /* AIAdvancesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F14677CCEE26AA3A4E8094 /* AIAdvancesTests.swift */; };
+		DCB089D8019334DF8D4AB1F1 /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A84757CD3E5BB83C7313D20 /* Feed.swift */; };
 		E39507997B616EE04869E842 /* CostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73FB40E12AFF8DDB3836B1C /* CostView.swift */; };
 		E82EC44663E62637BA7223F8 /* FrontierChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C022C9D23C87A45A21957C2 /* FrontierChart.swift */; };
 		EEBB85A1B368F8C9BC3B45FD /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745365E2E21268DAD3C942DF /* ContentView.swift */; };
 		F2A24E1B0CB84CA057213ECB /* benchmark_data.zip in Resources */ = {isa = PBXBuildFile; fileRef = 24FA30095ADCC0A6FDBBF893 /* benchmark_data.zip */; };
+		FA993F16D55FF7844DAE15BE /* Loading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 024F58F4940912A8D6334400 /* Loading.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,8 +54,10 @@
 
 /* Begin PBXFileReference section */
 		012F19DFF2596D74158B02C7 /* Analysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analysis.swift; sourceTree = "<group>"; };
+		024F58F4940912A8D6334400 /* Loading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loading.swift; sourceTree = "<group>"; };
 		0C022C9D23C87A45A21957C2 /* FrontierChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrontierChart.swift; sourceTree = "<group>"; };
 		13E2323A25A3505D87537691 /* Parsers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Parsers.swift; sourceTree = "<group>"; };
+		1A84757CD3E5BB83C7313D20 /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
 		24FA30095ADCC0A6FDBBF893 /* benchmark_data.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = benchmark_data.zip; sourceTree = "<group>"; };
 		3690E0AA33AF496F406C248D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3941A03A148EC0D834977D74 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -74,6 +79,7 @@
 		C3A4A06288BF252B291D4972 /* CSV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSV.swift; sourceTree = "<group>"; };
 		C73FB40E12AFF8DDB3836B1C /* CostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CostView.swift; sourceTree = "<group>"; };
 		C75CBEED561E6E845C1D1F66 /* ForecastsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastsView.swift; sourceTree = "<group>"; };
+		CC0BD65C55F8978D60B2922D /* Outlook.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Outlook.swift; sourceTree = "<group>"; };
 		D224F1FFBFE52F8D74A68741 /* AIAdvancesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAdvancesApp.swift; sourceTree = "<group>"; };
 		E018176D32D98DD92CC086A3 /* Records.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Records.swift; sourceTree = "<group>"; };
 		E4E70BE58B020469987DD9E5 /* AI Advances Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AI Advances Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -159,8 +165,11 @@
 				012F19DFF2596D74158B02C7 /* Analysis.swift */,
 				C3A4A06288BF252B291D4972 /* CSV.swift */,
 				5DED13EF03DE42F1A1B63F2E /* DataStore.swift */,
+				1A84757CD3E5BB83C7313D20 /* Feed.swift */,
 				696CBCD211757892F5C5EA12 /* Forecasts.swift */,
 				7C95544E7FF28208B00779CA /* Labs.swift */,
+				024F58F4940912A8D6334400 /* Loading.swift */,
+				CC0BD65C55F8978D60B2922D /* Outlook.swift */,
 				13E2323A25A3505D87537691 /* Parsers.swift */,
 				E018176D32D98DD92CC086A3 /* Records.swift */,
 			);
@@ -292,13 +301,16 @@
 				8FA2ECE8EBA210AFB09AF215 /* ContextView.swift in Sources */,
 				E39507997B616EE04869E842 /* CostView.swift in Sources */,
 				A7BC9BACB1002532F91D906D /* DataStore.swift in Sources */,
+				DCB089D8019334DF8D4AB1F1 /* Feed.swift in Sources */,
 				14E19AC59DDB4B890A9B6876 /* FeedbackView.swift in Sources */,
 				40A0B182B3FECC97ED2C7A58 /* Forecasts.swift in Sources */,
 				05EB08D44C328B3548FAA476 /* ForecastsView.swift in Sources */,
 				E82EC44663E62637BA7223F8 /* FrontierChart.swift in Sources */,
 				4548B0383C66DED0EAE6B68B /* Labs.swift in Sources */,
 				14F9C390805EE1396DD07E25 /* LabsView.swift in Sources */,
+				FA993F16D55FF7844DAE15BE /* Loading.swift in Sources */,
 				704E9E4BCACE91821D882104 /* ModelsView.swift in Sources */,
+				2DB1E1B42AF36CDCFC3C4046 /* Outlook.swift in Sources */,
 				28CF3C611EE61B9D46A3A856 /* Parsers.swift in Sources */,
 				257A0F0D08FC966DD8567D38 /* Records.swift in Sources */,
 				16EABE5FB5194C7E8BC5BDCD /* Theme.swift in Sources */,

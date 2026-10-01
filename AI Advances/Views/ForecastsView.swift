@@ -8,13 +8,6 @@ struct ForecastsView: View {
 
     static let kinds = Forecast.Kind.allCases.map(\.rawValue)
 
-    private struct Shift: Identifiable {
-        var id: String { forecast.id }
-        let forecast: Forecast
-        let months: Double
-        let since: Date
-    }
-
     var body: some View {
         let now = Date()
         let upcoming = store.forecasts.filter { $0.reached == nil && $0.predicted != nil }
@@ -24,7 +17,7 @@ struct ForecastsView: View {
                           (upcoming.last?.predicted ?? now).addingTimeInterval(270 * 86_400))
         let stalled = store.forecasts.filter { $0.reached == nil && $0.predicted == nil }
         let reached = store.forecasts.filter { $0.reached != nil }.sorted { $0.reached! > $1.reached! }
-        let shifts = shifts(upcoming, monthsBack: 3)
+        let shifts = Forecasts.shifts(upcoming, history: store.reconstructedLog + store.liveLog, now: now)
         let selected = upcoming.first { $0.id == selectedID } ?? upcoming.first
 
         VStack(alignment: .leading, spacing: 20) {
@@ -35,7 +28,7 @@ struct ForecastsView: View {
                 ProgressView("Computing forecasts…")
             } else {
                 Card(title: "Outlook", subtitle: "Written from the numbers below; changes when they do.") {
-                    Text(outlook(upcoming: upcoming, shifts: shifts, now: now))
+                    Text(Forecasts.outlook(upcoming, shifts: shifts, now: now))
                         .fixedSize(horizontal: false, vertical: true)
                         .textSelection(.enabled)
                 }
@@ -200,44 +193,5 @@ struct ForecastsView: View {
                 Footnote(text: "In \(Format.monthYear(first.asOf)) the trend pointed to \(Format.monthYear(first.predicted)); it now points to \(Format.monthYear(last.predicted)), \(change). Saved log: \(store.liveLog.count) day\(store.liveLog.count == 1 ? "" : "s") so far.")
             }
         }
-    }
-
-    // MARK: Narrative
-
-    private func shifts(_ upcoming: [Forecast], monthsBack: Int) -> [Shift] {
-        let target = Calendar.current.date(byAdding: .month, value: -monthsBack, to: Date())!
-        guard let then = (store.reconstructedLog + store.liveLog).min(by: {
-            abs($0.asOf.timeIntervalSince(target)) < abs($1.asOf.timeIntervalSince(target))
-        }) else { return [] }
-        return upcoming.compactMap { f in
-            guard let old = then.forecasts[f.id]?.predicted, let new = f.predicted else { return nil }
-            let m = Dates.months(from: old, to: new)
-            return abs(m) >= 1 ? Shift(forecast: f, months: m, since: then.asOf) : nil
-        }
-        .sorted { abs($0.months) > abs($1.months) }
-    }
-
-    private func outlook(upcoming: [Forecast], shifts: [Shift], now: Date) -> String {
-        var parts: [String] = []
-        let soon = upcoming.filter { $0.predicted! < now.addingTimeInterval(365.25 * 86_400) }
-        if !soon.isEmpty {
-            parts.append("Within the next year the trends point to: " + soon.prefix(4).map { "\($0.title) (\(Format.monthYear($0.predicted!)))" }.joined(separator: "; ") + ".")
-        }
-        let areas = Dictionary(grouping: upcoming.filter { $0.kind == .capabilities }, by: \.area)
-            .mapValues { $0.map(\.predicted!).min()! }
-            .sorted { $0.value < $1.value }
-        if let next = areas.first, let last = areas.last, next.key != last.key {
-            parts.append("Among capability areas, \(next.key.lowercased()) is closest to saturating its hardest tracked benchmarks; \(last.key.lowercased()) has the longest way to go.")
-        }
-        if let w = upcoming.first(where: { $0.id == "metr-week" }) {
-            parts.append("AI agents are on course to handle week-long tasks around \(Format.monthYear(w.predicted!)).")
-        }
-        let earlier = shifts.filter { $0.months < 0 }.count, later = shifts.filter { $0.months > 0 }.count
-        if earlier + later > 0 {
-            parts.append(earlier >= later
-                         ? "Over the last 3 months, \(earlier) of \(earlier + later) forecasts that moved came earlier: progress is speeding up relative to the trend."
-                         : "Over the last 3 months, \(later) of \(earlier + later) forecasts that moved slipped later: progress is running behind the trend.")
-        }
-        return parts.joined(separator: " ")
     }
 }

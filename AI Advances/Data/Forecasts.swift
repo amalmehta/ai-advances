@@ -154,7 +154,7 @@ enum Forecasts {
         return horizonTargets.map { t in
             make(id: t.id, kind: .agents, area: "Agents & real work",
                  title: "AI handles tasks taking \(t.label)",
-                 target: "METR 50% time horizon ≥ \(Format.minutes(t.minutes))",
+                 target: "METR 50% time horizon ≥ \(Int(t.minutes / 60)) hours",
                  current: frontier.last.map { "\(Format.minutes($0.minutes)) now (\($0.modelGroup))" } ?? "no data",
                  basis: "Exponential fit to \(pts.count) record-setting models since 2023" + (doubling.map { ", doubling every \(Format.months($0))" } ?? ""),
                  reached: frontier.first { $0.minutes >= t.minutes }?.releaseDate,
@@ -243,11 +243,9 @@ enum Forecasts {
     }
 }
 
-/// Saved forecasts from each day the app refreshed, in Application Support.
+/// Saved forecasts, one entry per day. The app keeps its own; the website's lives on the `data` branch.
 enum ForecastLog {
-    static var url: URL { DataStore.cacheDir.deletingLastPathComponent().appendingPathComponent("Forecast Log.json") }
-
-    static func load() -> [ForecastLogEntry] {
+    static func load(from url: URL) -> [ForecastLogEntry] {
         guard let data = try? Data(contentsOf: url) else { return [] }
         let d = JSONDecoder()
         d.dateDecodingStrategy = .iso8601
@@ -255,11 +253,11 @@ enum ForecastLog {
     }
 
     /// Records today's forecasts, replacing any entry already saved today.
-    static func record(_ forecasts: [Forecast], on day: Date = Date()) -> [ForecastLogEntry] {
+    static func record(_ forecasts: [Forecast], on day: Date = Date(), to url: URL) -> [ForecastLogEntry] {
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(identifier: "UTC")!
         let today = cal.startOfDay(for: day)
-        var log = load().filter { !cal.isDate($0.asOf, inSameDayAs: today) }
+        var log = load(from: url).filter { !cal.isDate($0.asOf, inSameDayAs: today) }
         log.append(ForecastLogEntry(asOf: today, reconstructed: false,
                                     forecasts: Dictionary(uniqueKeysWithValues: forecasts.map { ($0.id, $0.snapshot) })))
         log.sort { $0.asOf < $1.asOf }

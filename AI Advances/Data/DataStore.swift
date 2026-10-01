@@ -123,7 +123,7 @@ final class DataStore {
         let result = await Task.detached(priority: .utility) { () -> ([Forecast], [ForecastLogEntry], [ForecastLogEntry], [LabSummary]) in
             let current = Forecasts.all(data, profiles: profiles, asOf: now)
             let past = Forecasts.reconstructed(data, now: now)
-            let log = ForecastLog.record(current, on: now)
+            let log = ForecastLog.record(current, on: now, to: DataStore.forecastLogURL)
             let notes = (try? DataStore.bundled([LabNote].self, "Labs")) ?? []
             return (current, past, log, Labs.summaries(data, notes: notes, now: now))
         }.value
@@ -131,31 +131,18 @@ final class DataStore {
     }
 
     nonisolated static func parseAll(_ files: [String: URL]) throws -> Dataset {
-        var d = Dataset()
-        let unzipped = FileManager.default.temporaryDirectory.appendingPathComponent("ai-advances-\(UUID().uuidString)")
-        defer { try? FileManager.default.removeItem(at: unzipped) }
-        try unzip(files["benchmark_data.zip"]!, to: unzipped)
-        (d.benchmarks, d.results, d.horizons) = try EpochParser.benchmarks(in: unzipped)
-        d.notable = try EpochParser.notableModels(String(contentsOf: files["notable_ai_models.csv"]!, encoding: .utf8))
-        d.listed = try OpenRouterParser.models(Data(contentsOf: files["openrouter_models.json"]!))
-        d.areas = try bundled([CapabilityArea].self, "CapabilityAreas")
-        d.advances = try bundled([Advance].self, "Advances").sorted { $0.day > $1.day }
-        return d
+        try Loader.parseAll(files, resources: Loader.Resources(
+            capabilityAreas: Bundle.main.url(forResource: "CapabilityAreas", withExtension: "json")!,
+            advances: Bundle.main.url(forResource: "Advances", withExtension: "json")!))
     }
 
     nonisolated static func bundled<T: Decodable>(_ type: T.Type, _ name: String) throws -> T {
         guard let url = Bundle.main.url(forResource: name, withExtension: "json") else { throw ParseError.missing("\(name).json") }
-        return try JSONDecoder().decode(T.self, from: Data(contentsOf: url))
+        return try Loader.decode(T.self, from: url)
     }
 
-    nonisolated static func unzip(_ zip: URL, to dir: URL) throws {
-        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        let p = Process()
-        p.executableURL = URL(fileURLWithPath: "/usr/bin/ditto")
-        p.arguments = ["-x", "-k", zip.path, dir.path]
-        try p.run()
-        p.waitUntilExit()
-        if p.terminationStatus != 0 { throw ParseError.missing("contents of \(zip.lastPathComponent)") }
+    nonisolated static var forecastLogURL: URL {
+        cacheDir.deletingLastPathComponent().appendingPathComponent("Forecast Log.json")
     }
 
     /// Downloads every source, checks it parses, then swaps it into the cache.
@@ -172,7 +159,7 @@ final class DataStore {
                 if let http = response as? HTTPURLResponse, http.statusCode != 200 {
                     throw URLError(.badServerResponse, userInfo: [NSLocalizedDescriptionKey: "HTTP \(http.statusCode)"])
                 }
-                try await Task.detached { try Self.validate(file: s.file, at: tmp) }.value
+                try await Task.detached { try Loader.validate(file: s.file, at: tmp) }.value
                 let dest = Self.cacheDir.appendingPathComponent(s.file)
                 _ = try? FileManager.default.removeItem(at: dest)
                 try FileManager.default.moveItem(at: tmp, to: dest)
@@ -184,19 +171,5 @@ final class DataStore {
         }
         if anySuccess { lastRefresh = Date() }
         await reload()
-    }
-
-    nonisolated static func validate(file: String, at url: URL) throws {
-        switch file {
-        case "benchmark_data.zip":
-            let dir = FileManager.default.temporaryDirectory.appendingPathComponent("ai-advances-check-\(UUID().uuidString)")
-            defer { try? FileManager.default.removeItem(at: dir) }
-            try unzip(url, to: dir)
-            _ = try EpochParser.benchmarks(in: dir)
-        case "notable_ai_models.csv":
-            _ = try EpochParser.notableModels(String(contentsOf: url, encoding: .utf8))
-        default:
-            _ = try OpenRouterParser.models(Data(contentsOf: url))
-        }
     }
 }

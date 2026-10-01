@@ -1,0 +1,96 @@
+name: Update website
+
+# Daily: download the latest Epoch AI and OpenRouter data, recompute trends, forecasts
+# and lab stats with the same Swift code as the Mac app, log today's forecasts on the
+# `data` branch, and publish the site to GitHub Pages.
+
+on:
+  schedule:
+    - cron: "17 6 * * *"   # 06:17 UTC every day
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "Exporter/**"
+      - "AI Advances/Data/**"
+      - "AI Advances/Resources/*.json"
+      - "Package.swift"
+      - ".github/workflows/update-website.yml"
+
+permissions:
+  contents: write    # push the forecast log to the data branch
+  pages: write
+  id-token: write
+
+concurrency:
+  group: update-website
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: swift:6.1-jammy
+    steps:
+      - name: Install tools
+        run: apt-get update -qq && apt-get install -y -qq unzip curl git >/dev/null
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download sources
+        # Falls back to the snapshot in the repo if a source is down or returns garbage.
+        run: |
+          mkdir -p sources
+          get() {
+            if curl -fsSL --retry 3 --max-time 120 -A "AI Advances website" -o "sources/$1" "$2"; then
+              echo "Downloaded $1"
+            else
+              echo "::warning::Couldn't download $1; using the bundled snapshot"
+              cp "AI Advances/Resources/Seed/$1" "sources/$1"
+            fi
+          }
+          get benchmark_data.zip https://epoch.ai/data/benchmark_data.zip
+          get notable_ai_models.csv https://epoch.ai/data/notable_ai_models.csv
+          get openrouter_models.json https://openrouter.ai/api/v1/models
+
+      - name: Build exporter
+        run: swift build -c release
+
+      - name: Check out forecast log
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git fetch origin data
+          git worktree add data-branch origin/data
+
+      - name: Export site data
+        run: |
+          .build/release/ai-advances-export \
+            --sources sources \
+            --resources "AI Advances/Resources" \
+            --out site/data \
+            --log data-branch/forecast-log.json
+
+      - name: Save forecast log
+        working-directory: data-branch
+        run: |
+          git add forecast-log.json
+          if git diff --cached --quiet; then echo "No change"; exit 0; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Forecast log for $(date -u +%F)"
+          git push origin HEAD:data
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
