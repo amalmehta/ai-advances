@@ -322,6 +322,15 @@ enum Format {
 
     static func months(_ m: Double) -> String { String(format: "%.1f months", m) }
 
+    static func monthYear(_ d: Date) -> String { monthYearFormatter.string(from: d) }
+
+    private static let monthYearFormatter: DateFormatter = {
+        let f = DateFormatter()
+        f.dateFormat = "MMM yyyy"
+        f.timeZone = TimeZone(identifier: "UTC")
+        return f
+    }()
+
     static let date: DateFormatter = {
         let f = DateFormatter()
         f.dateStyle = .medium

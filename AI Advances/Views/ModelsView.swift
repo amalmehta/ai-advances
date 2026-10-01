@@ -138,7 +138,7 @@ struct ModelDetail: View {
                 }
                 .chartXScale(domain: 0...1.1)
                 .chartXAxis(.hidden)
-                .chartYAxis { AxisMarks(position: .leading) { _ in AxisValueLabel(horizontalSpacing: 8).foregroundStyle(Color.primary) } }
+                .chartYAxis { AxisMarks(preset: .extended, position: .leading) { _ in AxisValueLabel(horizontalSpacing: 8).foregroundStyle(Color.primary) } }
                 .frame(height: CGFloat(scores.count) * 20 + 10)
             }
         }

@@ -1,0 +1,369 @@
+[
+  {
+    "name": "OpenAI",
+    "focus": [
+      "Agents",
+      "Coding",
+      "Consumer",
+      "Enterprise"
+    ],
+    "summary": "OpenAI launched GPT-6 Astra in September as its top model for computer use, coding and cyber work, then GPT-6.1 Sol as a cheaper near-Astra tier. DevDay recast ChatGPT as an agent platform led by always-on Dots. Revenue comes from ChatGPT subscriptions, including a new $500 Pro tier, plus the API.",
+    "bets": [
+      "Dots: persistent background agents using cloud computers across 4,000+ apps",
+      "ChatGPT as enterprise agent hub: Marketplace, Spaces, Slack/Teams, computer-use Agents API",
+      "Scaling pretraining at Stargate Texas; Astra was its first run above 100,000 GPUs",
+      "Accepting less monitorable recurrent reasoning as a trade-off, drawing safety criticism"
+    ],
+    "flagships": [
+      "GPT-6 Astra",
+      "GPT-6.1 Sol",
+      "GPT-6 Luna"
+    ],
+    "sources": [
+      "https://techcrunch.com/2026/09/03/openai-launches-astra-its-powerful-and-controversial-new-model/",
+      "https://en.wikipedia.org/wiki/GPT-6",
+      "https://analyticsindiamag.com/ai-features/from-dots-to-gpt-61-sol-12-major-announcements-at-openai-devday-2026"
+    ],
+    "asOf": "2026-09-30"
+  },
+  {
+    "name": "Anthropic",
+    "focus": [
+      "Coding",
+      "Agents",
+      "Enterprise",
+      "Safety"
+    ],
+    "summary": "Anthropic's new Claude 5.5 family delivers Fable-level performance at lower cost, aimed at agentic coding, knowledge work and computer use. Its strongest model, Mythos, stays limited to vetted cyber defenders while Fable ships with extra safeguards. It earns from the API and subscriptions, increasingly via enterprise and vertical products.",
+    "bets": [
+      "Restricted Mythos access for defensive vulnerability hunting through Project Glasswing",
+      "Unified Claude app merging Cowork into chat, plus Marketplace and Plugins ecosystem",
+      "Vertical editions: Government, Financial Advisors, Small Business, K-12 Teachers",
+      "Science push: life sciences verification program and Claude-driven biology discoveries"
+    ],
+    "flagships": [
+      "Claude Opus 5.5",
+      "Claude Sonnet 5.5",
+      "Claude Fable 5.1",
+      "Claude Mythos 5.1"
+    ],
+    "sources": [
+      "https://www.anthropic.com/claude-opus-5-5",
+      "https://www.anthropic.com/news",
+      "https://claude.com/blog-category/announcements",
+      "https://en.wikipedia.org/wiki/Claude_Mythos"
+    ],
+    "asOf": "2026-09-30"
+  },
+  {
+    "name": "Google DeepMind",
+    "focus": [
+      "Coding",
+      "Enterprise",
+      "Science",
+      "Robotics"
+    ],
+    "summary": "Google DeepMind unveiled Gemini 4 Argon on September 30, targeting software engineering, legal and finance work, and cyber defense, with a 1M-token output limit. Access starts with vetted defenders. Google favored Flash models over Pro this year and kept shipping science and robotics work, monetized through the API, subscriptions and Google products.",
+    "bets": [
+      "Phased Argon rollout: cyber defenders first, then developers, enterprises and consumers",
+      "Flash-first strategy; Gemini 3.5 Pro skipped to focus on Gemini 4",
+      "Robotics via Gemini Robotics 2 and ER 2, now open in the Gemini API",
+      "AI for science: AlphaGenome Atlas, WeatherNext 3, Genesis Mission funding"
+    ],
+    "flagships": [
+      "Gemini 4 Argon",
+      "Gemini 3.8 Flash",
+      "Gemini Robotics 2"
+    ],
+    "sources": [
+      "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/",
+      "https://9to5google.com/2026/09/24/google-says-gemini-4-release-is-coming-as-soon-as-possible/",
+      "https://techcrunch.com/2026/07/21/google-releases-three-new-gemini-models-but-no-3-5-pro/",
+      "https://deepmind.google/blog/"
+    ],
+    "asOf": "2026-09-30"
+  },
+  {
+    "name": "Meta",
+    "focus": [
+      "Consumer",
+      "Coding",
+      "Open weights",
+      "Agents"
+    ],
+    "summary": "Meta Superintelligence Labs debuted the closed Muse Spark in April to power Meta AI across its apps and glasses, then launched the Muse Code terminal agent on Muse Spark 1.2. In August it returned to open weights with the 30B Apache-licensed Muse Glimmer. Funding comes from Meta's ad business; models reach users through its apps plus a developer API.",
+    "bets": [
+      "Personal superintelligence delivered via WhatsApp, Instagram, Facebook and smart glasses",
+      "Larger Muse successors in development; an open-weight Muse Spark 1.2 promised",
+      "Small open models running always-on local agents on one consumer GPU",
+      "Long-horizon coding agents with persistent sub-agents (Muse Code)"
+    ],
+    "flagships": [
+      "Muse Spark",
+      "Muse Spark 1.2",
+      "Muse Glimmer"
+    ],
+    "sources": [
+      "https://about.fb.com/news/2026/04/introducing-muse-spark-meta-superintelligence-labs/",
+      "https://research.meta.ai/blog/introducing-muse-code-and-muse-spark-1-2",
+      "https://research.meta.ai/blog/introducing-muse-glimmer-open-agentic-model",
+      "https://www.constellationr.com/insights/news/meta-releases-open-weight-muse-glimmer-model-open-muse-spark-12-tap"
+    ],
+    "asOf": "2026-09-30"
+  },
+  {
+    "name": "xAI (SpaceXAI)",
+    "focus": [
+      "Coding",
+      "Infrastructure",
+      "Consumer"
+    ],
+    "summary": "SpaceX acquired xAI in February 2026 and the lab rebranded as SpaceXAI in July, hence OpenRouter's new label. It bought Cursor for $60B in August and now ships coding-focused Grok models, most recently Grok 4.7, through Grok Build, Cursor, the API and X. Business mixes consumer Grok and X with paid API access.",
+    "bets": [
+      "Orbital solar-powered data centers; FCC filing for up to one million compute satellites",
+      "Using Cursor's data and distribution to compete in coding agents",
+      "Huge GPU fleet as training edge; Colossus expansion toward one million GPUs",
+      "Long-running tasks with self-checking, plus a rebuilt safeguard stack in Grok 4.7"
+    ],
+    "flagships": [
+      "Grok 4.7",
+      "Grok 4.6",
+      "Grok 4.5"
+    ],
+    "sources": [
+      "https://en.wikipedia.org/wiki/SpaceXAI",
+      "https://cursor.com/blog/joining-spacex",
+      "https://www.testingcatalog.com/spacexai-releases-grok-4-7-for-coding-and-knowledge-work/",
+      "https://www.satellitetoday.com/connectivity/2026/02/02/spacex-acquires-xai-to-pursue-orbital-data-center-constellation/"
+    ],
+    "asOf": "2026-09-30"
+  },
+  {
+    "name": "Alibaba (Qwen)",
+    "focus": [
+      "Open weights",
+      "Agents",
+      "Infrastructure",
+      "Multimodal"
+    ],
+    "summary": "Alibaba runs a dual track: open-weight Qwen releases, such as August's 2.4T Qwen3.8 MoE and an Apache-licensed 27B, alongside proprietary Max and Plus models sold through Alibaba Cloud. At September's Apsara conference it said Qwen 4 is in training and laid out a full-stack roadmap across models, chips and cloud.",
+    "bets": [
+      "Qwen 4.5 and Qwen 5 scaled to 5-10 trillion parameters",
+      "Recursive self-improvement research, shown with automated Qwen3.8-Max training cycles",
+      "Over 20 GW of data center capacity by 2032; new overseas cloud regions",
+      "In-house T-Head Zhenwu V900 chip, production planned for Q1 2027"
+    ],
+    "flagships": [
+      "Qwen3.8-Max",
+      "Qwen3.8-27B",
+      "Qwen 4 (in training)"
+    ],
+    "sources": [
+      "https://en.wikipedia.org/wiki/Qwen",
+      "https://www.alibabacloud.com/blog/alibaba-clouds-2026-apsara-conference-full-stack-ai-roadmap-along-with-global-market-expansion-plan_603598"
+    ],
+    "asOf": "2026-09-30"
+  },
+  {
+    "name": "DeepSeek",
+    "focus": [
+      "Open weights",
+      "Efficiency",
+      "Coding",
+      "Agents"
+    ],
+    "summary": "DeepSeek released V4 in April as open weights, a 1.6T-parameter Pro and 284B Flash, making 1M-token context the default, then tuned both for agents over the summer. September's V4.1-Flash added native vision and cut API prices. It pairs open weights with a cheap API and free chat app, and says little about future plans.",
+    "bets": [
+      "Agentic coding compatibility: Responses API for Codex, works with Claude Code",
+      "New architecture family starting with V4.1-Flash, built to scale larger",
+      "Aggressive pricing, including off-peak discounts at half the peak rate"
+    ],
+    "flagships": [
+      "DeepSeek-V4-Pro",
+      "DeepSeek-V4.1-Flash"
+    ],
+    "sources": [
+      "https://api-docs.deepseek.com/news/news260424",
+      "https://api-docs.deepseek.com/updates",
+      "https://en.wikipedia.org/wiki/DeepSeek_(chatbot)"
+    ],
+    "asOf": "2026-09-30"
+  },
+  {
+    "name": "Moonshot AI",
+    "focus": [
+      "Open weights",
+      "Agents",
+      "Coding"
+    ],
+    "summary": "Moonshot's July release, Kimi K3 (about 2.8T parameters), is billed as the largest open-weights model and scores near US frontier systems on agentic and coding work. Weights are downloadable, but big commercial deployers owe revenue share; Moonshot also sells API access and runs the Kimi app.",
+    "bets": [
+      "Agent Swarm: hundreds of parallel sub-agents for research and long tasks",
+      "Kimi Code tooling to win developer and enterprise coding contracts",
+      "Preparing a Hong Kong IPO after large 2026 funding rounds"
+    ],
+    "flagships": [
+      "Kimi K3",
+      "Kimi K2.7 Code",
+      "Kimi K2.6"
+    ],
+    "sources": [
+      "https://venturebeat.com/technology/chinas-moonshot-ai-releases-kimi-k3-the-largest-open-source-model-ever-rivaling-top-u-s-systems",
+      "https://fortune.com/2026/07/16/moonshots-kimi-k3-pushes-chinese-ai-into-fable-level-territory/",
+      "https://en.wikipedia.org/wiki/Moonshot_AI"
+    ],
+    "asOf": "2026-09-30"
+  },
+  {
+    "name": "Z.ai",
+    "focus": [
+      "Coding",
+      "Agents",
+      "Open weights"
+    ],
+    "summary": "Z.ai, listed in Hong Kong since January, has kept a fast GLM-5.x cadence: GLM-5.1 for long autonomous tasks, GLM-5.2 with 1M-token context, and August's coding-focused GLM-5.3 plus a vision-capable Flash. It sells API access and pitches its models as open-source leaders on coding benchmarks.",
+    "bets": [
+      "Long-horizon agents; GLM-5.1 works autonomously for up to eight hours",
+      "ZCode IDE that also supports OpenAI and Anthropic models",
+      "Running on domestic chips such as Cambricon and Moore Threads",
+      "Raising API prices despite earlier compute shortages"
+    ],
+    "flagships": [
+      "GLM-5.3",
+      "GLM-5.3-Flash",
+      "GLM-5.2"
+    ],
+    "sources": [
+      "https://docs.z.ai/release-notes/new-released",
+      "https://en.wikipedia.org/wiki/Z.ai"
+    ],
+    "asOf": "2026-09-30"
+  },
+  {
+    "name": "MiniMax",
+    "focus": [
+      "Open weights",
+      "Coding",
+      "Multimodal",
+      "Efficiency"
+    ],
+    "summary": "MiniMax, public in Hong Kong since January, launched the open-weight M3 in June: a 1M-context, natively multimodal model aimed at agentic coding and computer use, built on its own sparse attention. A video model, H3, followed in July. It monetizes through API token plans and consumer apps such as Talkie.",
+    "bets": [
+      "MiniMax Sparse Attention to make 1M-token context far cheaper",
+      "Agentic coding plus autonomous desktop computer operation in one model",
+      "Multimodal video generation alongside its language models"
+    ],
+    "flagships": [
+      "MiniMax M3",
+      "MiniMax H3"
+    ],
+    "sources": [
+      "https://www.marktechpost.com/2026/06/01/minimax-releases-minimax-m3-with-msa-architecture-supporting-1m-token-context-native-multimodality-and-agentic-coding/",
+      "https://platform.minimax.io/docs/release-notes/models",
+      "https://en.wikipedia.org/wiki/MiniMax_Group"
+    ],
+    "asOf": "2026-09-30"
+  },
+  {
+    "name": "Mistral AI",
+    "focus": [
+      "Open weights",
+      "Enterprise",
+      "Infrastructure"
+    ],
+    "summary": "Mistral is recasting itself as a sovereign European AI stack: open-weight models plus its own compute in France and Sweden. In September it raised EUR 3B led by Samsung at over EUR 21B. Recent launches were specialized (OCR 4, Vibe agents, Robostral Navigate); a larger open-weight frontier model entered partner early access in July.",
+    "bets": [
+      "Open-weight frontier model bigger than Large 3, Apache-licensed",
+      "About EUR 4B in data centers; positioning as a cloud company",
+      "Industrial deals: Samsung semiconductor AI, new Munich hub",
+      "Co-developing the Nemotron Coalition base model with NVIDIA"
+    ],
+    "flagships": [
+      "Mistral Large 3",
+      "Mistral Medium 3.5",
+      "Mistral Small 4"
+    ],
+    "sources": [
+      "https://mistral.ai/news/mistral-makes-sovereign-open-weight-ai-to-frontier/",
+      "https://mistral.ai/news",
+      "https://www.techtimes.com/articles/319798/20260706/mistral-ai-targets-frontier-gap-open-weight-model-entering-july-early-access.htm",
+      "https://investor.nvidia.com/news/press-release-details/2026/NVIDIA-Launches-Nemotron-Coalition-of-Leading-Global-AI-Labs-to-Advance-Open-Frontier-Models/default.aspx"
+    ],
+    "asOf": "2026-09-30"
+  },
+  {
+    "name": "NVIDIA",
+    "focus": [
+      "Infrastructure",
+      "Open weights",
+      "Efficiency"
+    ],
+    "summary": "NVIDIA's business is AI hardware, and its Vera Rubin platform entered mass production in mid-2026. It also builds open Nemotron models to strengthen the ecosystem: the 550B Nemotron 3 Ultra shipped in June, emphasizing fast token generation, and a trillion-plus-parameter Nemotron 4 is in training.",
+    "bets": [
+      "Nemotron 4 with at least 1T parameters, possibly ready by late fall",
+      "Nemotron Coalition of labs co-building an open base model on DGX Cloud",
+      "Vera Rubin systems aimed at agentic AI workloads",
+      "AI PC push: RTX Spark laptop chip and DGX Station"
+    ],
+    "flagships": [
+      "Nemotron 3 Ultra"
+    ],
+    "sources": [
+      "https://investor.nvidia.com/news/press-release-details/2026/NVIDIA-Launches-Nemotron-Coalition-of-Leading-Global-AI-Labs-to-Advance-Open-Frontier-Models/default.aspx",
+      "https://www.digitaltoday.co.kr/en/view/60119/nvidia-unveils-550-billion-parameter-nemotron-3-ultra-starts-mass-production-of-vera-rubin",
+      "https://www.bnnbloomberg.ca/business/company-news/2026/08/11/nvidia-building-1-trillion-parameter-nemotron-4-to-rival-open-ai-models/"
+    ],
+    "asOf": "2026-09-30"
+  },
+  {
+    "name": "Thinking Machines",
+    "focus": [
+      "Open weights",
+      "Multimodal",
+      "Efficiency"
+    ],
+    "summary": "Mira Murati's lab released its first broadly available model, Inkling, in July: a 975B open-weights multimodal MoE under Apache 2.0 with adjustable thinking effort, followed by a distilled Inkling Small. Its business centers on customization through the Tinker fine-tuning API, with hosted inference via partner clouds.",
+    "bets": [
+      "Real-time interaction model handling audio, video and text in 200ms chunks",
+      "Tinker fine-tuning as core product across many open model families",
+      "1 GW of NVIDIA Vera Rubin compute via strategic partnership"
+    ],
+    "flagships": [
+      "Inkling",
+      "Inkling Small",
+      "TML-Interaction-Small (preview)"
+    ],
+    "sources": [
+      "https://www.marktechpost.com/2026/07/15/thinking-machines-lab-releases-inkling-a-975b-parameter-open-weights-multimodal-moe-with-41b-active-parameters-and-controllable-thinking-effort/",
+      "https://en.wikipedia.org/wiki/Thinking_Machines_Lab",
+      "https://www.unite.ai/thinking-machines-lab-ships-first-model-with-200ms-real-time-interaction/"
+    ],
+    "asOf": "2026-09-30"
+  },
+  {
+    "name": "ByteDance Seed",
+    "focus": [
+      "Agents",
+      "Multimodal",
+      "Consumer"
+    ],
+    "summary": "ByteDance Seed builds the models behind the Doubao chatbot and Volcano Engine cloud. Its Seed 2.1 family is pitched as an agent for real-world productivity, while the team keeps pushing generative media and full-duplex audio-video interaction. Models are largely proprietary, monetized through apps, new Doubao subscriptions and cloud APIs.",
+    "bets": [
+      "Seed 2.1 as a general productivity agent rather than a chatbot",
+      "Longer, controllable video: 30-second Seedance 2.5 clips with many references",
+      "Real-time full-duplex audio-visual interaction model",
+      "Doubao subscription tiers on a 330M-user base"
+    ],
+    "flagships": [
+      "Doubao Seed 2.1",
+      "Seedance 2.5",
+      "Seedream 5.0 Pro"
+    ],
+    "sources": [
+      "https://seed.bytedance.com/en/",
+      "https://technode.com/2026/07/31/bytedance-launches-seedance-2-5-video-generation-model/",
+      "https://en.wikipedia.org/wiki/Doubao"
+    ],
+    "asOf": "2026-09-30"
+  }
+]

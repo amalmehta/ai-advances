@@ -61,6 +61,24 @@ Decided without asking:
 - Not built (proposals): the website version; a stored price history;
   per-lab color coding on the scatter charts.
 
+Asked and answered (2026-09-30, second request, "continually updating
+predictions ... and what companies are working on what"): trend
+extrapolation only (no LLM, no API key); labs from data + researched notes;
+keep a forecast log.
+
+Decided without asking:
+- Forecast targets: METR horizon of 40 h and 167 h; 10^28 and 10^29 FLOP
+  runs; GPQA ≥ 80% under $0.01/M tokens; every tracked benchmark at 90%.
+- Methods: log-linear fits (compute, horizon, price); logit-linear S-curve
+  over the last 2 years (benchmarks); 90% range from the slope's standard
+  error. Trends due in the past are shown as "behind trend", not dated.
+- History: 12 monthly forecasts reconstructed from the data public at the
+  time, plus a live log saved each day (Forecast Log.json).
+- 14 labs tracked; xAI shown as "xAI (SpaceXAI)" after the SpaceX merger.
+  Standing averages only the benchmarks a lab has results on.
+- Lab notes (Labs.json) are researched as of 2026-09-30 and refresh only
+  when re-researched; about half lean partly on secondary sources.
+
 CHANGELOG:
 
 - 2026-09-30 — created
@@ -76,3 +94,4 @@ CHANGELOG:
 - 2026-09-28 — added meta-instruction: name things like a person would, never snake_case
 - 2026-09-28 — changed meta-instruction: README leads with visuals; instructions live in a linked guide
 - 2026-09-30 — built v1.0 of the AI Advances Mac app (seven pages, live Epoch AI + OpenRouter data, 12 tests); README + docs/GUIDE.md; filled in assumptions
+- 2026-09-30 — added Forecasts page (dated trend forecasts, 90% ranges, outlook, forecast log + reconstructed history) and Labs page (standing and release-pace heatmaps, researched lab focus notes); 19 tests (one opt-in page render)

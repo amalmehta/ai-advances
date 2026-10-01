@@ -23,6 +23,8 @@ Run the tests with:
 xcodebuild -project "AI Advances.xcodeproj" -scheme "AI Advances" -derivedDataPath build test
 ```
 
+To render the Forecasts and Labs pages to full-length PNGs for review, set `TEST_RUNNER_RENDER_PAGES` to an output folder when running the tests.
+
 The Xcode project is generated from `project.yml`. After adding or moving files, regenerate it with `xcodegen generate` (install it with `brew install xcodegen`).
 
 ## Pages
@@ -30,6 +32,8 @@ The Xcode project is generated from `project.yml`. After adding or moving files,
 | Page | What it answers |
 |---|---|
 | **Direction Trends** | Where things are heading. Four headline trends: training compute growth, the longest task AI can do (METR time horizon), the price of GPQA ≥ 80%, and the largest context window. Also shows which capability areas closed the most headroom over the last 6, 12 or 24 months, and small charts of the best score over time per area. |
+| **Forecasts** | Where the field goes next. Dated predictions with 90% ranges: when AI handles week- and month-long tasks, when each tracked benchmark reaches 90%, when training runs reach 10^28 and 10^29 FLOP, and when GPQA-level ability costs under $0.01 per million tokens. Also an outlook written from those numbers, the forecasts that moved most in the last 3 months, a history chart for each forecast, and lists of milestones already reached and those that have stalled. |
+| **Labs** | Who's working on what. A heatmap of each lab's standing per capability area (★ = holds a record), a heatmap of release pace by quarter, and a card per lab with its researched focus, bets and flagships, plus live facts: latest model, records held, modalities, open-weights share, price range and largest training run. |
 | **Latest Advances** | What happened recently. Researched highlights with sources, plus new benchmark records and newly listed models, which are detected on every refresh. Filter by kind and by direction (Reasoning, Coding, Agents, and so on). |
 | **Capabilities** | Pick an area to see every model result as a dot, with the record line on top, and a top-8 leaderboard for each benchmark. |
 | **Models** | A sortable table of recent models with price, context window and their best score on seven key benchmarks. Select a row for the model's full profile. |
@@ -39,6 +43,18 @@ The Xcode project is generated from `project.yml`. After adding or moving files,
 
 Hover any chart for details. The toolbar shows when data last updated; click it for sources and any update errors. **⌘R** or the refresh button fetches new data immediately.
 
+## How the forecasts work
+
+- **Compute, task horizon and price:** a straight-line fit on a log scale, meaning steady exponential change. Task horizon uses METR record-setters since 2023, compute uses Epoch's frontier training runs since 2020, and price uses the successive drops in the cheapest model scoring at least 80% on GPQA Diamond.
+- **Benchmarks:** an S-curve (linear in logit) fitted to the record-setting scores of the last two years, since scores flatten as they near 100%.
+- **Ranges:** the 90% range comes from the uncertainty in the fitted slope. It doesn't account for breakthroughs, slowdowns or benchmark changes.
+- **Stalled milestones:** if a trend says a milestone was due in the past but nobody has reached it, it's listed as *behind trend* rather than given a date. Milestones more than 15 years out are listed as off trend.
+- **History:** the points before you first ran the app are recomputed from only the data public at the start of each month. From then on, each day's forecasts are saved to `~/Library/Application Support/AI Advances/Forecast Log.json`. Delete that file to start the log over.
+
+## Refreshing the lab notes
+
+The charts on the Labs page update on their own. The focus notes in `AI Advances/Resources/Labs.json` are researched and dated (`asOf`). To refresh them, ask Claude Code to re-research the labs into that file, or edit it by hand. Each entry needs `name` (matching `Labs.directory` in `AI Advances/Data/Labs.swift`), `focus`, `summary`, `bets`, `flagships`, `sources` and `asOf`. A test checks that every tracked lab has a note with sources.
+
 ## Where the data comes from
 
 | Source | Used for | URL |
@@ -47,6 +63,7 @@ Hover any chart for details. The toolbar shows when data last updated; click it 
 | Epoch AI notable models | Training compute | `https://epoch.ai/data/notable_ai_models.csv` |
 | OpenRouter models API | Prices, context windows, modalities, new listings | `https://openrouter.ai/api/v1/models` |
 | `AI Advances/Resources/Advances.json` | Researched highlights (Oct 2025 – Sep 2026) | bundled |
+| `AI Advances/Resources/Labs.json` | Researched lab focus notes (as of Sep 30, 2026) | bundled |
 
 Downloads are cached in `~/Library/Application Support/AI Advances/Data/`. The first launch uses the snapshot bundled in `AI Advances/Resources/Seed/`, taken on Sept 30, 2026. A download that fails to parse is discarded, and the previous copy stays in use.
 

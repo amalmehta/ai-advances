@@ -42,6 +42,12 @@ final class DataStore {
     private(set) var data = Dataset.empty
     private(set) var profiles: [ModelProfile] = []
     private(set) var status: [String: SourceStatus] = [:]
+    private(set) var forecasts: [Forecast] = []
+    /// Forecasts recomputed from the data available at the start of each past month.
+    private(set) var reconstructedLog: [ForecastLogEntry] = []
+    /// Forecasts saved on each day the app refreshed.
+    private(set) var liveLog: [ForecastLogEntry] = []
+    private(set) var labs: [LabSummary] = []
     private(set) var isLoading = true
     private(set) var isRefreshing = false
     private(set) var lastRefresh: Date? {
@@ -59,7 +65,7 @@ final class DataStore {
         [data.results.map(\.releaseDate).max(), data.listed.map(\.created).max()].compactMap { $0 }.max()
     }
 
-    static var cacheDir: URL {
+    nonisolated static var cacheDir: URL {
         let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         let dir = base.appendingPathComponent("AI Advances/Data", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
@@ -106,7 +112,22 @@ final class DataStore {
             loadError = nil
         } catch {
             loadError = error.localizedDescription
+            return
         }
+        await recomputeOutlook()
+    }
+
+    /// Forecasts, their history and the lab summaries; all derived from `data`, so rerun after every load.
+    private func recomputeOutlook() async {
+        let data = self.data, profiles = self.profiles, now = Date()
+        let result = await Task.detached(priority: .utility) { () -> ([Forecast], [ForecastLogEntry], [ForecastLogEntry], [LabSummary]) in
+            let current = Forecasts.all(data, profiles: profiles, asOf: now)
+            let past = Forecasts.reconstructed(data, now: now)
+            let log = ForecastLog.record(current, on: now)
+            let notes = (try? DataStore.bundled([LabNote].self, "Labs")) ?? []
+            return (current, past, log, Labs.summaries(data, notes: notes, now: now))
+        }.value
+        (forecasts, reconstructedLog, liveLog, labs) = result
     }
 
     nonisolated static func parseAll(_ files: [String: URL]) throws -> Dataset {

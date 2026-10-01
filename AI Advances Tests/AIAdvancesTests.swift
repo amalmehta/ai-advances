@@ -72,15 +72,14 @@ final class AnalysisTests: XCTestCase {
 
 /// Parses the snapshot bundled with the app, so a format change in a source shows up here.
 final class SnapshotTests: XCTestCase {
-    static var data: Dataset!
-
-    override class func setUp() {
+    /// Parsed once and shared by every test class that needs real data.
+    static let data: Dataset! = {
         let files = Dictionary(uniqueKeysWithValues: DataStore.sources.map { s in
             (s.file, Bundle.main.url(forResource: (s.file as NSString).deletingPathExtension,
                                      withExtension: (s.file as NSString).pathExtension)!)
         })
-        data = try! DataStore.parseAll(files)
-    }
+        return try! DataStore.parseAll(files)
+    }()
 
     func testSourcesParse() {
         XCTAssertGreaterThan(Self.data.results.count, 3000)
@@ -119,6 +118,86 @@ final class SnapshotTests: XCTestCase {
         for a in Self.data.advances {
             XCTAssertNotNil(Dates.parse(a.date), a.title)
             XCTAssertTrue(a.source.hasPrefix("https://"), a.title)
+        }
+    }
+}
+
+final class ForecastTests: XCTestCase {
+    func testLinearFitPredictsCrossingWithBracketingRange() {
+        // y = 2x + 1 with small alternating noise.
+        let pts: [(x: Double, y: Double)] = (0..<10).map { i in
+            let x = Double(i)
+            let noise: Double = i % 2 == 0 ? 0.1 : -0.1
+            return (x: x, y: 2 * x + 1 + noise)
+        }
+        let fit = LinearFit.fit(pts)!
+        XCTAssertEqual(fit.slope, 2, accuracy: 0.05)
+        let x = fit.x(reaching: 41)!
+        XCTAssertEqual(x, 20, accuracy: 0.5)
+        let r = fit.range(reaching: 41)
+        XCTAssertLessThan(r.early!, x)
+        XCTAssertGreaterThan(r.late!, x)
+    }
+
+    func testFallingSeriesNeverReachesHigherTarget() {
+        let pts: [(x: Double, y: Double)] = (0..<6).map { i in (x: Double(i), y: 10 - Double(i)) }
+        XCTAssertNil(LinearFit.fit(pts)!.x(reaching: 20))
+    }
+
+    func testSnapshotForecastsAreOrderedAndInTheFuture() {
+        let data = SnapshotTests.data!
+        let now = Dates.parse("2026-09-30")!
+        let fs = Forecasts.all(data, profiles: Analysis.profiles(data), asOf: now)
+        XCTAssertGreaterThan(fs.count, 15)
+        for f in fs {
+            print("FORECAST", f.id, "| reached:", f.reached.map(Format.monthYear) ?? "-",
+                  "| predicted:", f.predicted.map(Format.monthYear) ?? "-",
+                  "| range:", f.early.map(Format.monthYear) ?? "-", "–", f.late.map(Format.monthYear) ?? "open", "|", f.current)
+            if let p = f.predicted {
+                XCTAssertGreaterThanOrEqual(p, now, f.id)
+                if let e = f.early { XCTAssertLessThanOrEqual(e, p, f.id) }
+                if let l = f.late { XCTAssertGreaterThanOrEqual(l, p, f.id) }
+            }
+            if f.reached != nil { XCTAssertNil(f.predicted, f.id) }
+        }
+        XCTAssertNotNil(fs.first { $0.id == "metr-week" }?.predicted ?? fs.first { $0.id == "metr-week" }?.reached)
+    }
+
+    func testReconstructionOnlyUsesPastData() {
+        let data = SnapshotTests.data!
+        let asOf = Dates.parse("2025-06-01")!
+        let past = Forecasts.dataset(data, asOf: asOf)
+        XCTAssertFalse(past.results.contains { $0.releaseDate > asOf })
+        XCTAssertFalse(past.listed.contains { $0.created > asOf })
+        let log = Forecasts.reconstructed(data, now: Dates.parse("2026-09-30")!)
+        XCTAssertEqual(log.count, 12)
+        XCTAssertTrue(log.allSatisfy(\.reconstructed))
+    }
+
+    func testLabSummariesCoverMajorLabs() {
+        let data = SnapshotTests.data!
+        let labs = Labs.summaries(data, notes: [], now: Dates.parse("2026-09-30")!)
+        for name in ["OpenAI", "Anthropic", "Google DeepMind", "DeepSeek", "Alibaba (Qwen)"] {
+            let l = labs.first { $0.name == name }
+            XCTAssertNotNil(l, name)
+            XCTAssertFalse(l?.standing.isEmpty ?? true, name)
+            XCTAssertFalse(l?.recentModels.isEmpty ?? true, name)
+        }
+        for l in labs {
+            print("LAB", l.name, "| held:", l.recordsHeld.count, "| models 12mo:", l.recentModels.count,
+                  "| standing:", l.standing.sorted { $0.key < $1.key }.map { "\($0.key.prefix(6))=\(Int($0.value * 100))" }.joined(separator: " "))
+            XCTAssertTrue(l.standing.values.allSatisfy { (0...1.0001).contains($0) }, l.name)
+        }
+    }
+}
+
+final class LabNoteTests: XCTestCase {
+    func testEveryTrackedLabHasAResearchedNote() throws {
+        let notes = try DataStore.bundled([LabNote].self, "Labs")
+        for lab in Labs.directory {
+            let note = notes.first { $0.name == lab.name }
+            XCTAssertNotNil(note, "No note for \(lab.name)")
+            XCTAssertFalse(note?.sources.isEmpty ?? true, lab.name)
         }
     }
 }

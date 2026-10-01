@@ -48,7 +48,7 @@ struct TrendsView: View {
                         AxisValueLabel { Text(Format.percent(v.as(Double.self))) }.foregroundStyle(Palette.muted)
                     }
                 }
-                .chartYAxis { AxisMarks(position: .leading) { _ in AxisValueLabel(horizontalSpacing: 8).foregroundStyle(Color.primary).font(.callout) } }
+                .chartYAxis { AxisMarks(preset: .extended, position: .leading) { _ in AxisValueLabel(horizontalSpacing: 8).foregroundStyle(Color.primary).font(.callout) } }
                 .chartYSelection(value: $hoverArea)
                 .frame(height: CGFloat(momentum.count) * 34 + 30)
 

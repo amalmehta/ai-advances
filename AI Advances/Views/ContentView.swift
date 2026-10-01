@@ -2,6 +2,8 @@ import SwiftUI
 
 enum Page: String, CaseIterable, Identifiable {
     case trends = "Direction Trends"
+    case forecasts = "Forecasts"
+    case labs = "Labs"
     case advances = "Latest Advances"
     case capabilities = "Capabilities"
     case models = "Models"
@@ -14,6 +16,8 @@ enum Page: String, CaseIterable, Identifiable {
     var symbol: String {
         switch self {
         case .trends: "chart.line.uptrend.xyaxis"
+        case .forecasts: "binoculars"
+        case .labs: "building.2"
         case .advances: "sparkles"
         case .capabilities: "target"
         case .models: "tablecells"
@@ -85,6 +89,8 @@ struct ContentView: View {
     @ViewBuilder private var detail: some View {
         switch page {
         case .trends: TrendsView()
+        case .forecasts: ForecastsView()
+        case .labs: LabsView()
         case .advances: AdvancesView()
         case .capabilities: CapabilitiesView()
         case .models: ModelsView()
