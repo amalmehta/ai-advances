@@ -80,7 +80,8 @@ Decided without asking:
   when re-researched; about half lean partly on secondary sources.
 
 Asked and answered (2026-10-01, website): GitHub Pages + daily GitHub
-Action; keep the repo private (user has Pro); all 9 pages.
+Action; all 9 pages. The plan didn't allow Pages on a private repo, so
+(asked again) the repo was made public.
 
 Decided without asking:
 - Epoch AI blocks browser fetches (no CORS), so the site is prebuilt: a
@@ -93,8 +94,8 @@ Decided without asking:
   github-actions[bot], so main's history stays clean.
 - Front end: plain HTML/CSS/JS + Observable Plot from jsDelivr; follows the
   system light/dark setting; phone layout with a scrolling top nav.
-- The feedback tab opens a GitHub issue, which only works for people with
-  access to the private repo.
+- The feedback tab opens a GitHub issue on the (now public) repo, so anyone
+  with a GitHub account can use it.
 
 CHANGELOG:
 
@@ -112,4 +113,4 @@ CHANGELOG:
 - 2026-09-28 — changed meta-instruction: README leads with visuals; instructions live in a linked guide
 - 2026-09-30 — built v1.0 of the AI Advances Mac app (seven pages, live Epoch AI + OpenRouter data, 12 tests); README + docs/GUIDE.md; filled in assumptions
 - 2026-09-30 — added Forecasts page (dated trend forecasts, 90% ranges, outlook, forecast log + reconstructed history) and Labs page (standing and release-pace heatmaps, researched lab focus notes); 19 tests (one opt-in page render)
-- 2026-10-01 — added the website: shared Swift exporter, daily GitHub Action to GitHub Pages, forecast log on the data branch, all nine pages
+- 2026-10-01 — added the website: shared Swift exporter, daily GitHub Action to GitHub Pages, forecast log on the data branch, all nine pages; repo made public for Pages
