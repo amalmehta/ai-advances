@@ -130,6 +130,12 @@ struct SourcesView: View {
                     if let e = st?.error { Label("Last update failed: \(e)", systemImage: "exclamationmark.triangle").font(.caption).foregroundStyle(.orange) }
                 }
             }
+            VStack(alignment: .leading, spacing: 2) {
+                Link("Claude's daily outlook", destination: URL(string: "https://amalmehta.github.io/ai-advances/#/forecasts")!).font(.body.weight(.medium))
+                Text(store.claudeOutlook.map { "Written \($0.generatedAt.prefix(10)) by \($0.model), from the website's daily build" }
+                     ?? "Not downloaded yet; it appears once the website's daily build has written one")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
             Divider()
             Text("The app checks for new data on launch when the last update is over 12 hours old, and every 6 hours while it's open.")
                 .font(.caption).foregroundStyle(.secondary)

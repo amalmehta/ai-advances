@@ -108,6 +108,7 @@ const tip = (C) => ({ fill: C.surface, stroke: C.border });
 // ---------- Data helpers (mirroring the app's Analysis) ----------
 
 let D; // site.json, with dates parsed
+let CLAUDE = null; // outlook.json, when the daily build has one
 
 function prepare(raw) {
   const d = structuredClone(raw);
@@ -299,7 +300,8 @@ pages.forecasts = () => {
 
   return el("div", {},
     header("Where the field is going next", "Dated predictions from extrapolating today's trends. Every forecast is recomputed daily, and each day's set is logged so you can watch them move."),
-    card("Outlook", "Written from the numbers below; changes when they do.", el("p", { style: "margin:0" }, D.outlook)),
+    CLAUDE ? claudeCard() : null,
+    card(CLAUDE ? "Computed outlook" : "Outlook", "Written by a fixed template from the numbers below; changes when they do.", el("p", { style: "margin:0" }, D.outlook)),
     card("Forecast timeline", "Dot: most likely date if the trend holds. Bar: 90% range. Ranges running off the right edge are open-ended.",
       timeline, footnote("Hover a dot for its range and current value.")),
     D.shifts.length ? card("What moved in the last 3 months", "Change in each predicted date since the forecast computed three months ago. Earlier means the field sped up.",
@@ -320,6 +322,16 @@ pages.forecasts = () => {
         el("div", { class: "rows" }, stalled.map((f) => el("div", {}, el("div", {}, f.title), el("div", { class: "small muted" }, `${f.current}. ${f.note ?? ""}.`))))) : null),
     footnote("Method: compute, task horizon and price use straight-line fits on a log scale (steady exponential change). Benchmarks use an S-curve fitted to the record-setting scores of the last two years, since scores flatten as they near 100%. Ranges come from the uncertainty in the fitted slope; they don't account for breakthroughs, benchmark changes or slowdowns. Extrapolations, not guarantees."));
 };
+
+function claudeCard() {
+  const when = new Date(CLAUDE.generatedAt);
+  return el("section", { class: "card claude" },
+    el("div", { class: "card-head" },
+      el("span", { class: "badge" }, "Written by Claude"),
+      el("h3", {}, CLAUDE.headline)),
+    el("p", { style: "margin:0" }, CLAUDE.outlook),
+    footnote(`Claude (${CLAUDE.model}) wrote this on ${fmt.date(new Date(Date.UTC(when.getUTCFullYear(), when.getUTCMonth(), when.getUTCDate())))} from the numbers on this site (data through ${fmt.date(date(CLAUDE.dataThrough))}). It's an AI-written reading of trend extrapolations, not a prediction you should rely on.`));
+}
 
 function historyChart(f, now) {
   if (!f) return el("p", { class: "muted" }, "No forecasts yet.");
@@ -754,6 +766,8 @@ async function main() {
     const res = await fetch("data/site.json", { cache: "no-cache" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     D = prepare(await res.json());
+    // The Claude outlook is optional: missing or broken just means the card isn't shown.
+    CLAUDE = await fetch("data/outlook.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   } catch (e) {
     $("#page").replaceChildren(el("p", {}, `Couldn't load the data (${e.message}).`));
     return;

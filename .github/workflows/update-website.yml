@@ -1,8 +1,9 @@
 name: Update website
 
 # Daily: download the latest Epoch AI and OpenRouter data, recompute trends, forecasts
-# and lab stats with the same Swift code as the Mac app, log today's forecasts on the
-# `data` branch, and publish the site to GitHub Pages.
+# and lab stats with the same Swift code as the Mac app, have Claude write the day's
+# outlook (if the ANTHROPIC_API_KEY secret is set), log today's forecasts and outlook on
+# the `data` branch, and publish the site to GitHub Pages.
 
 on:
   schedule:
@@ -16,6 +17,7 @@ on:
       - "AI Advances/Data/**"
       - "AI Advances/Resources/*.json"
       - "Package.swift"
+      - "scripts/**"
       - ".github/workflows/update-website.yml"
 
 permissions:
@@ -33,7 +35,7 @@ jobs:
     container: swift:6.1-jammy
     steps:
       - name: Install tools
-        run: apt-get update -qq && apt-get install -y -qq unzip curl git >/dev/null
+        run: apt-get update -qq && apt-get install -y -qq unzip curl git python3-pip >/dev/null
 
       - uses: actions/checkout@v4
         with:
@@ -72,13 +74,26 @@ jobs:
             --out site/data \
             --log data-branch/forecast-log.json
 
-      - name: Save forecast log
+      - name: Write Claude outlook
+        # Optional: without the ANTHROPIC_API_KEY secret (or if the call fails) this keeps
+        # yesterday's outlook, or skips it, and the build carries on.
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python3 -m pip install -q anthropic
+          python3 scripts/write_outlook.py \
+            --site site/data/site.json \
+            --out site/data/outlook.json \
+            --previous data-branch/outlook.json
+          if [ -f site/data/outlook.json ]; then cp site/data/outlook.json data-branch/outlook.json; fi
+
+      - name: Save forecast log and outlook
         working-directory: data-branch
         run: |
-          git add forecast-log.json
+          git add -A
           if git diff --cached --quiet; then echo "No change"; exit 0; fi
           git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-            commit -q -m "Forecast log for $(date -u +%F)"
+            commit -q -m "Forecast log and outlook for $(date -u +%F)"
           git push origin HEAD:data
 
       - uses: actions/upload-pages-artifact@v3

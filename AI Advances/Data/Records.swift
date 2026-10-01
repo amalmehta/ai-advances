@@ -104,3 +104,12 @@ struct Dataset: Sendable {
 
     static let empty = Dataset()
 }
+
+/// The daily outlook Claude writes in the website build (site/data/outlook.json).
+struct ClaudeOutlook: Codable, Hashable, Sendable {
+    let generatedAt: String
+    let dataThrough: String?
+    let model: String
+    let headline: String
+    let outlook: String
+}

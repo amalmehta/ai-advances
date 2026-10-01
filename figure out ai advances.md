@@ -97,6 +97,20 @@ Decided without asking:
 - The feedback tab opens a GitHub issue on the (now public) repo, so anyone
   with a GitHub account can use it.
 
+Asked and answered (2026-10-01, Claude-written outlook): generated daily
+in the GitHub Action; Claude Opus 5.5; narrative outlook only.
+
+Decided without asking:
+- No web search: the outlook only reads a fact sheet built from site.json,
+  so it can't introduce outside claims (and costs ~$2–3/month, not ~$10+).
+- Python + the official anthropic SDK in the Action (Swift has no official
+  SDK); structured JSON output; effort "high"; server-side refusal fallback
+  ("default"); keeps the previous outlook on any failure.
+- The Mac app doesn't call Claude; it downloads the website's outlook.json.
+- Shown above the computed outlook, labeled "Written by Claude" with a note
+  that it's an AI reading of trend extrapolations.
+- The user adds the ANTHROPIC_API_KEY secret; Claude never handles the key.
+
 CHANGELOG:
 
 - 2026-09-30 — created
@@ -114,3 +128,4 @@ CHANGELOG:
 - 2026-09-30 — built v1.0 of the AI Advances Mac app (seven pages, live Epoch AI + OpenRouter data, 12 tests); README + docs/GUIDE.md; filled in assumptions
 - 2026-09-30 — added Forecasts page (dated trend forecasts, 90% ranges, outlook, forecast log + reconstructed history) and Labs page (standing and release-pace heatmaps, researched lab focus notes); 19 tests (one opt-in page render)
 - 2026-10-01 — added the website: shared Swift exporter, daily GitHub Action to GitHub Pages, forecast log on the data branch, all nine pages; repo made public for Pages
+- 2026-10-01 — added the optional Claude-written daily outlook (Action + website + Mac app); needs the ANTHROPIC_API_KEY repo secret

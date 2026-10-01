@@ -48,6 +48,11 @@ final class DataStore {
     /// Forecasts saved on each day the app refreshed.
     private(set) var liveLog: [ForecastLogEntry] = []
     private(set) var labs: [LabSummary] = []
+    /// Written daily by Claude in the website build; nil until first downloaded.
+    private(set) var claudeOutlook: ClaudeOutlook?
+
+    nonisolated static let outlookURL = URL(string: "https://amalmehta.github.io/ai-advances/data/outlook.json")!
+    nonisolated static var outlookCacheURL: URL { cacheDir.appendingPathComponent("Claude Outlook.json") }
     private(set) var isLoading = true
     private(set) var isRefreshing = false
     private(set) var lastRefresh: Date? {
@@ -115,6 +120,7 @@ final class DataStore {
             return
         }
         await recomputeOutlook()
+        claudeOutlook = (try? Data(contentsOf: Self.outlookCacheURL)).flatMap { try? JSONDecoder().decode(ClaudeOutlook.self, from: $0) }
     }
 
     /// Forecasts, their history and the lab summaries; all derived from `data`, so rerun after every load.
@@ -128,6 +134,14 @@ final class DataStore {
             return (current, past, log, Labs.summaries(data, notes: notes, now: now))
         }.value
         (forecasts, reconstructedLog, liveLog, labs) = result
+    }
+
+    /// Optional extra: a missing or malformed file just leaves the last good copy in place.
+    private func downloadClaudeOutlook() async {
+        guard let (data, response) = try? await URLSession.shared.data(from: Self.outlookURL),
+              (response as? HTTPURLResponse)?.statusCode == 200,
+              (try? JSONDecoder().decode(ClaudeOutlook.self, from: data)) != nil else { return }
+        try? data.write(to: Self.outlookCacheURL, options: .atomic)
     }
 
     nonisolated static func parseAll(_ files: [String: URL]) throws -> Dataset {
@@ -169,6 +183,7 @@ final class DataStore {
                 status[s.file, default: SourceStatus(fromSnapshot: true)].error = error.localizedDescription
             }
         }
+        await downloadClaudeOutlook()
         if anySuccess { lastRefresh = Date() }
         await reload()
     }

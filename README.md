@@ -29,19 +29,21 @@ flowchart LR
     E1[Epoch AI<br>benchmark results] --> P[Parse & join<br>by model name]
     E2[Epoch AI<br>notable models] --> P
     O[OpenRouter<br>model list] --> P
-    C[Researched highlights<br>bundled] --> P
-    L[Researched lab notes<br>bundled] --> P
+    H[Researched highlights<br>and lab notes] --> P
     P --> T[Trends<br>frontier · doubling time · price drops]
     T --> F[Forecasts<br>trend fits + 90% ranges]
     F --> G[Forecast log<br>saved each day]
+    F --> CL[Claude Opus 5.5<br>writes a daily outlook]
     T --> A[AI Advances<br>Mac app]
+    T --> W[Website<br>rebuilt daily]
     F --> A
-    G --> A
-    T --> W[Website<br>rebuilt daily by GitHub Actions]
     F --> W
+    G --> W
+    CL --> W
+    CL --> A
 ```
 
-The app checks for fresh data on launch and every 6 hours while it's open; the website is rebuilt every morning (06:17 UTC). Neither needs API keys.
+The app checks for fresh data on launch and every 6 hours while it's open; the website is rebuilt every morning (06:17 UTC). The data needs no API keys. The optional Claude-written outlook uses an `ANTHROPIC_API_KEY` repository secret.
 
 **[Setup and usage guide →](docs/GUIDE.md)**
 

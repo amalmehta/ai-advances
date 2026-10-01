@@ -27,7 +27,10 @@ struct ForecastsView: View {
             if store.forecasts.isEmpty {
                 ProgressView("Computing forecasts…")
             } else {
-                Card(title: "Outlook", subtitle: "Written from the numbers below; changes when they do.") {
+                if let c = store.claudeOutlook { ClaudeOutlookCard(outlook: c) }
+
+                Card(title: store.claudeOutlook == nil ? "Outlook" : "Computed outlook",
+                     subtitle: "Written by a fixed template from the numbers below; changes when they do.") {
                     Text(Forecasts.outlook(upcoming, shifts: shifts, now: now))
                         .fixedSize(horizontal: false, vertical: true)
                         .textSelection(.enabled)
@@ -193,5 +196,26 @@ struct ForecastsView: View {
                 Footnote(text: "In \(Format.monthYear(first.asOf)) the trend pointed to \(Format.monthYear(first.predicted)); it now points to \(Format.monthYear(last.predicted)), \(change). Saved log: \(store.liveLog.count) day\(store.liveLog.count == 1 ? "" : "s") so far.")
             }
         }
+    }
+}
+
+struct ClaudeOutlookCard: View {
+    let outlook: ClaudeOutlook
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Written by Claude")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color.accentColor)
+                .padding(.horizontal, 8).padding(.vertical, 2)
+                .background(Color.accentColor.opacity(0.14), in: Capsule())
+            Text(outlook.headline).font(.title3.weight(.semibold))
+            Text(outlook.outlook).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+            Footnote(text: "Claude (\(outlook.model)) wrote this on \(outlook.generatedAt.prefix(10)) in the website's daily build, from the same numbers this app shows (data through \(outlook.dataThrough ?? "?")). It's an AI-written reading of trend extrapolations, not a prediction you should rely on.")
+        }
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Palette.surface, in: RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.accentColor.opacity(0.45)))
     }
 }
