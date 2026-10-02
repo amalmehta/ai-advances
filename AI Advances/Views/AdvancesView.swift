@@ -26,6 +26,10 @@ struct AdvancesView: View {
             PageHeader(title: "Latest advances",
                        summary: "Researched highlights, plus new benchmark records and newly listed models detected in the data on every refresh.")
 
+            if let f = Freshness(Freshness.highlights(store.data.advances)) {
+                FreshnessNote(freshness: f, what: "Researched highlights run through")
+            }
+
             Card(title: "Highlights and records per month, by direction",
                  subtitle: "What the last year's advances have been about. New model listings are left out because they'd swamp the chart.") {
                 monthChart(all.filter { $0.kind != .models && $0.date >= yearsAgo(1, from: now) })

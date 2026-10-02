@@ -1,6 +1,14 @@
 # AI Advances Guide
 
-## Setup
+## Install the Mac app
+
+Download the latest **AI-Advances-vX.Y.zip** from [Releases](https://github.com/amalmehta/ai-advances/releases/latest), unzip it, and move **AI Advances** to Applications. It runs on Apple Silicon and Intel Macs with macOS 14 or later.
+
+The app isn't notarized by Apple (that needs a paid developer account), so the first time you open it macOS says it can't verify the developer. Open **System Settings → Privacy & Security**, scroll to the message about AI Advances, and click **Open Anyway**. You only need to do this once.
+
+New versions are built by `.github/workflows/release-mac-app.yml`: run it from Actions → *Release Mac app* → *Run workflow* with a version such as `v1.2`, or push a tag of that name. It runs the tests, builds a universal app and attaches the zip to a GitHub Release.
+
+## Setup (build from source)
 
 You need macOS 14 or later and Xcode 16 or later.
 
@@ -47,10 +55,12 @@ swift build -c release
 ```
 
 ```bash
-python3 -m http.server 8765 --directory site
+python3 -m http.server 8766 --directory site
 ```
 
-Then open http://localhost:8765. The site is plain HTML, CSS and JavaScript (`site/index.html`, `site/styles.css`, `site/app.js`), with charts from Observable Plot loaded from jsDelivr. There's no build step.
+Then open http://localhost:8766.
+
+**Accessibility:** every chart has a text description generated from its data (read by screen readers in place of the graphic), the Labs heatmaps have hidden data tables, the Models table sorts and opens profiles from the keyboard, and a "Skip to content" link appears on the first Tab. The site is plain HTML, CSS and JavaScript (`site/index.html`, `site/styles.css`, `site/app.js`), with charts from Observable Plot loaded from jsDelivr. There's no build step.
 
 ## Pages
 
@@ -100,6 +110,14 @@ python3 scripts/write_outlook.py --site site/data/site.json --out site/data/outl
 - **Track record:** forecasts are recomputed as they would have looked at the start of each of the last 18 months, using only data public then, and scored against every milestone reached since. The Forecasts page shows how often the likely range contained the real date and the typical miss. On the data as of Oct 2, 2026 that's 59% (23 of 39) with a typical miss of 5 months, so the ranges are narrower than a true 90% range; that's why they're called "likely", not "90%". Before the scatter term was added, the same check gave 30%.
 - **Stalled milestones:** if a trend says a milestone was due in the past but nobody has reached it, it's listed as *behind trend* rather than given a date. Milestones more than 15 years out are listed as off trend.
 - **History:** the points before you first ran the app are recomputed from only the data public at the start of each month. From then on, each day's forecasts are saved to `~/Library/Application Support/AI Advances/Forecast Log.json`. Delete that file to start the log over.
+
+## Researched content and staleness
+
+The lab focus notes (`Labs.json`) and the highlights (`Advances.json`) are researched by hand, unlike everything else. The Labs and Latest Advances pages say when they were last updated and show a warning once that's more than 45 days ago. The daily build's *freshness* job (`scripts/check_freshness.py`) then opens a GitHub issue titled "Researched content is out of date", and closes it on the first build after the files are refreshed. Try it without touching GitHub:
+
+```bash
+python3 scripts/check_freshness.py --today 2026-12-01 --dry-run
+```
 
 ## Refreshing the lab notes
 

@@ -1,0 +1,57 @@
+name: Release Mac app
+
+# Builds a universal (Apple Silicon + Intel) AI Advances.app and attaches it to a GitHub
+# Release. Run it from Actions → "Release Mac app" → Run workflow, or push a tag like v1.1.
+#
+# The app is ad-hoc signed, not notarized (that needs a paid Apple Developer account), so
+# macOS asks for confirmation the first time it opens; docs/GUIDE.md explains how.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version tag to create, e.g. v1.1"
+        required: true
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write    # create the release and upload the zip
+
+jobs:
+  release:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pick version
+        id: version
+        run: |
+          TAG="${{ github.event.inputs.version || github.ref_name }}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Releasing $TAG"
+
+      - name: Test
+        run: xcodebuild -project "AI Advances.xcodeproj" -scheme "AI Advances" -derivedDataPath build test | tail -5
+
+      - name: Build universal Release app
+        run: |
+          xcodebuild -project "AI Advances.xcodeproj" -scheme "AI Advances" -configuration Release \
+            -derivedDataPath build ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO build | tail -3
+          APP="build/Build/Products/Release/AI Advances.app"
+          lipo -archs "$APP/Contents/MacOS/AI Advances"
+          ditto -c -k --keepParent "$APP" "AI-Advances-${{ steps.version.outputs.tag }}.zip"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          NOTES="Universal Mac app (Apple Silicon and Intel), macOS 14 or later.
+
+          Unzip, move **AI Advances** to Applications and open it. It isn't notarized, so the first time macOS will say it can't verify the app: open **System Settings → Privacy & Security**, scroll down and click **Open Anyway**. See the [guide](https://github.com/${{ github.repository }}/blob/main/docs/GUIDE.md#install-the-mac-app)."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" "AI-Advances-$TAG.zip" --clobber
+          else
+            gh release create "$TAG" "AI-Advances-$TAG.zip" --title "AI Advances ${TAG#v}" --notes "$NOTES" --target "${{ github.sha }}"
+          fi

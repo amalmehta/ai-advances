@@ -246,3 +246,21 @@ final class TrackRecordTests: XCTestCase {
         XCTAssertGreaterThan(r.scored, 5)
     }
 }
+
+final class FreshnessTests: XCTestCase {
+    func testStaleAfter45Days() {
+        let now = Dates.parse("2026-12-01")!
+        XCTAssertFalse(Freshness(Dates.parse("2026-11-01"), now: now)!.isStale)
+        let old = Freshness(Dates.parse("2026-09-30"), now: now)!
+        XCTAssertTrue(old.isStale)
+        XCTAssertEqual(old.days, 62)
+        XCTAssertTrue(old.sentence("Researched").contains("may be out of date"))
+        XCTAssertNil(Freshness(nil))
+    }
+
+    func testBundledContentDates() throws {
+        let notes = try DataStore.bundled([LabNote].self, "Labs")
+        XCTAssertEqual(Freshness.labNotes(notes), Dates.parse("2026-09-30"))
+        XCTAssertNotNil(Freshness.highlights(SnapshotTests.data.advances))
+    }
+}

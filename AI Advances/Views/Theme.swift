@@ -161,3 +161,18 @@ struct LegendItem: View {
         }
     }
 }
+
+/// Says when hand-researched content was last updated; turns into a warning once it's stale.
+struct FreshnessNote: View {
+    let freshness: Freshness
+    let what: String
+
+    var body: some View {
+        Label(freshness.sentence(what), systemImage: freshness.isStale ? "exclamationmark.triangle.fill" : "calendar")
+            .font(.callout)
+            .foregroundStyle(freshness.isStale ? Palette.color(1) : .secondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(freshness.isStale ? 10 : 0)
+            .background(freshness.isStale ? Palette.color(1).opacity(0.1) : .clear, in: RoundedRectangle(cornerRadius: 8))
+    }
+}

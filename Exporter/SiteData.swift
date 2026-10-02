@@ -151,5 +151,8 @@ struct SiteData: Encodable {
     let shifts: [Shift]
     let history: [HistoryEntry]
     let trackRecord: Record
+    /// Dates of the hand-researched content, so the site can flag it when it goes stale.
+    let labNotesAsOf: Date?
+    let highlightsThrough: Date?
     let labs: [Lab]
 }

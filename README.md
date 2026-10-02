@@ -4,7 +4,7 @@
 
 **A Mac app and website that track where AI is heading.** They follow the latest model releases, what each model and lab is working on, and the long-run trends in capability, cost, context and compute, and turn those trends into dated forecasts that update themselves from public data.
 
-**Website:** [amalmehta.github.io/ai-advances](https://amalmehta.github.io/ai-advances/), rebuilt daily.
+**Website:** [amalmehta.github.io/ai-advances](https://amalmehta.github.io/ai-advances/), rebuilt daily. **Mac app:** [download the latest release](https://github.com/amalmehta/ai-advances/releases/latest) (Apple Silicon and Intel, macOS 14+).
 
 | Website | |
 |---|---|

@@ -92,6 +92,7 @@ function chart(render) {
   host._render = () => {
     const w = host.clientWidth || 800;
     host.replaceChildren(render(w, colors()));
+    host.querySelectorAll("svg[aria-label]").forEach((svg) => svg.setAttribute("role", "img"));
   };
   queueMicrotask(host._render);
   return host;
@@ -206,6 +207,7 @@ pages.trends = () => {
       .map((a) => ({ area: a.name, ...a.momentum[state.window] }))
       .sort((a, b) => b.gapClosed - a.gapClosed);
     return Plot.plot(plotBase(C, {
+      ariaLabel: `Bar chart of the share of remaining headroom each capability area closed in the last ${state.window} months: ${rows.map((r) => `${r.area} ${fmt.pct(r.gapClosed)}`).join(", ")}.`,
       width: w, height: rows.length * 36 + 40, marginLeft: Math.min(170, w * 0.35), marginRight: 110,
       x: { domain: [0, 1], tickFormat: (v) => fmt.pct(v), label: null, grid: true },
       y: { domain: rows.map((r) => r.area), label: null },
@@ -242,6 +244,7 @@ function frontierChart(area, since, showAll, height) {
     const steps = frontierSteps(area, since);
     const dots = showAll ? D.results.filter((r) => area.benchmarks.includes(r.b) && r.d >= since).map((r) => ({ ...r, benchmark: short(r.b) })) : [];
     return Plot.plot(plotBase(C, {
+      ariaLabel: `Line chart of the best score so far on ${names.join(", ")} since ${fmt.monthYear(since)}. Current bests: ${names.map((n) => { const s = steps.filter((x) => x.benchmark === n).pop(); return s ? `${n} ${fmt.pct(s.s)} (${s.m})` : n; }).join("; ")}.`,
       width: w, height, marginRight: 44,
       x: { type: "utc", label: null },
       y: { domain: [0, 1], tickFormat: (v) => fmt.pct(v), label: null, grid: true, axis: "right", ticks: 4 },
@@ -273,6 +276,7 @@ pages.forecasts = () => {
     // Titles go in a left column when there's room, otherwise above each row.
     const narrow = w < 960;
     return Plot.plot(plotBase(C, {
+      ariaLabel: `Timeline of ${rows.length} forecasts, soonest first. ${rows.map((r) => `${r.title}: most likely ${fmt.monthYear(r.predicted)}, likely range ${r.early ? fmt.monthYear(r.early) : "?"} to ${r.late ? fmt.monthYear(r.late) : "open-ended"}`).join(". ")}.`,
       width: w, height: rows.length * (narrow ? 44 : 30) + 50, marginLeft: narrow ? 8 : 330, marginRight: 70,
       x: { type: "utc", domain: [now, axisEnd], label: null, grid: true },
       y: { domain: rows.map((r) => r.title), label: null, axis: narrow ? null : "left" },
@@ -325,6 +329,19 @@ pages.forecasts = () => {
     footnote("Method: compute, task horizon and price use straight-line fits on a log scale (steady exponential change). Benchmarks use an S-curve fitted to the record-setting scores of the last two years, since scores flatten as they near 100%. Likely ranges combine the uncertainty in the fitted slope with how far records scatter around the trend; they don't account for breakthroughs, benchmark changes or slowdowns, and the track record shows how often they've held. Extrapolations, not guarantees."));
 };
 
+/** When hand-researched content was last updated; a warning once it's more than 45 days old. */
+function freshnessNote(iso, what) {
+  if (!iso) return null;
+  const d = date(iso);
+  const days = Math.max(0, Math.floor((Date.now() - d) / DAY));
+  const stale = days > 45;
+  const age = days === 0 ? "today" : days === 1 ? "1 day ago" : `${days} days ago`;
+  return el("p", { class: stale ? "freshness stale" : "freshness", role: stale ? "status" : null },
+    stale ? "⚠ " : "",
+    `${what} ${fmt.date(d)} (${age}).`,
+    stale ? " It may be out of date: the data-driven parts of this page are current, but these notes only change when they're re-researched." : "");
+}
+
 function trackRecordCard() {
   const r = D.trackRecord;
   return card("Track record", "How earlier forecasts did on milestones that have since been reached. For each, the forecast made closest to six months ahead.",
@@ -360,6 +377,7 @@ function historyChart(f, now) {
   }).filter(Boolean);
   const wrap = el("div");
   wrap.append(chart((w, C) => Plot.plot(plotBase(C, {
+    ariaLabel: pts.length ? `How the predicted date for "${f.title}" changed: computed in ${fmt.monthYear(pts[0].asOf)} it pointed to ${fmt.monthYear(pts[0].p)}; computed most recently it points to ${fmt.monthYear(pts[pts.length - 1].p)}.` : `No past forecasts for "${f.title}".`,
     width: w, height: 260, marginLeft: 70,
     x: { type: "utc", label: null },
     y: { type: "utc", label: null, grid: true, tickFormat: (d) => fmt.monthYear(d) },
@@ -390,7 +408,7 @@ pages.labs = () => {
   const standing = heatmap(labs.flatMap((l) => areas.map((a) => ({
     lab: l.name, col: a, value: l.standing[a],
     label: l.standing[a] == null ? "–" : fmt.pct(l.standing[a]) + (l.recordsHeld.some((b) => areaOf[b] === a) ? " ★" : ""),
-  }))), labs.map((l) => l.name), areas, 150);
+  }))), labs.map((l) => l.name), areas, 150, "Each lab's standing by capability area, as a share of the best score; a star marks a current record");
 
   const quarters = [...new Set(labs.flatMap((l) => l.releasesByQuarter.map((q) => q.quarter)))]
     .sort((a, b) => { const [qa, ya] = a.split(" "), [qb, yb] = b.split(" "); return ya - yb || qa.localeCompare(qb); });
@@ -398,10 +416,11 @@ pages.labs = () => {
   const pace = heatmap(labs.flatMap((l) => quarters.map((q) => {
     const n = l.releasesByQuarter.find((x) => x.quarter === q)?.count ?? 0;
     return { lab: l.name, col: q, value: n ? n / maxCount : null, label: n ? String(n) : "" };
-  })), labs.map((l) => l.name), quarters);
+  })), labs.map((l) => l.name), quarters, 70, "New models first seen per lab per quarter");
 
   return el("div", {},
     header("Who's working on what", "Where each major lab leads, how fast it ships, and what it says it's betting on. The charts update daily; the focus notes are researched and dated."),
+    freshnessNote(D.labNotesAsOf, "Lab focus notes researched"),
     card("Where each lab stands", "Each lab's best score as a share of the overall best, averaged over the area's benchmarks it has results on. – = not tested. ★ = holds a current record in that area.", standing),
     card("Release pace", "New models first seen each quarter, in Epoch's benchmark results or OpenRouter's listings.", pace),
     el("div", { class: "grid", style: "--min: 420px" }, labs.map(labCard)),
@@ -411,10 +430,16 @@ pages.labs = () => {
 const RAMP = ["#cde2fb", "#b7d3f6", "#9ec5f4", "#86b6ef", "#6da7ec", "#5598e7", "#3987e5", "#2a78d6", "#256abf", "#1c5cab", "#184f95", "#104281", "#0d366b"];
 function rampColor(v) { const i = Math.max(0, Math.min(RAMP.length - 1, Math.round(v * (RAMP.length - 1)))); return [RAMP[i], i < 6]; }
 
-function heatmap(cells, rows, cols, minColumn = 70) {
-  return el("div", { class: "scroll-x" }, chart((w, C) => {
+function heatmap(cells, rows, cols, minColumn = 70, label = "Heatmap") {
+  const table = el("table", { class: "sr-only" },
+    el("caption", {}, label),
+    el("thead", {}, el("tr", {}, el("th", { scope: "col" }, "Lab"), cols.map((c) => el("th", { scope: "col" }, c)))),
+    el("tbody", {}, rows.map((r) => el("tr", {}, el("th", { scope: "row" }, r),
+      cols.map((c) => el("td", {}, cells.find((x) => x.lab === r && x.col === c)?.label || "none"))))));
+  return el("div", {}, table, el("div", { class: "scroll-x", "aria-hidden": "true" }, chart((w, C) => {
     const width = Math.max(w, 140 + cols.length * minColumn);
     return Plot.plot(plotBase(C, {
+      ariaLabel: label,
       width, height: rows.length * 32 + 40, marginLeft: 140, marginTop: 30,
       x: { domain: cols, axis: "top", label: null, tickSize: 0 },
       y: { domain: rows, label: null, tickSize: 0 },
@@ -423,7 +448,7 @@ function heatmap(cells, rows, cols, minColumn = 70) {
         Plot.text(cells, { x: "col", y: "lab", text: "label", fill: (c) => (c.value == null ? C.muted : rampColor(c.value)[1] ? "#111" : "#fff"), fontSize: 11.5 }),
       ],
     }));
-  }));
+  })));
 }
 
 function labCard(l) {
@@ -482,6 +507,7 @@ pages.advances = () => {
     const months = [];
     for (let d = new Date(Date.UTC(yearAgo.getUTCFullYear(), yearAgo.getUTCMonth(), 1)); d <= now; d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))) months.push(key(d));
     return Plot.plot(plotBase(C, {
+      ariaLabel: `Stacked bar chart of highlights and new records per month over the last year, by direction. Totals: ${order.map((o) => `${o} ${rows.filter((r) => r.direction === o).reduce((s, r) => s + r.n, 0)}`).join(", ")}.`,
       width: w, height: 230,
       x: { domain: months, label: null, tickFormat: (m) => { const [y, mo] = m.split("-"); return mo === "01" || m === months[0] ? `${MONTHS[mo - 1]} ${y}` : MONTHS[mo - 1]; } },
       y: { label: null, grid: true },
@@ -492,6 +518,7 @@ pages.advances = () => {
 
   return el("div", {},
     header("Latest advances", "Researched highlights, plus new benchmark records and newly listed models detected in the data every day."),
+    freshnessNote(D.highlightsThrough, "Researched highlights run through"),
     card("Highlights and records per month, by direction", "What the last year's advances have been about. New model listings are left out because they'd swamp the chart.", monthly),
     el("div", { class: "controls" },
       segmented("kind", kinds.map((k) => [k, k === "All" ? "Everything" : k]), state.kind, (v) => { state.kind = v; renderList(); }),
@@ -557,15 +584,21 @@ pages.models = () => {
       .filter((m) => keys.some(([b]) => m.scores[b] != null) || m.horizonMinutes != null)
       .sort((a, b) => { const x = getter(a), y = getter(b); return (x < y ? -1 : x > y ? 1 : 0) * dir; });
     count.textContent = `${rows.length} models`;
+    // Sort controls are real buttons so they work from the keyboard; aria-sort announces the order.
     const thead = el("thead", {}, el("tr", {}, cols.map(([k, label]) => el("th", {
-      scope: "col", "aria-sort": k === key ? (dir > 0 ? "ascending" : "descending") : null,
-      onclick: () => { state.sort = [k, k === key ? -dir : k === "name" ? 1 : -1]; render(); },
-    }, label))));
+      scope: "col", "aria-sort": k === key ? (dir > 0 ? "ascending" : "descending") : "none",
+    }, el("button", { type: "button", class: "sort", onclick: () => {
+      state.sort = [k, k === key ? -dir : k === "name" ? 1 : -1];
+      render();
+      tableWrap.querySelector(`th:nth-child(${cols.findIndex((c) => c[0] === k) + 1}) button`)?.focus();
+    } }, label)))));
     const tbody = el("tbody", {}, rows.map((m) => el("tr", {
       "aria-selected": state.selected === m.name ? "true" : null,
       onclick: () => { state.selected = m.name; render(); detail.scrollIntoView({ behavior: "smooth", block: "nearest" }); },
     },
-      el("td", {}, m.name, el("span", { class: "sub" }, m.lab)),
+      el("td", {}, el("button", { type: "button", class: "linklike", "aria-label": `${m.name}, show full profile`,
+        onclick: (e) => { e.stopPropagation(); state.selected = m.name; render(); detail.querySelector("h3")?.setAttribute("tabindex", "-1"); detail.querySelector("h3")?.focus(); } }, m.name),
+        el("span", { class: "sub" }, m.lab)),
       el("td", {}, fmt.date(m.released)),
       el("td", { class: m.price == null ? "na" : null }, m.price == null ? "–" : fmt.price(m.price)),
       el("td", { class: m.context ? null : "na" }, m.context ? fmt.tokens(m.context) : "–"),
@@ -602,6 +635,7 @@ function modelDetail(m) {
     el("div", { class: "grid", style: "--min: 280px" },
       el("dl", { class: "facts" }, facts.map(([k, v]) => [el("dt", {}, k), el("dd", {}, v)])),
       chart((w, C) => Plot.plot(plotBase(C, {
+        ariaLabel: `Bar chart of ${m.name}'s best scores: ${scores.map(([b, s]) => `${short(b)} ${fmt.pct(s, 1)}`).join(", ")}.`,
         width: w, height: scores.length * 22 + 20, marginLeft: Math.min(200, w * 0.45), marginRight: 50,
         x: { domain: [0, 1], axis: null }, y: { domain: scores.map(([b]) => short(b)), label: null, tickSize: 0 },
         marks: [
@@ -632,6 +666,7 @@ pages.cost = () => {
       card(`Cheapest price to reach ${fmt.pct(t)} on ${short(b)}`,
         steps.length >= 3 && fit ? `Falling about ${(1 / fit.factorPerYear).toFixed(0)}× per year (exponential fit over ${steps.length} price drops).` : "Too few price drops yet to fit a trend.",
         steps.length ? chart((w, C) => Plot.plot(plotBase(C, {
+          ariaLabel: `Step chart of the cheapest listed price for a model scoring at least ${fmt.pct(t)} on ${short(b)}: ${steps.map((s) => `${s.model} at ${fmt.price(s.price)} from ${fmt.monthYear(s.d)}`).join(", then ")}.`,
           width: w, height: 300, marginRight: 30, marginLeft: 56,
           x: { type: "utc", label: null, domain: [steps[0].d, new Date()] },
           y: { type: "log", label: null, grid: true, tickFormat: fmt.price },
@@ -644,6 +679,7 @@ pages.cost = () => {
         }))) : el("p", { class: "muted" }, "No model with a listed price has reached this score yet. Lower the threshold.")),
       card(`Price against score, ${short(b)}`, "Every model with both a score and a listed price. Up and to the left is better value.",
         chart((w, C) => Plot.plot(plotBase(C, {
+          ariaLabel: `Scatter plot of price per million tokens against score on ${short(b)} for ${dots.length} models.` + (dots.length ? ` Highest score: ${[...dots].sort((x, y) => y.score - x.score)[0].name} at ${fmt.pct([...dots].sort((x, y) => y.score - x.score)[0].score, 1)}. Cheapest: ${[...dots].sort((x, y) => x.price - y.price)[0].name} at ${fmt.price([...dots].sort((x, y) => x.price - y.price)[0].price)}.` : ""),
           width: w, height: 320, marginLeft: 48,
           x: { type: "log", label: "Price per million tokens →", tickFormat: fmt.price, grid: true },
           y: { label: null, grid: true, tickFormat: (v) => fmt.pct(v) },
@@ -674,6 +710,7 @@ pages.context = () => {
     header("Context & Modalities", "How much text models can take in at once, and which kinds of input and output they handle. From every model listed on OpenRouter since 2024."),
     card("Context window by release", "Each dot is a model. The line is the median for models listed that quarter.",
       chart((w, C) => Plot.plot(plotBase(C, {
+        ariaLabel: `Scatter plot of context window against listing date for ${listed.length} models since 2024. The quarterly median went from ${fmt.tokens(D.contextMedians[0]?.value ?? 0)} to ${fmt.tokens(D.contextMedians[D.contextMedians.length - 1]?.value ?? 0)} tokens.` + (top ? ` Largest: ${top.name} at ${fmt.tokens(top.context)}.` : ""),
         width: w, height: 320, marginLeft: 48,
         x: { type: "utc", label: null },
         y: { type: "log", label: null, grid: true, ticks: [4096, 32768, 131072, 1e6, 1e7], tickFormat: fmt.tokens },
@@ -689,6 +726,7 @@ pages.context = () => {
       chart((w, C) => {
         const mods = [...new Set(D.modalityShares.map((s) => s.modality))];
         return Plot.plot(plotBase(C, {
+          ariaLabel: (() => { const q = D.modalityShares[D.modalityShares.length - 1]?.quarter; return `Line chart of the share of new models supporting each modality, by quarter. In ${q}: ${D.modalityShares.filter((s) => s.quarter === q).map((s) => `${s.modality} ${fmt.pct(s.share)}`).join(", ")}.`; })(),
           width: w, height: 280,
           x: { type: "utc", label: null },
           y: { domain: [0, 1], grid: true, label: null, tickFormat: (v) => fmt.pct(v) },
@@ -713,6 +751,7 @@ pages.compute = () => {
     slot.replaceChildren(card("Training compute over time",
       t.computeFactorPerYear ? `Frontier runs grow about ${t.computeFactorPerYear.toFixed(1)}× per year, doubling every ${fmt.months(t.computeDoublingMonths)} (dashed line, fit since 2020).` : null,
       chart((w, C) => Plot.plot(plotBase(C, {
+        ariaLabel: `Scatter plot of training compute for ${models.length} notable models since ${state.computeSince}, frontier models highlighted, with a trend line.` + (t.computeFactorPerYear ? ` Frontier runs grow about ${t.computeFactorPerYear.toFixed(1)}x per year.` : "") + (models.length ? ` Largest: ${[...models].sort((a, b) => b.flop - a.flop)[0].name}.` : ""),
         width: w, height: 380, marginLeft: 52,
         x: { type: "utc", label: null },
         y: { type: "log", label: null, grid: true, tickFormat: (v) => `10^${Math.round(Math.log10(v))}`, ticks: 8 },
@@ -739,6 +778,8 @@ pages.compute = () => {
 // ---------- Shell ----------
 
 function route() {
+  // Only "#/page" hashes are routes; anything else (an in-page anchor) leaves the page as it is.
+  if (location.hash && !location.hash.startsWith("#/") && $("#page").childElementCount) return;
   const id = (location.hash.match(/^#\/(\w+)/) ?? [])[1];
   const page = PAGES.find(([p]) => p === id) ?? PAGES[0];
   document.querySelectorAll("#nav a").forEach((a) => {
@@ -779,6 +820,7 @@ function feedback() {
 
 async function main() {
   feedback();
+  $(".skip-link").addEventListener("click", (e) => { e.preventDefault(); $("#page").focus(); });
   try {
     const res = await fetch("data/site.json", { cache: "no-cache" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);

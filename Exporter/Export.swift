@@ -90,6 +90,8 @@ enum Export {
                     .init(id: $0.forecastID, title: $0.title, madeOn: $0.madeOn, predicted: $0.predicted, reached: $0.reached,
                           early: $0.early, late: $0.late, errorMonths: $0.errorMonths, inside: $0.inside)
                 }),
+            labNotesAsOf: Freshness.labNotes(notes),
+            highlightsThrough: Freshness.highlights(data.advances),
             labs: Labs.summaries(data, notes: notes, now: now).map { l in
                 SiteData.Lab(name: l.name, note: l.note, standing: l.standing,
                              recordsHeld: l.recordsHeld.map(Analysis.shortName), recentRecords: l.recentRecords,

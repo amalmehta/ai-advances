@@ -32,6 +32,10 @@ struct LabsView: View {
             PageHeader(title: "Who's working on what",
                        summary: "Where each major lab leads, how fast it ships, and what it says it's betting on. The charts update with the data; the focus notes are researched and dated.")
 
+            if let f = Freshness(Freshness.labNotes(store.labs.compactMap(\.note))) {
+                FreshnessNote(freshness: f, what: "Lab focus notes researched")
+            }
+
             if labs.isEmpty {
                 ProgressView("Summarizing labs…")
             } else {

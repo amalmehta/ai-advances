@@ -101,6 +101,21 @@ jobs:
         with:
           path: site
 
+  freshness:
+    # Opens an issue when the hand-researched lab notes or highlights pass 45 days old,
+    # and closes it once they've been refreshed.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check researched content age
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: python3 scripts/check_freshness.py
+
   deploy:
     needs: build
     runs-on: ubuntu-latest

@@ -38,6 +38,7 @@
 		DCB089D8019334DF8D4AB1F1 /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A84757CD3E5BB83C7313D20 /* Feed.swift */; };
 		E39507997B616EE04869E842 /* CostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73FB40E12AFF8DDB3836B1C /* CostView.swift */; };
 		E82EC44663E62637BA7223F8 /* FrontierChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C022C9D23C87A45A21957C2 /* FrontierChart.swift */; };
+		EC656BD158AC6ECDE610BFAB /* Freshness.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA01C296DB4A75E7B5C621D8 /* Freshness.swift */; };
 		EEBB85A1B368F8C9BC3B45FD /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 745365E2E21268DAD3C942DF /* ContentView.swift */; };
 		F2A24E1B0CB84CA057213ECB /* benchmark_data.zip in Resources */ = {isa = PBXBuildFile; fileRef = 24FA30095ADCC0A6FDBBF893 /* benchmark_data.zip */; };
 		FA993F16D55FF7844DAE15BE /* Loading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 024F58F4940912A8D6334400 /* Loading.swift */; };
@@ -88,6 +89,7 @@
 		F267E92F1F40385DCEA96AD5 /* TrackRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackRecord.swift; sourceTree = "<group>"; };
 		F5B301DDFC8B5E2B8CD10102 /* Labs.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Labs.json; sourceTree = "<group>"; };
 		F8C3EC2B5D6B0F0581BFA243 /* CapabilityAreas.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CapabilityAreas.json; sourceTree = "<group>"; };
+		FA01C296DB4A75E7B5C621D8 /* Freshness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Freshness.swift; sourceTree = "<group>"; };
 		FB23824C56A207579553B9A7 /* TrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsView.swift; sourceTree = "<group>"; };
 		FC55FDECE34989CBAE37EAAF /* notable_ai_models.csv */ = {isa = PBXFileReference; path = notable_ai_models.csv; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -169,6 +171,7 @@
 				5DED13EF03DE42F1A1B63F2E /* DataStore.swift */,
 				1A84757CD3E5BB83C7313D20 /* Feed.swift */,
 				696CBCD211757892F5C5EA12 /* Forecasts.swift */,
+				FA01C296DB4A75E7B5C621D8 /* Freshness.swift */,
 				7C95544E7FF28208B00779CA /* Labs.swift */,
 				024F58F4940912A8D6334400 /* Loading.swift */,
 				CC0BD65C55F8978D60B2922D /* Outlook.swift */,
@@ -308,6 +311,7 @@
 				14E19AC59DDB4B890A9B6876 /* FeedbackView.swift in Sources */,
 				40A0B182B3FECC97ED2C7A58 /* Forecasts.swift in Sources */,
 				05EB08D44C328B3548FAA476 /* ForecastsView.swift in Sources */,
+				EC656BD158AC6ECDE610BFAB /* Freshness.swift in Sources */,
 				E82EC44663E62637BA7223F8 /* FrontierChart.swift in Sources */,
 				4548B0383C66DED0EAE6B68B /* Labs.swift in Sources */,
 				14F9C390805EE1396DD07E25 /* LabsView.swift in Sources */,
@@ -435,7 +439,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -494,7 +498,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
