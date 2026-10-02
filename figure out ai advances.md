@@ -109,7 +109,8 @@ Decided without asking:
 - The Mac app doesn't call Claude; it downloads the website's outlook.json.
 - Shown above the computed outlook, labeled "Written by Claude" with a note
   that it's an AI reading of trend extrapolations.
-- The user adds the ANTHROPIC_API_KEY secret; Claude never handles the key.
+- The user adds the API key as a repo secret; Claude never handles the key.
+  At the user's request the workflow reads it from a secret named NEW_SECRET.
 
 CHANGELOG:
 
@@ -128,4 +129,5 @@ CHANGELOG:
 - 2026-09-30 — built v1.0 of the AI Advances Mac app (seven pages, live Epoch AI + OpenRouter data, 12 tests); README + docs/GUIDE.md; filled in assumptions
 - 2026-09-30 — added Forecasts page (dated trend forecasts, 90% ranges, outlook, forecast log + reconstructed history) and Labs page (standing and release-pace heatmaps, researched lab focus notes); 19 tests (one opt-in page render)
 - 2026-10-01 — added the website: shared Swift exporter, daily GitHub Action to GitHub Pages, forecast log on the data branch, all nine pages; repo made public for Pages
-- 2026-10-01 — added the optional Claude-written daily outlook (Action + website + Mac app); needs the ANTHROPIC_API_KEY repo secret
+- 2026-10-01 — added the optional Claude-written daily outlook (Action + website + Mac app); needs the API key repo secret
+- 2026-10-02 — the workflow reads the Anthropic API key from the NEW_SECRET repo secret (user request)

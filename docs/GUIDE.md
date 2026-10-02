@@ -73,7 +73,7 @@ Hover any chart for details. The toolbar shows when data last updated; click it 
 Each daily build can also have Claude write a short outlook: a headline and 3–5 sentences on where the field is heading. It appears at the top of the Forecasts page on the website and in the Mac app, labeled "Written by Claude", above the computed outlook.
 
 - **How it's written:** `scripts/write_outlook.py` turns `site.json` into a compact fact sheet (headline trends, forecasts and their ranges, recent records and highlights, lab standing) and sends it to Claude Opus 5.5 with instructions to use only those facts. The reply is schema-checked JSON. There's no web search, so it can only reflect the data the site already has.
-- **Turning it on:** add your Anthropic API key as a repository secret named `ANTHROPIC_API_KEY` (GitHub → Settings → Secrets and variables → Actions, or the command below). Until then the step is skipped and the site shows only the computed outlook.
+- **Turning it on:** add your Anthropic API key as a repository secret named `NEW_SECRET` (GitHub → Settings → Secrets and variables → Actions, or the command below). The workflow passes it to the script as `ANTHROPIC_API_KEY`. Until then the step is skipped and the site shows only the computed outlook.
 - **Cost:** one request a day of about 3,000 input tokens plus Claude's reasoning and reply, roughly 5–10 cents a day, about $2–3 a month at Claude Opus 5.5 prices ($4 / $20 per million input/output tokens).
 - **When it can't run:** without the key, if the API errors, or if the request is declined, the build keeps the previous day's outlook (stored on the `data` branch) and carries on. Safety declines first retry on Anthropic's recommended fallback model.
 - **The Mac app** downloads the website's `data/outlook.json` when it refreshes, so it needs no key of its own.
@@ -81,7 +81,7 @@ Each daily build can also have Claude write a short outlook: a headline and 3–
 To add the secret (you'll be prompted to paste the key, so it never goes on the command line):
 
 ```bash
-gh secret set ANTHROPIC_API_KEY --repo amalmehta/ai-advances
+gh secret set NEW_SECRET --repo amalmehta/ai-advances
 ```
 
 To see the fact sheet Claude is given, without calling the API:

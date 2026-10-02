@@ -2,7 +2,7 @@ name: Update website
 
 # Daily: download the latest Epoch AI and OpenRouter data, recompute trends, forecasts
 # and lab stats with the same Swift code as the Mac app, have Claude write the day's
-# outlook (if the ANTHROPIC_API_KEY secret is set), log today's forecasts and outlook on
+# outlook (if the NEW_SECRET secret holds an Anthropic API key), log today's forecasts and outlook on
 # the `data` branch, and publish the site to GitHub Pages.
 
 on:
@@ -75,10 +75,10 @@ jobs:
             --log data-branch/forecast-log.json
 
       - name: Write Claude outlook
-        # Optional: without the ANTHROPIC_API_KEY secret (or if the call fails) this keeps
-        # yesterday's outlook, or skips it, and the build carries on.
+        # Optional: without the NEW_SECRET secret (the Anthropic API key), or if the call
+        # fails, this keeps yesterday's outlook, or skips it, and the build carries on.
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.NEW_SECRET }}
         run: |
           python3 -m pip install -q anthropic
           python3 scripts/write_outlook.py \
