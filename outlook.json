@@ -1,0 +1,8 @@
+{
+  "generatedAt": "2026-10-02T03:13:21+00:00",
+  "dataThrough": "2026-10-01",
+  "model": "claude-opus-5-5",
+  "headline": "Math is nearly solved; agents doing real work remain the frontier",
+  "outlook": "Math has all but run out of road: benchmarks there closed 95% of their remaining headroom over the past year, FrontierMath crossed 90% in September, and GPT-6.1 Sol just posted a perfect score on FrontierMath Tier 4. Agents and real work moved least, closing only 32% of headroom, with the Remote Labor Index at 20.8% and OSWorld 2 at 31.4%. On current trends those benchmarks are not expected to reach 90% until mid-2027 to early 2028, and Terminal-Bench is already running behind its fitted trend at 84.7%. Even so, the length of tasks models can handle keeps doubling roughly every 4.2 months, now 17.4 hours with Claude Mythos Preview, which puts a full 40-hour work-week most likely around December, though the range runs into March 2027. With the cheapest model scoring at least 80% on GPQA now at $0.055 per million tokens, down from $3.4375 for Gemini 2.5 Pro and falling about 22-fold a year, the coming year looks set to test whether longer horizons and cheaper models finally turn into reliable autonomous work rather than just higher scores on harder exams.",
+  "requestId": "req_011CfcgRS5aoBkFeRvcpaW6x"
+}
