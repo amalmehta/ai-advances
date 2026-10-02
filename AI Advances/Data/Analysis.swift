@@ -148,12 +148,19 @@ enum Analysis {
     // MARK: Model profiles
 
     /// Loose name key so "Claude Opus 5.5" (Epoch) matches "Anthropic: Claude Opus 5.5" (OpenRouter).
+    /// Words that label a listing rather than name a different model.
+    static let fillerWords: Set<String> = ["preview", "latest", "experimental", "exp", "beta", "it", "instruct"]
+
     static func matchKey(_ name: String) -> String {
         var s = name.lowercased()
         if let r = s.range(of: ":") { s = String(s[r.upperBound...]) }
         if let r = s.range(of: "(") { s = String(s[..<r.lowerBound]) }
-        for word in ["preview", "latest", "experimental", " exp"] { s = s.replacingOccurrences(of: word, with: "") }
-        return s.filter { $0.isLetter || $0.isNumber }
+        // Snapshot dates: "2026-02-15" anywhere, or a trailing-style 4-digit stamp such as "0423" or "2512".
+        s = s.replacingOccurrences(of: #"\b(19|20)\d{2}-\d{2}-\d{2}\b"#, with: " ", options: .regularExpression)
+        let words = s.split { !($0.isLetter || $0.isNumber || $0 == ".") }
+            .map(String.init)
+            .filter { w in !fillerWords.contains(w) && !(w.count == 4 && w.allSatisfy(\.isNumber)) }
+        return words.joined().filter { $0.isLetter || $0.isNumber }
     }
 
     static func profiles(_ data: Dataset) -> [ModelProfile] {

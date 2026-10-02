@@ -99,6 +99,20 @@ struct SiteData: Encodable {
         let forecasts: [String: ForecastSnapshot]
     }
 
+    struct Record: Encodable {
+        struct Item: Encodable {
+            let id, title: String
+            let madeOn, predicted, reached: Date
+            let early, late: Date?
+            let errorMonths: Double
+            let inside: Bool
+        }
+        let summary: String
+        let scored, inside: Int
+        let coverage, medianAbsErrorMonths: Double?
+        let items: [Item]
+    }
+
     struct Lab: Encodable {
         struct Quarter: Encodable { let quarter: String; let start: Date; let count: Int }
         let name: String
@@ -136,5 +150,6 @@ struct SiteData: Encodable {
     let outlook: String
     let shifts: [Shift]
     let history: [HistoryEntry]
+    let trackRecord: Record
     let labs: [Lab]
 }

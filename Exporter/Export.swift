@@ -18,6 +18,7 @@ enum Export {
         let history = Forecasts.reconstructed(data, now: now) + live
         let upcoming = current.filter { $0.reached == nil && $0.predicted != nil }.sorted { $0.predicted! < $1.predicted! }
         let shifts = Forecasts.shifts(upcoming, history: history, now: now)
+        let record = TrackRecord.score(history: history, current: current)
 
         // Results: only the benchmarks the site charts, since 2022.
         let charted = Set(data.areas.flatMap(\.benchmarks) + Analysis.keyBenchmarks.map(\.name))
@@ -82,6 +83,13 @@ enum Export {
             outlook: Forecasts.outlook(upcoming, shifts: shifts, now: now),
             shifts: shifts.map { SiteData.Shift(id: $0.id, title: $0.forecast.title, months: $0.months, predicted: $0.forecast.predicted) },
             history: history.sorted { $0.asOf < $1.asOf }.map { SiteData.HistoryEntry(asOf: $0.asOf, live: !$0.reconstructed, forecasts: $0.forecasts) },
+            trackRecord: SiteData.Record(
+                summary: record.summary, scored: record.scored, inside: record.inside,
+                coverage: record.coverage, medianAbsErrorMonths: record.medianAbsErrorMonths,
+                items: record.items.map {
+                    .init(id: $0.forecastID, title: $0.title, madeOn: $0.madeOn, predicted: $0.predicted, reached: $0.reached,
+                          early: $0.early, late: $0.late, errorMonths: $0.errorMonths, inside: $0.inside)
+                }),
             labs: Labs.summaries(data, notes: notes, now: now).map { l in
                 SiteData.Lab(name: l.name, note: l.note, standing: l.standing,
                              recordsHeld: l.recordsHeld.map(Analysis.shortName), recentRecords: l.recentRecords,

@@ -285,7 +285,7 @@ pages.forecasts = () => {
           channels: {
             Forecast: "title",
             "Most likely": (r) => fmt.monthYear(r.predicted),
-            "90% range": (r) => `${r.early ? fmt.monthYear(r.early) : "?"} – ${r.late ? fmt.monthYear(r.late) : "open-ended"}`,
+            "Likely range": (r) => `${r.early ? fmt.monthYear(r.early) : "?"} – ${r.late ? fmt.monthYear(r.late) : "open-ended"}`,
             Now: "current",
           } }),
         Plot.text(rows, { x: "p", y: "title", text: (r) => fmt.monthYear(r.predicted), dx: 9, textAnchor: "start", fill: C.text2 }),
@@ -302,7 +302,8 @@ pages.forecasts = () => {
     header("Where the field is going next", "Dated predictions from extrapolating today's trends. Every forecast is recomputed daily, and each day's set is logged so you can watch them move."),
     CLAUDE ? claudeCard() : null,
     card(CLAUDE ? "Computed outlook" : "Outlook", "Written by a fixed template from the numbers below; changes when they do.", el("p", { style: "margin:0" }, D.outlook)),
-    card("Forecast timeline", "Dot: most likely date if the trend holds. Bar: 90% range. Ranges running off the right edge are open-ended.",
+    card("Forecast timeline", "Dot: most likely date if the trend holds. Bar: likely range. Ranges running off the right edge are open-ended."
+      + (D.trackRecord.coverage != null ? ` Past ranges caught the real date ${fmt.pct(D.trackRecord.coverage)} of the time (see Track record).` : ""),
       timeline, footnote("Hover a dot for its range and current value.")),
     D.shifts.length ? card("What moved in the last 3 months", "Change in each predicted date since the forecast computed three months ago. Earlier means the field sped up.",
       el("div", { class: "rows" }, D.shifts.slice(0, 8).map((s) => {
@@ -314,14 +315,30 @@ pages.forecasts = () => {
     card("How a forecast has shifted", "The predicted date as computed on each date. Hollow points are recomputed from only the data public then; filled points were saved by the daily update.",
       el("div", { class: "controls" }, select(upcoming.map((f) => [f.id, f.title]), state.forecastId, (v) => { state.forecastId = v; renderHistory(); }, "Forecast")),
       historySlot),
+    D.trackRecord.items.length ? trackRecordCard() : null,
     el("div", { class: "grid" },
       card("Already happened", "Milestones the trends have already crossed.",
         el("div", { class: "rows" }, reached.map((f) => el("div", { class: "row" },
           el("span", {}, el("span", { class: "check" }, "✓ "), f.title), el("span", { class: "muted tnum" }, fmt.monthYear(f.reached)))))),
       stalled.length ? card("Stalled or off trend", "Milestones the current trend can't date: progress has stopped short of them, or they're too far out.",
         el("div", { class: "rows" }, stalled.map((f) => el("div", {}, el("div", {}, f.title), el("div", { class: "small muted" }, `${f.current}. ${f.note ?? ""}.`))))) : null),
-    footnote("Method: compute, task horizon and price use straight-line fits on a log scale (steady exponential change). Benchmarks use an S-curve fitted to the record-setting scores of the last two years, since scores flatten as they near 100%. Ranges come from the uncertainty in the fitted slope; they don't account for breakthroughs, benchmark changes or slowdowns. Extrapolations, not guarantees."));
+    footnote("Method: compute, task horizon and price use straight-line fits on a log scale (steady exponential change). Benchmarks use an S-curve fitted to the record-setting scores of the last two years, since scores flatten as they near 100%. Likely ranges combine the uncertainty in the fitted slope with how far records scatter around the trend; they don't account for breakthroughs, benchmark changes or slowdowns, and the track record shows how often they've held. Extrapolations, not guarantees."));
 };
+
+function trackRecordCard() {
+  const r = D.trackRecord;
+  return card("Track record", "How earlier forecasts did on milestones that have since been reached. For each, the forecast made closest to six months ahead.",
+    el("p", { style: "margin:0 0 10px" }, r.summary),
+    el("div", { class: "table-wrap", style: "max-height:none" }, el("table", {},
+      el("thead", {}, el("tr", {}, ["Milestone", "Forecast in", "Predicted", "Happened", ""].map((h) => el("th", { scope: "col", style: "cursor:default" }, h)))),
+      el("tbody", {}, r.items.map((i) => el("tr", { style: "cursor:default" },
+        el("td", {}, i.title),
+        el("td", { class: "muted" }, fmt.monthYear(date(i.madeOn))),
+        el("td", {}, fmt.monthYear(date(i.predicted))),
+        el("td", {}, fmt.monthYear(date(i.reached))),
+        el("td", { class: i.inside ? "check" : "down" },
+          i.inside ? "✓ Within range" : i.errorMonths > 0 ? "✗ Later than range" : "✗ Earlier than range")))))));
+}
 
 function claudeCard() {
   const when = new Date(CLAUDE.generatedAt);

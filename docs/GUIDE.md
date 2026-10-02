@@ -57,7 +57,7 @@ Then open http://localhost:8765. The site is plain HTML, CSS and JavaScript (`si
 | Page | What it answers |
 |---|---|
 | **Direction Trends** | Where things are heading. Four headline trends: training compute growth, the longest task AI can do (METR time horizon), the price of GPQA ≥ 80%, and the largest context window. Also shows which capability areas closed the most headroom over the last 6, 12 or 24 months, and small charts of the best score over time per area. |
-| **Forecasts** | Where the field goes next. Dated predictions with 90% ranges: when AI handles week- and month-long tasks, when each tracked benchmark reaches 90%, when training runs reach 10^28 and 10^29 FLOP, and when GPQA-level ability costs under $0.01 per million tokens. Also an outlook written from those numbers, the forecasts that moved most in the last 3 months, a history chart for each forecast, and lists of milestones already reached and those that have stalled. |
+| **Forecasts** | Where the field goes next. Dated predictions with likely ranges: when AI handles week- and month-long tasks, when each tracked benchmark reaches 90%, when training runs reach 10^28 and 10^29 FLOP, and when GPQA-level ability costs under $0.01 per million tokens. Also an outlook written from those numbers, the forecasts that moved most in the last 3 months, a history chart for each forecast, and lists of milestones already reached and those that have stalled. |
 | **Labs** | Who's working on what. A heatmap of each lab's standing per capability area (★ = holds a record), a heatmap of release pace by quarter, and a card per lab with its researched focus, bets and flagships, plus live facts: latest model, records held, modalities, open-weights share, price range and largest training run. |
 | **Latest Advances** | What happened recently. Researched highlights with sources, plus new benchmark records and newly listed models, which are detected on every refresh. Filter by kind and by direction (Reasoning, Coding, Agents, and so on). |
 | **Capabilities** | Pick an area to see every model result as a dot, with the record line on top, and a top-8 leaderboard for each benchmark. |
@@ -84,6 +84,8 @@ To add the secret (you'll be prompted to paste the key, so it never goes on the 
 gh secret set NEW_SECRET --repo amalmehta/ai-advances
 ```
 
+- **Number check:** the figures Claude sees are rounded to 3 significant digits, and every number in its reply must appear in the fact sheet (allowing rounding, percentages and minutes-as-hours). If one doesn't, Claude is asked once to rewrite using only fact-sheet numbers; if it still doesn't comply, the previous outlook is kept. `python3 scripts/test_write_outlook.py site/data/site.json` runs these checks offline.
+
 To see the fact sheet Claude is given, without calling the API:
 
 ```bash
@@ -94,7 +96,8 @@ python3 scripts/write_outlook.py --site site/data/site.json --out site/data/outl
 
 - **Compute, task horizon and price:** a straight-line fit on a log scale, meaning steady exponential change. Task horizon uses METR record-setters since 2023, compute uses Epoch's frontier training runs since 2020, and price uses the successive drops in the cheapest model scoring at least 80% on GPQA Diamond.
 - **Benchmarks:** an S-curve (linear in logit) fitted to the record-setting scores of the last two years, since scores flatten as they near 100%.
-- **Ranges:** the 90% range comes from the uncertainty in the fitted slope. It doesn't account for breakthroughs, slowdowns or benchmark changes.
+- **Ranges:** the likely range combines the uncertainty in the fitted slope with how far records scatter around the trend (that scatter, converted to months, widens both ends). It doesn't account for breakthroughs, slowdowns or benchmark changes.
+- **Track record:** forecasts are recomputed as they would have looked at the start of each of the last 18 months, using only data public then, and scored against every milestone reached since. The Forecasts page shows how often the likely range contained the real date and the typical miss. On the data as of Oct 2, 2026 that's 59% (23 of 39) with a typical miss of 5 months, so the ranges are narrower than a true 90% range; that's why they're called "likely", not "90%". Before the scatter term was added, the same check gave 30%.
 - **Stalled milestones:** if a trend says a milestone was due in the past but nobody has reached it, it's listed as *behind trend* rather than given a date. Milestones more than 15 years out are listed as off trend.
 - **History:** the points before you first ran the app are recomputed from only the data public at the start of each month. From then on, each day's forecasts are saved to `~/Library/Application Support/AI Advances/Forecast Log.json`. Delete that file to start the log over.
 

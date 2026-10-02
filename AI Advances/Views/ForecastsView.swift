@@ -37,7 +37,8 @@ struct ForecastsView: View {
                 }
 
                 Card(title: "Forecast timeline",
-                     subtitle: "Dot: most likely date if the trend holds. Bar: 90% range. Ranges running off the right edge are open-ended.") {
+                     subtitle: "Dot: most likely date if the trend holds. Bar: likely range. Ranges running off the right edge are open-ended."
+                        + (store.trackRecord?.coverage.map { " Past ranges caught the real date \(Format.percent($0)) of the time (see Track record)." } ?? "")) {
                     timeline(upcoming, now: now, axisEnd: axisEnd)
                     if let t = hoverTitle, let f = upcoming.first(where: { $0.title == t }) {
                         detail(f)
@@ -73,6 +74,10 @@ struct ForecastsView: View {
                     if let f = selected { history(f, now: now) }
                 }
 
+                if let record = store.trackRecord, !record.items.isEmpty {
+                    trackRecordCard(record)
+                }
+
                 HStack(alignment: .top, spacing: 16) {
                     Card(title: "Already happened", subtitle: "Milestones the trends have already crossed.") {
                         ForEach(reached) { f in
@@ -97,7 +102,7 @@ struct ForecastsView: View {
                     }
                 }
 
-                Footnote(text: "Method: compute, task horizon and price use straight-line fits on a log scale (steady exponential change). Benchmarks use an S-curve fitted to the record-setting scores of the last two years, since scores flatten as they near 100%. Ranges come from the uncertainty in the fitted slope; they don't account for breakthroughs, benchmark changes or slowdowns. Extrapolations, not guarantees.")
+                Footnote(text: "Method: compute, task horizon and price use straight-line fits on a log scale (steady exponential change). Benchmarks use an S-curve fitted to the record-setting scores of the last two years, since scores flatten as they near 100%. Likely ranges combine the uncertainty in the fitted slope with how far records scatter around the trend; they don't account for breakthroughs, benchmark changes or slowdowns, and the track record shows how often they've held. Extrapolations, not guarantees.")
             }
         }
         .onAppear { if selectedID.isEmpty { selectedID = upcoming.first?.id ?? "" } }
@@ -132,9 +137,34 @@ struct ForecastsView: View {
         .frame(height: CGFloat(fs.count) * 28 + 60)
     }
 
+    private func trackRecordCard(_ record: TrackRecord) -> some View {
+        Card(title: "Track record",
+             subtitle: "How earlier forecasts did on milestones that have since been reached. For each, the forecast made closest to six months ahead.") {
+            Text(record.summary).fixedSize(horizontal: false, vertical: true)
+            Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 6) {
+                GridRow {
+                    Text("Milestone"); Text("Forecast in"); Text("Predicted"); Text("Happened"); Text("")
+                }
+                .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                ForEach(record.items) { i in
+                    GridRow {
+                        Text(i.title)
+                        Text(Format.monthYear(i.madeOn)).foregroundStyle(.secondary)
+                        Text(Format.monthYear(i.predicted))
+                        Text(Format.monthYear(i.reached))
+                        Label(i.inside ? "Within range" : (i.errorMonths > 0 ? "Later than range" : "Earlier than range"),
+                              systemImage: i.inside ? "checkmark.circle.fill" : "xmark.circle")
+                            .foregroundStyle(i.inside ? Palette.color(2) : Palette.color(1))
+                    }
+                    .monospacedDigit()
+                }
+            }
+        }
+    }
+
     private func detail(_ f: Forecast) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text("\(f.target): most likely \(Format.monthYear(f.predicted!)), 90% range \(f.early.map(Format.monthYear) ?? "?") to \(f.late.map(Format.monthYear) ?? "beyond \(Int(Forecasts.maxYearsOut)) years").")
+            Text("\(f.target): most likely \(Format.monthYear(f.predicted!)), likely range \(f.early.map(Format.monthYear) ?? "?") to \(f.late.map(Format.monthYear) ?? "beyond \(Int(Forecasts.maxYearsOut)) years").")
             Text("Now: \(f.current). \(f.basis).").foregroundStyle(.secondary)
         }
         .font(.callout)

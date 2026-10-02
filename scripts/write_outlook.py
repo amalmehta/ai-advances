@@ -16,7 +16,9 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import math
 import os
+import re
 import shutil
 import sys
 
@@ -58,7 +60,7 @@ def fact_sheet(site: dict) -> dict:
         out = {k: f.get(k) for k in ("title", "current", "basis") if f.get(k)}
         if f.get("predicted"):
             out["mostLikely"] = f["predicted"]
-            out["range90"] = [f.get("early"), f.get("late") or "open-ended"]
+            out["likelyRange"] = [f.get("early"), f.get("late") or "open-ended"]
         return out
 
     forecasts = site["forecasts"]
@@ -88,7 +90,48 @@ def fact_sheet(site: dict) -> dict:
         "recentHighlights": [{"date": i["date"], "title": i["title"], "lab": i["lab"]}
                              for i in site["feed"] if i["kind"] == "Highlights" and i["date"] >= recent][:12],
         "labStanding": standing[:10],
+        "forecastTrackRecord": site.get("trackRecord", {}).get("summary"),
     }
+
+
+def rounded(value):
+    """Rounds every float to 3 significant digits so Claude quotes $3.44, not $3.4375."""
+    if isinstance(value, float):
+        return float(f"{value:.3g}") if value else 0.0
+    if isinstance(value, dict):
+        return {k: rounded(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [rounded(v) for v in value]
+    return value
+
+
+NUMBER = re.compile(r"(?<![\w.])\$?(\d+(?:,\d{3})*(?:\.\d+)?)")
+
+
+def numbers_in(text: str) -> set:
+    return {float(m.group(1).replace(",", "")) for m in NUMBER.finditer(text)}
+
+
+def allowed_numbers(facts: dict) -> set:
+    """Every number in the fact sheet, plus the ways a writer might legitimately restate it:
+    rounded, as a percentage, or (for minutes) in hours."""
+    allowed = set(range(0, 11))  # small counts ("two or three", "3 months")
+    for v in numbers_in(json.dumps(facts, ensure_ascii=False)):
+        for x in (v, v * 100, v / 60):
+            allowed.add(x)
+            for d in range(0, 3):
+                allowed.add(round(x, d))
+            if x >= 1:
+                allowed.add(float(f"{x:.2g}"))
+                allowed.add(float(math.floor(x)))
+    return allowed
+
+
+def unsupported_numbers(written: dict, facts: dict) -> list:
+    """Numbers in Claude's headline or outlook that don't come from the fact sheet."""
+    allowed = allowed_numbers(facts)
+    text = written.get("headline", "") + " " + written.get("outlook", "")
+    return sorted(n for n in numbers_in(text) if not any(abs(n - a) <= 1e-9 * max(1, abs(a)) for a in allowed))
 
 
 def keep_previous(previous: str | None, out: str, reason: str) -> None:
@@ -110,7 +153,7 @@ def main() -> int:
 
     with open(args.site) as f:
         site = json.load(f)
-    facts = fact_sheet(site)
+    facts = rounded(fact_sheet(site))
     prompt = ("Here is today's fact sheet from AI Advances, as JSON. Write today's outlook.\n\n"
               + json.dumps(facts, indent=1, ensure_ascii=False))
 
@@ -125,44 +168,62 @@ def main() -> int:
     import anthropic
 
     client = anthropic.Anthropic()
-    try:
-        response = client.beta.messages.create(
-            model=MODEL,
-            max_tokens=16000,
-            system=SYSTEM,
-            messages=[{"role": "user", "content": prompt}],
-            output_config={"effort": "high", "format": {"type": "json_schema", "schema": SCHEMA}},
-            # On a safety decline, re-run on Anthropic's recommended fallback model.
-            betas=["server-side-fallback-2026-07-01"],
-            fallbacks="default",
-        )
-    except anthropic.AuthenticationError:
-        keep_previous(args.previous, args.out, "the API key was rejected")
-        return 0
-    except anthropic.RateLimitError:
-        keep_previous(args.previous, args.out, "rate limited")
-        return 0
-    except anthropic.APIStatusError as e:
-        keep_previous(args.previous, args.out, f"API error {e.status_code}: {e.message}")
-        return 0
-    except anthropic.APIConnectionError:
-        keep_previous(args.previous, args.out, "couldn't reach the API")
-        return 0
+    messages = [{"role": "user", "content": prompt}]
+    written = None
+    # One attempt, plus one retry if the text quotes numbers that aren't in the fact sheet.
+    for attempt in range(2):
+        try:
+            response = client.beta.messages.create(
+                model=MODEL,
+                max_tokens=16000,
+                system=SYSTEM,
+                messages=messages,
+                output_config={"effort": "high", "format": {"type": "json_schema", "schema": SCHEMA}},
+                # On a safety decline, re-run on Anthropic's recommended fallback model.
+                betas=["server-side-fallback-2026-07-01"],
+                fallbacks="default",
+            )
+        except anthropic.AuthenticationError:
+            keep_previous(args.previous, args.out, "the API key was rejected")
+            return 0
+        except anthropic.RateLimitError:
+            keep_previous(args.previous, args.out, "rate limited")
+            return 0
+        except anthropic.APIStatusError as e:
+            keep_previous(args.previous, args.out, f"API error {e.status_code}: {e.message}")
+            return 0
+        except anthropic.APIConnectionError:
+            keep_previous(args.previous, args.out, "couldn't reach the API")
+            return 0
 
-    if response.stop_reason == "refusal":
-        category = response.stop_details.category if response.stop_details else None
-        keep_previous(args.previous, args.out, f"declined (category: {category})")
-        return 0
-    if response.stop_reason == "max_tokens":
-        keep_previous(args.previous, args.out, "response was cut off")
-        return 0
+        if response.stop_reason == "refusal":
+            category = response.stop_details.category if response.stop_details else None
+            keep_previous(args.previous, args.out, f"declined (category: {category})")
+            return 0
+        if response.stop_reason == "max_tokens":
+            keep_previous(args.previous, args.out, "response was cut off")
+            return 0
 
-    text = next((b.text for b in response.content if b.type == "text"), None)
-    try:
-        written = json.loads(text)
-    except (TypeError, json.JSONDecodeError):
-        keep_previous(args.previous, args.out, "response wasn't valid JSON")
-        return 0
+        text = next((b.text for b in response.content if b.type == "text"), None)
+        try:
+            written = json.loads(text)
+        except (TypeError, json.JSONDecodeError):
+            keep_previous(args.previous, args.out, "response wasn't valid JSON")
+            return 0
+
+        bad = unsupported_numbers(written, facts)
+        if not bad:
+            break
+        print(f"Attempt {attempt + 1} quoted numbers not in the fact sheet: {bad}")
+        if attempt == 1:
+            keep_previous(args.previous, args.out, f"the outlook quoted numbers not in the fact sheet: {bad}")
+            return 0
+        messages += [
+            {"role": "assistant", "content": response.content},
+            {"role": "user", "content": "These numbers in your outlook aren't in the fact sheet: "
+                + ", ".join(f"{n:g}" for n in bad)
+                + ". Rewrite it using only numbers that appear in the fact sheet (rounding is fine)."},
+        ]
 
     result = {
         "generatedAt": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),

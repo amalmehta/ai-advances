@@ -1,11 +1,13 @@
 import Foundation
 
-/// Ordinary least squares on (years, transformed value), with the slope's standard error
-/// so a forecast can carry a range, not just a date.
+/// Ordinary least squares on (years, transformed value), with the slope's standard error and
+/// the scatter around the line, so a forecast can carry an honest range, not just a date.
 struct LinearFit: Hashable {
     let slope: Double
     let intercept: Double
     let slopeSE: Double
+    /// Standard deviation of the points around the line, in y units.
+    let residualSD: Double
     let n: Int
     let xMean: Double
     let yMean: Double
@@ -23,8 +25,9 @@ struct LinearFit: Hashable {
             let e = p.y - (intercept + slope * p.x)
             return e * e
         }.reduce(0, +)
-        let se = (sse / (n - 2)).squareRoot() / sxx.squareRoot()
-        return LinearFit(slope: slope, intercept: intercept, slopeSE: se, n: pts.count, xMean: mx, yMean: my)
+        let sd = (sse / (n - 2)).squareRoot()
+        return LinearFit(slope: slope, intercept: intercept, slopeSE: sd / sxx.squareRoot(), residualSD: sd,
+                         n: pts.count, xMean: mx, yMean: my)
     }
 
     /// When the line reaches `target`; nil if it never does going forward.
@@ -34,10 +37,15 @@ struct LinearFit: Hashable {
         return xMean + (target - yMean) / s
     }
 
-    /// 90% range: steepest and shallowest plausible slopes, pivoting on the data's centre.
-    /// The late end is nil when the shallow slope never gets there.
+    /// Likely range (nominally 90%). Two sources of uncertainty: the slope (steepest and shallowest plausible lines,
+    /// pivoting on the data's centre) and the scatter of records around the line, which moves the
+    /// crossing by about ±z·σ/slope. Without the scatter term the ranges caught the real date only
+    /// ~30% of the time in hindcasts. The late end is nil when the shallow slope never gets there.
     func range(reaching target: Double, z: Double = 1.645) -> (early: Double?, late: Double?) {
-        (x(reaching: target, slope: slope + z * slopeSE), x(reaching: target, slope: slope - z * slopeSE))
+        guard slope > 0 else { return (nil, nil) }
+        let scatter = z * residualSD / slope
+        return (x(reaching: target, slope: slope + z * slopeSE).map { $0 - scatter },
+                x(reaching: target, slope: slope - z * slopeSE).map { $0 + scatter })
     }
 }
 
@@ -228,8 +236,9 @@ enum Forecasts {
 
     // MARK: History
 
-    /// Forecasts recomputed at the start of each of the last `months` months.
-    static func reconstructed(_ data: Dataset, now: Date, months: Int = 12) -> [ForecastLogEntry] {
+    /// Forecasts recomputed at the start of each of the last `months` months. 18 months gives the
+    /// track record enough past forecasts to score.
+    static func reconstructed(_ data: Dataset, now: Date, months: Int = 18) -> [ForecastLogEntry] {
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(identifier: "UTC")!
         let thisMonth = cal.date(from: cal.dateComponents([.year, .month], from: now))!

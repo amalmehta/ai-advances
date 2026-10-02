@@ -26,6 +26,15 @@ final class AnalysisTests: XCTestCase {
         XCTAssertEqual(Analysis.matchKey("Claude Opus 5.5"), Analysis.matchKey("Anthropic: Claude Opus 5.5"))
         XCTAssertEqual(Analysis.matchKey("Gemini 3.1 Pro"), Analysis.matchKey("Google: Gemini 3.1 Pro Preview"))
         XCTAssertNotEqual(Analysis.matchKey("GPT-6 Sol"), Analysis.matchKey("GPT-6.1 Sol"))
+        // Snapshot dates and labels on listings don't make a different model.
+        XCTAssertEqual(Analysis.matchKey("DeepSeek-V4-Pro"), Analysis.matchKey("DeepSeek: DeepSeek V4 Pro 0423"))
+        XCTAssertEqual(Analysis.matchKey("Mistral Large 3"), Analysis.matchKey("Mistral: Mistral Large 3 2512"))
+        XCTAssertEqual(Analysis.matchKey("Gemma 4 31B IT"), Analysis.matchKey("Google: Gemma 4 31B"))
+        XCTAssertEqual(Analysis.matchKey("Grok 4.3 Beta"), Analysis.matchKey("SpaceXAI: Grok 4.3"))
+        XCTAssertEqual(Analysis.matchKey("Qwen 3.5 Plus (hosted 397B-A17B)"), Analysis.matchKey("Qwen: Qwen3.5 Plus 2026-02-15"))
+        // ...but real differences still count.
+        XCTAssertNotEqual(Analysis.matchKey("Muse Spark"), Analysis.matchKey("Meta: Muse Spark 1.2"))
+        XCTAssertNotEqual(Analysis.matchKey("Qwen3.5-27B"), Analysis.matchKey("Qwen: Qwen3.6 27B"))
     }
 
     func testFrontierKeepsOnlyRecords() {
@@ -170,7 +179,7 @@ final class ForecastTests: XCTestCase {
         XCTAssertFalse(past.results.contains { $0.releaseDate > asOf })
         XCTAssertFalse(past.listed.contains { $0.created > asOf })
         let log = Forecasts.reconstructed(data, now: Dates.parse("2026-09-30")!)
-        XCTAssertEqual(log.count, 12)
+        XCTAssertEqual(log.count, 18)
         XCTAssertTrue(log.allSatisfy(\.reconstructed))
     }
 
@@ -199,5 +208,41 @@ final class LabNoteTests: XCTestCase {
             XCTAssertNotNil(note, "No note for \(lab.name)")
             XCTAssertFalse(note?.sources.isEmpty ?? true, lab.name)
         }
+    }
+}
+
+final class TrackRecordTests: XCTestCase {
+    func testScoresForecastsMadeAtLeastThreeMonthsAhead() {
+        let reached = Dates.parse("2026-06-01")!
+        let f = Forecast(id: "x", kind: .capabilities, area: "A", title: "X", target: "", current: "", basis: "",
+                         reached: reached, predicted: nil, early: nil, late: nil, note: nil)
+        func entry(_ asOf: String, _ p: String, _ e: String, _ l: String?) -> ForecastLogEntry {
+            ForecastLogEntry(asOf: Dates.parse(asOf)!, reconstructed: true, forecasts: [
+                "x": ForecastSnapshot(predicted: Dates.parse(p), early: Dates.parse(e), late: l.flatMap(Dates.parse), reached: nil)])
+        }
+        let history = [
+            entry("2025-12-01", "2026-04-01", "2026-03-01", "2026-05-01"),  // outside: reached after the late end
+            entry("2026-01-01", "2026-05-01", "2026-03-01", nil),           // inside: open-ended range
+            entry("2026-05-01", "2026-06-01", "2026-05-15", "2026-07-01"),  // too close to the event; ignored
+        ]
+        let r = TrackRecord.score(history: history, current: [f])
+        XCTAssertEqual(r.scored, 2)
+        XCTAssertEqual(r.inside, 1)
+        XCTAssertEqual(r.items.first?.madeOn, Dates.parse("2025-12-01"))   // closest to six months ahead
+        XCTAssertEqual(r.items.first?.errorMonths ?? 0, 2, accuracy: 0.1)  // happened ~2 months later than forecast
+    }
+
+    /// Hindcast coverage on the bundled data: how often the likely range contained the real date.
+    func testHindcastCoverage() {
+        let data = SnapshotTests.data!
+        let now = Dates.parse("2026-09-30")!
+        let current = Forecasts.all(data, profiles: Analysis.profiles(data), asOf: now)
+        let history = Forecasts.reconstructed(data, now: now, months: 18)
+        let r = TrackRecord.score(history: history, current: current)
+        print("HINDCAST scored \(r.scored), inside \(r.inside), coverage \(Format.percent(r.coverage)), median error \(r.medianAbsErrorMonths.map { String(format: "%.1f", $0) } ?? "–") months")
+        for i in r.items {
+            print("HINDCAST \(i.forecastID): made \(Format.monthYear(i.madeOn)), predicted \(Format.monthYear(i.predicted)), reached \(Format.monthYear(i.reached)), \(i.inside ? "inside" : "outside")")
+        }
+        XCTAssertGreaterThan(r.scored, 5)
     }
 }

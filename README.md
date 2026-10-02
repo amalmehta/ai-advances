@@ -1,6 +1,6 @@
 # AI Advances
 
-![Forecasts: a timeline of dated predictions with 90% ranges, under an auto-written outlook](docs/images/forecasts.png)
+![Forecasts: a timeline of dated predictions with likely ranges, under an auto-written outlook](docs/images/forecasts.png)
 
 **A Mac app and website that track where AI is heading.** They follow the latest model releases, what each model and lab is working on, and the long-run trends in capability, cost, context and compute, and turn those trends into dated forecasts that update themselves from public data.
 
@@ -31,7 +31,7 @@ flowchart LR
     O[OpenRouter<br>model list] --> P
     H[Researched highlights<br>and lab notes] --> P
     P --> T[Trends<br>frontier · doubling time · price drops]
-    T --> F[Forecasts<br>trend fits + 90% ranges]
+    T --> F[Forecasts<br>trend fits + likely ranges<br>+ track record]
     F --> G[Forecast log<br>saved each day]
     F --> CL[Claude Opus 5.5<br>writes a daily outlook]
     T --> A[AI Advances<br>Mac app]

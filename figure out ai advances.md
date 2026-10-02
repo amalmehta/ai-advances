@@ -70,7 +70,7 @@ Decided without asking:
 - Forecast targets: METR horizon of 40 h and 167 h; 10^28 and 10^29 FLOP
   runs; GPQA ≥ 80% under $0.01/M tokens; every tracked benchmark at 90%.
 - Methods: log-linear fits (compute, horizon, price); logit-linear S-curve
-  over the last 2 years (benchmarks); 90% range from the slope's standard
+  over the last 2 years (benchmarks); likely range from the slope's standard
   error. Trends due in the past are shown as "behind trend", not dated.
 - History: 12 monthly forecasts reconstructed from the data public at the
   time, plus a live log saved each day (Forecast Log.json).
@@ -131,3 +131,4 @@ CHANGELOG:
 - 2026-10-01 — added the website: shared Swift exporter, daily GitHub Action to GitHub Pages, forecast log on the data branch, all nine pages; repo made public for Pages
 - 2026-10-01 — added the optional Claude-written daily outlook (Action + website + Mac app); needs the API key repo secret
 - 2026-10-02 — the workflow reads the Anthropic API key from the NEW_SECRET repo secret (user request)
+- 2026-10-02 — three improvements: (1) model-name matching ignores snapshot dates and labels ("0423", "2512", "Beta", "IT"), lifting price matches for last year's models from 78% to 83%; (2) forecast ranges now include the scatter around each trend, are labeled "likely range", and a Track record card scores past forecasts against milestones since reached (range hit rate 30% → 59% in hindcasts; reconstructed history extended to 18 months); (3) the Claude outlook gets rounded figures plus the track record, and its numbers are checked against the fact sheet with one retry before publishing

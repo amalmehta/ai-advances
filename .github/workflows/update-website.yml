@@ -81,6 +81,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.NEW_SECRET }}
         run: |
           python3 -m pip install -q anthropic
+          python3 scripts/test_write_outlook.py site/data/site.json
           python3 scripts/write_outlook.py \
             --site site/data/site.json \
             --out site/data/outlook.json \

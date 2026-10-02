@@ -48,6 +48,8 @@ final class DataStore {
     /// Forecasts saved on each day the app refreshed.
     private(set) var liveLog: [ForecastLogEntry] = []
     private(set) var labs: [LabSummary] = []
+    /// How past forecasts did on milestones reached since.
+    private(set) var trackRecord: TrackRecord?
     /// Written daily by Claude in the website build; nil until first downloaded.
     private(set) var claudeOutlook: ClaudeOutlook?
 
@@ -126,14 +128,16 @@ final class DataStore {
     /// Forecasts, their history and the lab summaries; all derived from `data`, so rerun after every load.
     private func recomputeOutlook() async {
         let data = self.data, profiles = self.profiles, now = Date()
-        let result = await Task.detached(priority: .utility) { () -> ([Forecast], [ForecastLogEntry], [ForecastLogEntry], [LabSummary]) in
+        let result = await Task.detached(priority: .utility) { () -> ([Forecast], [ForecastLogEntry], [ForecastLogEntry], [LabSummary], TrackRecord) in
             let current = Forecasts.all(data, profiles: profiles, asOf: now)
             let past = Forecasts.reconstructed(data, now: now)
             let log = ForecastLog.record(current, on: now, to: DataStore.forecastLogURL)
             let notes = (try? DataStore.bundled([LabNote].self, "Labs")) ?? []
-            return (current, past, log, Labs.summaries(data, notes: notes, now: now))
+            return (current, past, log, Labs.summaries(data, notes: notes, now: now),
+                    TrackRecord.score(history: past + log, current: current))
         }.value
-        (forecasts, reconstructedLog, liveLog, labs) = result
+        (forecasts, reconstructedLog, liveLog, labs) = (result.0, result.1, result.2, result.3)
+        trackRecord = result.4
     }
 
     /// Optional extra: a missing or malformed file just leaves the last good copy in place.
