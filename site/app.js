@@ -184,9 +184,42 @@ function cheapestOverTime(benchmark, threshold) {
 
 // ---------- Pages ----------
 
-const state = { window: "12", areaName: null, since: 2, kind: "All", direction: "All directions",
+const DEFAULTS = { window: "12", areaName: null, since: 2, kind: "All", direction: "All directions",
   search: "", lab: "All labs", recent: true, sort: ["released", -1], selected: null,
   costBench: "GPQA diamond", threshold: 0.8, computeSince: 2018, forecastId: null };
+
+// Settings that belong in each page's link, so a copied URL opens the same view:
+// [link parameter, state key, parse].
+const LINKED = {
+  trends: [["window", "window", String]],
+  forecasts: [["forecast", "forecastId", String]],
+  advances: [["show", "kind", String], ["direction", "direction", String]],
+  capabilities: [["area", "areaName", String], ["years", "since", Number]],
+  models: [["model", "selected", String], ["lab", "lab", String], ["q", "search", String]],
+  cost: [["benchmark", "costBench", String], ["score", "threshold", Number]],
+  compute: [["since", "computeSince", Number]],
+};
+let currentPage = null;
+
+/** Rewrites the address bar to match the current page's settings, without adding history entries. */
+function syncLink() {
+  if (!currentPage) return;
+  const params = new URLSearchParams();
+  for (const [param, key] of LINKED[currentPage] ?? []) {
+    if (state[key] != null && state[key] !== "" && String(state[key]) !== String(DEFAULTS[key])) params.set(param, state[key]);
+  }
+  const hash = `#/${currentPage}${params.size ? "?" + params : ""}`;
+  if (location.hash !== hash) history.replaceState(null, "", hash);
+}
+
+// Any change to a linked setting updates the link.
+const state = new Proxy({ ...DEFAULTS }, {
+  set(target, key, value) {
+    target[key] = value;
+    queueMicrotask(syncLink);
+    return true;
+  },
+});
 
 const pages = {};
 
@@ -268,7 +301,9 @@ pages.forecasts = () => {
   const now = new Date();
   const axisEnd = new Date(Math.min(+now + 7.5 * YEAR, +upcoming[upcoming.length - 1].predicted + 270 * DAY));
   const kinds = ["Capabilities", "Agents", "Cost", "Scale"];
-  state.forecastId ??= upcoming[0]?.id;
+  // A link may name a forecast that no longer exists (reached, or dropped); fall back to the first.
+  DEFAULTS.forecastId = upcoming[0]?.id; // the automatic pick stays out of the link
+  if (!upcoming.some((f) => f.id === state.forecastId)) state.forecastId = upcoming[0]?.id;
 
   const timeline = chart((w, C) => {
     const clamp = (d) => new Date(Math.min(+d, +axisEnd));
@@ -431,11 +466,13 @@ const RAMP = ["#cde2fb", "#b7d3f6", "#9ec5f4", "#86b6ef", "#6da7ec", "#5598e7", 
 function rampColor(v) { const i = Math.max(0, Math.min(RAMP.length - 1, Math.round(v * (RAMP.length - 1)))); return [RAMP[i], i < 6]; }
 
 function heatmap(cells, rows, cols, minColumn = 70, label = "Heatmap") {
-  const table = el("table", { class: "sr-only" },
+  // Hidden for sighted users but read by screen readers. The wrapper does the hiding: a table
+  // ignores the 1px width and would push the page sideways on phones.
+  const table = el("div", { class: "sr-only" }, el("table", {},
     el("caption", {}, label),
     el("thead", {}, el("tr", {}, el("th", { scope: "col" }, "Lab"), cols.map((c) => el("th", { scope: "col" }, c)))),
     el("tbody", {}, rows.map((r) => el("tr", {}, el("th", { scope: "row" }, r),
-      cols.map((c) => el("td", {}, cells.find((x) => x.lab === r && x.col === c)?.label || "none"))))));
+      cols.map((c) => el("td", {}, cells.find((x) => x.lab === r && x.col === c)?.label || "none")))))));
   return el("div", {}, table, el("div", { class: "scroll-x", "aria-hidden": "true" }, chart((w, C) => {
     const width = Math.max(w, 140 + cols.length * minColumn);
     return Plot.plot(plotBase(C, {
@@ -528,7 +565,8 @@ pages.advances = () => {
 };
 
 pages.capabilities = () => {
-  state.areaName ??= D.areas[0].name;
+  DEFAULTS.areaName = D.areas[0].name; // the automatic pick stays out of the link
+  if (!D.areas.some((a) => a.name === state.areaName)) state.areaName = D.areas[0].name;
   const slot = el("div");
   const render = () => {
     const area = D.areas.find((a) => a.name === state.areaName);
@@ -646,6 +684,8 @@ function modelDetail(m) {
 }
 
 pages.cost = () => {
+  if (!D.keyBenchmarks.some(([b]) => b === state.costBench)) state.costBench = DEFAULTS.costBench;
+  state.threshold = Math.min(0.95, Math.max(0.1, state.threshold));
   const slot = el("div");
   const best = (b) => Math.max(0, ...D.results.filter((r) => r.b === b).map((r) => r.s));
   const thresholdLabel = el("span", { class: "tnum", style: "min-width:3em" });
@@ -782,6 +822,14 @@ function route() {
   if (location.hash && !location.hash.startsWith("#/") && $("#page").childElementCount) return;
   const id = (location.hash.match(/^#\/(\w+)/) ?? [])[1];
   const page = PAGES.find(([p]) => p === id) ?? PAGES[0];
+  // Settings carried in the link (e.g. #/cost?benchmark=HLE&score=0.5) override the current ones.
+  const params = new URLSearchParams(location.hash.split("?")[1] ?? "");
+  for (const [param, key, parse] of LINKED[page[0]] ?? []) {
+    if (!params.has(param)) continue;
+    const value = parse(params.get(param));
+    if (!(typeof value === "number" && Number.isNaN(value))) state[key] = value;
+  }
+  currentPage = page[0];
   document.querySelectorAll("#nav a").forEach((a) => {
     if (a.dataset.page === page[0]) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");

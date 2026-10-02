@@ -70,6 +70,13 @@ struct ContentView: View {
         }
         .toolbar {
             ToolbarItemGroup {
+                if let update = store.update {
+                    Link(destination: update.page) {
+                        Label("Version \(update.version) available", systemImage: "arrow.down.circle")
+                            .labelStyle(.titleAndIcon)
+                    }
+                    .help("A newer AI Advances is on GitHub. Opens the download page.")
+                }
                 Button { showSources.toggle() } label: {
                     Label(statusText, systemImage: sourceSymbol).labelStyle(.titleAndIcon)
                 }

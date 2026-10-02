@@ -30,6 +30,7 @@
 		AAF64C89A5C250B2DBF3ECF7 /* AIAdvancesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D224F1FFBFE52F8D74A68741 /* AIAdvancesApp.swift */; };
 		ADE259A8A8FCEF68BC0B28EA /* TrendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB23824C56A207579553B9A7 /* TrendsView.swift */; };
 		B2A08B8A5BCA518296E87056 /* notable_ai_models.csv in Resources */ = {isa = PBXBuildFile; fileRef = FC55FDECE34989CBAE37EAAF /* notable_ai_models.csv */; };
+		BD9CE60ED0CC0930306EC46E /* Updates.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE90224C15C5FC787AEA62E2 /* Updates.swift */; };
 		BE9081239115F98EC6394971 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3690E0AA33AF496F406C248D /* Assets.xcassets */; };
 		C56D470E41163E3A3A42B491 /* CapabilityAreas.json in Resources */ = {isa = PBXBuildFile; fileRef = F8C3EC2B5D6B0F0581BFA243 /* CapabilityAreas.json */; };
 		C615A414BD7E6C61CE0ACF01 /* Labs.json in Resources */ = {isa = PBXBuildFile; fileRef = F5B301DDFC8B5E2B8CD10102 /* Labs.json */; };
@@ -82,6 +83,7 @@
 		C73FB40E12AFF8DDB3836B1C /* CostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CostView.swift; sourceTree = "<group>"; };
 		C75CBEED561E6E845C1D1F66 /* ForecastsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastsView.swift; sourceTree = "<group>"; };
 		CC0BD65C55F8978D60B2922D /* Outlook.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Outlook.swift; sourceTree = "<group>"; };
+		CE90224C15C5FC787AEA62E2 /* Updates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updates.swift; sourceTree = "<group>"; };
 		D224F1FFBFE52F8D74A68741 /* AIAdvancesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAdvancesApp.swift; sourceTree = "<group>"; };
 		E018176D32D98DD92CC086A3 /* Records.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Records.swift; sourceTree = "<group>"; };
 		E4E70BE58B020469987DD9E5 /* AI Advances Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AI Advances Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -178,6 +180,7 @@
 				13E2323A25A3505D87537691 /* Parsers.swift */,
 				E018176D32D98DD92CC086A3 /* Records.swift */,
 				F267E92F1F40385DCEA96AD5 /* TrackRecord.swift */,
+				CE90224C15C5FC787AEA62E2 /* Updates.swift */,
 			);
 			path = Data;
 			sourceTree = "<group>";
@@ -323,6 +326,7 @@
 				16EABE5FB5194C7E8BC5BDCD /* Theme.swift in Sources */,
 				4A55CD83AD1EBDF20C96834B /* TrackRecord.swift in Sources */,
 				ADE259A8A8FCEF68BC0B28EA /* TrendsView.swift in Sources */,
+				BD9CE60ED0CC0930306EC46E /* Updates.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -439,7 +443,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -498,7 +502,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

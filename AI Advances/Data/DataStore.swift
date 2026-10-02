@@ -50,6 +50,11 @@ final class DataStore {
     private(set) var labs: [LabSummary] = []
     /// How past forecasts did on milestones reached since.
     private(set) var trackRecord: TrackRecord?
+    /// Set when GitHub has a newer release than this copy of the app.
+    private(set) var update: (version: String, page: URL)?
+
+    nonisolated static let latestReleaseAPI = URL(string: "https://api.github.com/repos/amalmehta/ai-advances/releases/latest")!
+
     /// Written daily by Claude in the website build; nil until first downloaded.
     private(set) var claudeOutlook: ClaudeOutlook?
 
@@ -81,6 +86,7 @@ final class DataStore {
 
     func start() async {
         await reload()
+        await checkForUpdate()
         if lastRefresh.map({ Date().timeIntervalSince($0) > Self.staleAfter }) ?? true {
             await refresh()
         }
@@ -140,6 +146,21 @@ final class DataStore {
         trackRecord = result.4
     }
 
+    /// Asks GitHub for the latest release. Quiet on any failure; it's only a convenience.
+    func checkForUpdate() async {
+        struct Release: Decodable { let tag_name: String; let html_url: URL; let draft: Bool?; let prerelease: Bool? }
+        var req = URLRequest(url: Self.latestReleaseAPI, timeoutInterval: 20)
+        req.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+        req.setValue("AI Advances (Mac app)", forHTTPHeaderField: "User-Agent")
+        guard let (data, response) = try? await URLSession.shared.data(for: req),
+              (response as? HTTPURLResponse)?.statusCode == 200,
+              let release = try? JSONDecoder().decode(Release.self, from: data),
+              release.draft != true, release.prerelease != true else { return }
+        let current = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
+        update = AppVersion.isNewer(release.tag_name, than: current)
+            ? (String(release.tag_name.drop { $0 == "v" }), release.html_url) : nil
+    }
+
     /// Optional extra: a missing or malformed file just leaves the last good copy in place.
     private func downloadClaudeOutlook() async {
         guard let (data, response) = try? await URLSession.shared.data(from: Self.outlookURL),
@@ -188,6 +209,7 @@ final class DataStore {
             }
         }
         await downloadClaudeOutlook()
+        await checkForUpdate()
         if anySuccess { lastRefresh = Date() }
         await reload()
     }

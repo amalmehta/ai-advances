@@ -101,6 +101,34 @@ jobs:
         with:
           path: site
 
+      - name: Keep a copy of the site for the smoke test
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-preview
+          path: site
+          retention-days: 3
+
+  smoke-test:
+    # Loads every page in headless Chromium (desktop and phone widths) and blocks the deploy
+    # on any error, so a bad data day leaves yesterday's site up instead of a broken one.
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: site-preview
+          path: built-site
+      - name: Install Playwright
+        run: |
+          npm install --no-save --silent playwright
+          npx playwright install --with-deps chromium > /dev/null
+      - name: Check every page
+        run: |
+          python3 -m http.server 8766 --directory built-site > /dev/null 2>&1 &
+          sleep 1
+          node scripts/smoke_test.mjs http://localhost:8766/
+
   freshness:
     # Opens an issue when the hand-researched lab notes or highlights pass 45 days old,
     # and closes it once they've been refreshed.
@@ -117,7 +145,7 @@ jobs:
         run: python3 scripts/check_freshness.py
 
   deploy:
-    needs: build
+    needs: [build, smoke-test]
     runs-on: ubuntu-latest
     environment:
       name: github-pages

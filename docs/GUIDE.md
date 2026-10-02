@@ -4,6 +4,8 @@
 
 Download the latest **AI-Advances-vX.Y.zip** from [Releases](https://github.com/amalmehta/ai-advances/releases/latest), unzip it, and move **AI Advances** to Applications. It runs on Apple Silicon and Intel Macs with macOS 14 or later.
 
+The app checks GitHub for newer releases when it starts and whenever it refreshes; when there is one, a **Version X available** button appears in the toolbar and opens the download page.
+
 The app isn't notarized by Apple (that needs a paid developer account), so the first time you open it macOS says it can't verify the developer. Open **System Settings → Privacy & Security**, scroll to the message about AI Advances, and click **Open Anyway**. You only need to do this once.
 
 New versions are built by `.github/workflows/release-mac-app.yml`: run it from Actions → *Release Mac app* → *Run workflow* with a version such as `v1.2`, or push a tag of that name. It runs the tests, builds a universal app and attaches the zip to a GitHub Release.
@@ -42,7 +44,8 @@ The website at **https://amalmehta.github.io/ai-advances/** has the same nine pa
 1. Downloads the three sources (falling back to the snapshot in the repo if one fails).
 2. Builds `ai-advances-export` (the `Package.swift` target) from the same `AI Advances/Data` code as the Mac app, and writes `site/data/site.json`.
 3. Adds the day's forecasts to `forecast-log.json` on the `data` branch, as a commit by `github-actions[bot]`. This is the website's forecast history; `main` stays clean.
-4. Publishes `site/` to GitHub Pages.
+4. Loads every page in headless Chromium at desktop and phone widths (`scripts/smoke_test.mjs`) and checks that nothing errors, every chart renders, no page shows "NaN" or "undefined", nothing scrolls sideways, and shareable links restore their view. If anything fails, the deploy is skipped and yesterday's site stays up.
+5. Publishes `site/` to GitHub Pages.
 
 To work on the site locally:
 
@@ -59,6 +62,18 @@ python3 -m http.server 8766 --directory site
 ```
 
 Then open http://localhost:8766.
+
+**Shareable links:** the address bar keeps what you're looking at, so a copied link opens the same view. Examples: `#/models?model=GPT-6 Astra` opens that profile, `#/cost?benchmark=SimpleQA Verified&score=0.6` sets the Cost page, `#/forecasts?forecast=metr-week` selects that forecast's history, `#/capabilities?area=Coding&years=4`. Unknown or garbled values fall back to the defaults. Shared links also show a preview card (title, description and `site/preview.png`).
+
+To run the smoke test locally (it needs Playwright, which isn't part of the repo):
+
+```bash
+npm install --no-save playwright && npx playwright install chromium
+```
+
+```bash
+node scripts/smoke_test.mjs http://localhost:8766/
+```
 
 **Accessibility:** every chart has a text description generated from its data (read by screen readers in place of the graphic), the Labs heatmaps have hidden data tables, the Models table sorts and opens profiles from the keyboard, and a "Skip to content" link appears on the first Tab. The site is plain HTML, CSS and JavaScript (`site/index.html`, `site/styles.css`, `site/app.js`), with charts from Observable Plot loaded from jsDelivr. There's no build step.
 

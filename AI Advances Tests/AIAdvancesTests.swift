@@ -264,3 +264,14 @@ final class FreshnessTests: XCTestCase {
         XCTAssertNotNil(Freshness.highlights(SnapshotTests.data.advances))
     }
 }
+
+final class AppVersionTests: XCTestCase {
+    func testComparesVersionsNumerically() {
+        XCTAssertTrue(AppVersion.isNewer("v1.2", than: "1.1"))
+        XCTAssertTrue(AppVersion.isNewer("v1.10", than: "1.9"))     // not string order
+        XCTAssertTrue(AppVersion.isNewer("1.1.1", than: "1.1"))
+        XCTAssertFalse(AppVersion.isNewer("v1.1", than: "1.1"))
+        XCTAssertFalse(AppVersion.isNewer("v1.1", than: "1.1.0"))
+        XCTAssertFalse(AppVersion.isNewer("v1.0", than: "1.1"))
+    }
+}
