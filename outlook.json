@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-02T21:23:03+00:00",
+  "generatedAt": "2026-10-02T22:12:52+00:00",
   "dataThrough": "2026-10-02",
   "model": "claude-opus-5-5",
-  "headline": "Math benchmarks are nearly exhausted while real-world agent work lags behind",
-  "outlook": "Math is where the field has moved fastest: the past twelve months closed 95% of the remaining headroom, FrontierMath crossed 90% in September, and GPT-6.1 Sol has now posted 100% on FrontierMath Tier 4. Agents and real work are moving much more slowly, closing only 32% of their headroom, with the Remote Labor Index at 20.8% and OSWorld 2 at 31.4%; on current trends neither reaches 90% before mid-2027 at the earliest. The bridge between those two pictures is task length: Claude Mythos Preview now handles tasks of about 17.4 hours, and with that horizon doubling roughly every 4.2 months, the trend points to full work-week tasks around December, though the likely range runs into August 2027. Not everything is on schedule, since sub-cent pricing for GPQA-level models, Terminal-Bench and GeoBench have all fallen behind their fitted dates. The site's past ranges caught the real date only 59% of the time, so the coming year may bring longer autonomous work, but the timing of each step is far from certain.",
-  "requestId": "req_011Cfe7X9yJWbEES4jjci5fq"
+  "headline": "Math benchmarks saturate while real-world agent work lags behind",
+  "outlook": "Math is where the field has moved fastest, with models closing 95% of the remaining headroom on math benchmarks over the last year, FrontierMath crossing 90% in September, and GPT-6.1 Sol just posting 100% on FrontierMath Tier 4. Agents and real work is the slowest category at 32% of headroom closed, with the Remote Labor Index at 20.8% and OSWorld 2 at 31.4%. Some near-ceiling tests such as Terminal-Bench and GeoBench have also stalled behind their fitted trends. Task length links the two: the longest tasks models can handle have been doubling roughly every 4.2 months and now reach 17.4 hours with Claude Mythos Preview, so on current trends a full 40-hour work-week is most likely around December 2026, though the range runs to August 2027. The open question for the next year is whether that longer autonomy shows up on real labor benchmarks, where the fits put the Remote Labor Index at 90% most likely in early 2028; treat all these dates loosely, since past likely ranges contained the real date only 59% of the time, with a typical miss of five months.",
+  "requestId": "req_011CfeBK782xBgxujC4ePjNt"
 }
