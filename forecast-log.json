@@ -216,5 +216,113 @@
       }
     },
     "reconstructed" : false
+  },
+  {
+    "asOf" : "2026-10-03T00:00:00Z",
+    "forecasts" : {
+      "compute-1e28" : {
+        "early" : "2026-10-09T16:17:01Z",
+        "late" : "2029-07-02T06:30:38Z",
+        "predicted" : "2028-02-03T13:15:07Z"
+      },
+      "compute-1e29" : {
+        "early" : "2028-02-27T08:08:44Z",
+        "late" : "2031-03-04T10:43:08Z",
+        "predicted" : "2029-08-09T13:48:55Z"
+      },
+      "metr-month" : {
+        "early" : "2026-12-05T05:18:23Z",
+        "late" : "2028-06-28T13:17:42Z",
+        "predicted" : "2027-08-30T23:24:17Z"
+      },
+      "metr-week" : {
+        "early" : "2026-10-03T00:18:12Z",
+        "late" : "2027-08-30T02:22:36Z",
+        "predicted" : "2026-12-10T23:45:44Z"
+      },
+      "price-gpqa80" : {
+
+      },
+      "sat-APEX-Agents" : {
+        "early" : "2026-10-03T00:18:12Z",
+        "late" : "2027-06-02T15:42:31Z",
+        "predicted" : "2027-01-08T05:22:55Z"
+      },
+      "sat-ARC-AGI-2" : {
+        "reached" : "2026-07-09T00:00:00Z"
+      },
+      "sat-Chess Puzzles" : {
+        "early" : "2026-12-09T18:49:08Z",
+        "late" : "2027-12-08T23:18:29Z",
+        "predicted" : "2027-05-29T05:40:04Z"
+      },
+      "sat-DeepSWE" : {
+        "early" : "2026-10-03T00:18:12Z",
+        "late" : "2027-08-01T15:53:55Z",
+        "predicted" : "2027-01-03T08:57:34Z"
+      },
+      "sat-FrontierCode" : {
+        "early" : "2027-01-05T03:32:13Z",
+        "late" : "2028-07-03T07:19:58Z",
+        "predicted" : "2027-07-17T04:29:23Z"
+      },
+      "sat-FrontierMath-Tier-4-v2-Private" : {
+        "reached" : "2026-06-09T00:00:00Z"
+      },
+      "sat-FrontierMath-Tiers-1-3-v2-Private" : {
+        "reached" : "2026-09-01T00:00:00Z"
+      },
+      "sat-FrontierSWE" : {
+        "early" : "2026-12-04T19:42:54Z",
+        "late" : "2029-01-15T10:08:29Z",
+        "predicted" : "2027-05-14T11:02:35Z"
+      },
+      "sat-GDPval" : {
+        "early" : "2026-10-03T00:18:12Z",
+        "late" : "2028-01-21T14:43:06Z",
+        "predicted" : "2027-01-10T20:08:15Z"
+      },
+      "sat-GPQA diamond" : {
+        "reached" : "2025-11-18T00:00:00Z"
+      },
+      "sat-GeoBench" : {
+
+      },
+      "sat-HLE" : {
+        "early" : "2027-01-15T19:47:30Z",
+        "late" : "2028-09-26T17:41:41Z",
+        "predicted" : "2027-10-21T13:30:50Z"
+      },
+      "sat-OSWorld 2.0" : {
+        "early" : "2027-04-05T08:05:00Z",
+        "late" : "2027-10-07T07:24:00Z",
+        "predicted" : "2027-06-24T18:18:57Z"
+      },
+      "sat-ProofBench" : {
+        "reached" : "2026-06-09T00:00:00Z"
+      },
+      "sat-Remote Labor Index" : {
+        "early" : "2027-10-10T22:32:47Z",
+        "late" : "2028-07-24T08:50:57Z",
+        "predicted" : "2028-02-21T11:43:50Z"
+      },
+      "sat-SimpleBench" : {
+        "early" : "2026-10-03T00:18:12Z",
+        "late" : "2027-04-03T16:13:16Z",
+        "predicted" : "2026-11-11T10:28:24Z"
+      },
+      "sat-SimpleQA Verified" : {
+        "early" : "2026-10-03T00:18:12Z",
+        "late" : "2028-04-05T13:17:42Z",
+        "predicted" : "2027-06-01T07:33:53Z"
+      },
+      "sat-Terminal Bench" : {
+
+      },
+      "sat-VPCT" : {
+        "reached" : "2025-11-18T00:00:00Z"
+      }
+    },
+    "reconstructed" : false
   }
 ]
