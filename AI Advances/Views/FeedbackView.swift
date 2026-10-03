@@ -12,7 +12,7 @@ struct FeedbackView: View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Feedback").font(.title2.weight(.semibold))
             Text("What's missing, wrong, or confusing? This opens a pre-filled GitHub issue you can review before posting.")
-                .font(.callout).foregroundStyle(.secondary)
+                .font(.callout).foregroundStyle(Palette.text2)
             Picker("Type", selection: $kind) {
                 ForEach(["Idea", "Bug", "Data looks wrong"], id: \.self) { Text($0) }
             }

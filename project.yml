@@ -7,7 +7,7 @@ options:
 settings:
   base:
     SWIFT_VERSION: "5.0"
-    MARKETING_VERSION: "1.2"
+    MARKETING_VERSION: "1.3"
     CURRENT_PROJECT_VERSION: "1"
 targets:
   AI Advances:
@@ -41,6 +41,18 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/AI Advances.app/Contents/MacOS/AI Advances"
         BUNDLE_LOADER: "$(TEST_HOST)"
+  AI Advances UI Tests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - path: AI Advances UI Tests
+    dependencies:
+      - target: AI Advances
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.amalmehta.ai-advances-ui-tests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: AI Advances
 schemes:
   AI Advances:
     build:
@@ -50,3 +62,11 @@ schemes:
     test:
       targets:
         - AI Advances Tests
+  Accessibility Audit:
+    build:
+      targets:
+        AI Advances: all
+        AI Advances UI Tests: [test]
+    test:
+      targets:
+        - AI Advances UI Tests

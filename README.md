@@ -43,7 +43,7 @@ flowchart LR
     CL --> A
 ```
 
-The app checks for fresh data on launch and every 6 hours while it's open; the website is rebuilt every morning (06:17 UTC). The data needs no API keys. The optional Claude-written outlook uses an Anthropic API key stored as the `NEW_SECRET` repository secret.
+Both update every morning: the website is rebuilt before dawn Pacific time (ready by 7 AM), and the app refreshes at launch or 7 AM local. The data needs no API keys. The optional Claude-written outlook uses an Anthropic API key stored as the `NEW_SECRET` repository secret.
 
 **[Setup and usage guide →](docs/GUIDE.md)**
 

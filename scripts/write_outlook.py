@@ -149,6 +149,8 @@ def main() -> int:
     p.add_argument("--out", required=True)
     p.add_argument("--previous")
     p.add_argument("--dry-run", action="store_true", help="print the fact sheet and exit without calling Claude")
+    p.add_argument("--reuse-hours", type=float, default=8,
+                   help="keep the previous outlook if it was written less than this many hours ago (0 = always write)")
     args = p.parse_args()
 
     with open(args.site) as f:
@@ -161,6 +163,18 @@ def main() -> int:
         print(prompt)
         print(f"\n[{len(prompt):,} characters]")
         return 0
+    if args.reuse_hours > 0 and args.previous and os.path.exists(args.previous):
+        try:
+            with open(args.previous) as f:
+                written_at = dt.datetime.fromisoformat(json.load(f)["generatedAt"])
+            age = dt.datetime.now(dt.timezone.utc) - written_at
+            if age < dt.timedelta(hours=args.reuse_hours):
+                shutil.copyfile(args.previous, args.out)
+                print(f"Reused the outlook written {age.total_seconds() / 3600:.1f} hours ago (under {args.reuse_hours:g})")
+                return 0
+        except (KeyError, ValueError, json.JSONDecodeError):
+            pass  # unreadable previous outlook: write a fresh one
+
     if not os.environ.get("ANTHROPIC_API_KEY"):
         keep_previous(args.previous, args.out, "ANTHROPIC_API_KEY is not set")
         return 0

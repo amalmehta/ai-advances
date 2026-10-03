@@ -88,6 +88,17 @@ struct LabsView: View {
         return heatmap(cells, rows: labs.map(\.name), columns: columns, height: CGFloat(labs.count) * 30 + 40)
     }
 
+    /// The whole heatmap as text, row by row, for VoiceOver.
+    private func accessibilityText(_ cells: [Cell], rows: [String], columns: [String]) -> String {
+        rows.map { r in
+            r + ": " + columns.map { c in
+                let cell = cells.first { $0.lab == r && $0.column == c }
+                let label = cell.map { $0.label.isEmpty || $0.label == "–" ? "none" : $0.label + ($0.star ? ", holds a record" : "") } ?? "none"
+                return "\(c) \(label)"
+            }.joined(separator: ", ")
+        }.joined(separator: ". ")
+    }
+
     private func heatmap(_ cells: [Cell], rows: [String], columns: [String], height: CGFloat) -> some View {
         Chart(cells) { c in
             let style = Self.cell(c.value)
@@ -97,7 +108,7 @@ struct LabsView: View {
                 .annotation(position: .overlay) {
                     Text(c.label + (c.star ? " ★" : ""))
                         .font(.caption.monospacedDigit())
-                        .foregroundStyle(c.label == "–" ? Color.secondary : style.darkText ? Color.black.opacity(0.8) : Color.white)
+                        .foregroundStyle(c.label == "–" ? Palette.text2 : style.darkText ? Color.black.opacity(0.8) : Color.white)
                 }
         }
         .chartXScale(domain: columns)
@@ -105,6 +116,7 @@ struct LabsView: View {
         .chartXAxis { AxisMarks(position: .top) { _ in AxisValueLabel().foregroundStyle(Color.primary) } }
         .chartYAxis { AxisMarks(preset: .extended, position: .leading) { _ in AxisValueLabel(horizontalSpacing: 8).foregroundStyle(Color.primary) } }
         .frame(height: height)
+        .chartSummary(accessibilityText(cells, rows: rows, columns: columns))
     }
 }
 
@@ -124,14 +136,14 @@ struct LabCard: View {
                 Text(note.summary).fixedSize(horizontal: false, vertical: true)
                 if !note.bets.isEmpty {
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Betting on").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                        Text("Betting on").font(.caption.weight(.semibold)).foregroundStyle(Palette.text2)
                         ForEach(note.bets, id: \.self) { b in
                             Label(b, systemImage: "arrow.forward").font(.callout).labelStyle(BulletLabel())
                         }
                     }
                 }
                 HStack(spacing: 10) {
-                    Text("Researched \(note.asOf)").font(.caption).foregroundStyle(.tertiary)
+                    Text("Researched \(note.asOf)").font(.caption).foregroundStyle(Palette.text2)
                     ForEach(Array(note.sources.enumerated()), id: \.offset) { i, s in
                         if let url = URL(string: s) { Link("Source \(i + 1)", destination: url).font(.caption) }
                     }
@@ -170,7 +182,7 @@ struct LabCard: View {
 
     private func fact(_ label: String, _ value: String) -> some View {
         GridRow(alignment: .firstTextBaseline) {
-            Text(label).font(.callout).foregroundStyle(.secondary)
+            Text(label).font(.callout).foregroundStyle(Palette.text2)
             Text(value).font(.callout).fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -179,7 +191,7 @@ struct LabCard: View {
 private struct BulletLabel: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 6) {
-            configuration.icon.font(.caption2).foregroundStyle(.secondary)
+            configuration.icon.font(.caption2).foregroundStyle(Palette.text2)
             configuration.title.fixedSize(horizontal: false, vertical: true)
         }
     }

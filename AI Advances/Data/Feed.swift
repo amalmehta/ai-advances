@@ -15,6 +15,37 @@ struct FeedItem: Identifiable, Hashable {
 }
 
 enum Feed {
+    /// Trailing words that name a serving mode of the same model rather than a different model:
+    /// "GPT-6.1 Sol Pro" is GPT-6.1 Sol run with more reasoning. "Flash" or "Mini" are different models.
+    static let variantWords: Set<String> = ["pro", "prime", "contributor"]
+
+    /// The model a listing is a variant of: "GPT-6.1 Sol Pro" -> "GPT-6.1 Sol".
+    static func baseName(_ name: String) -> String {
+        var words = name.split(separator: " ").map(String.init)
+        while words.count > 1, let last = words.last, variantWords.contains(last.lowercased()) { words.removeLast() }
+        return words.joined(separator: " ")
+    }
+
+    /// One feed item per model per day: a base model and its variants listed the same day merge.
+    static func modelListings(_ listed: [ListedModel]) -> [FeedItem] {
+        var cal = Calendar(identifier: .gregorian)
+        cal.timeZone = TimeZone(identifier: "UTC")!
+        let groups = Dictionary(grouping: listed) { m in
+            "\(m.lab)|\(baseName(m.name))|\(cal.startOfDay(for: m.created).timeIntervalSince1970)"
+        }
+        return groups.values.map { group in
+            let sorted = group.sorted { $0.name.count < $1.name.count }   // the base listing first
+            let m = sorted[0]
+            let base = baseName(m.name)
+            let variants = sorted.map(\.name).filter { $0 != base }
+            let also = variants.isEmpty ? "" : " (also as " + variants.map { String($0.dropFirst(base.count)).trimmingCharacters(in: .whitespaces) }.joined(separator: ", ") + ")"
+            return FeedItem(id: "m" + m.id, date: group.map(\.created).min()!, title: "\(m.lab) lists \(base)\(also)",
+                            detail: "\(Format.tokens(m.contextLength)) context · \(m.isFree ? "free" : Format.price(m.blendedPrice) + " / M tokens") · takes \(m.inputModalities.sorted().joined(separator: ", "))",
+                            lab: m.lab, kind: .models, direction: "New models",
+                            link: "https://openrouter.ai/\(m.id)")
+        }
+    }
+
     static let areaDirection: [String: String] = [
         "Reasoning & knowledge": "Reasoning", "Math": "Reasoning", "Novel problem solving": "Reasoning",
         "Coding": "Coding", "Agents & real work": "Agents", "Vision & spatial": "Multimodal",
@@ -35,12 +66,7 @@ enum Feed {
                      direction: areaDirection[areaOf[r.point.benchmark] ?? ""] ?? "Reasoning",
                      link: "https://epoch.ai/benchmarks")
         }
-        let models = data.listed.filter { $0.created >= now.addingTimeInterval(-60 * 86_400) }.map { m in
-            FeedItem(id: "m" + m.id, date: m.created, title: "\(m.lab) lists \(m.name)",
-                     detail: "\(Format.tokens(m.contextLength)) context · \(m.isFree ? "free" : Format.price(m.blendedPrice) + " / M tokens") · takes \(m.inputModalities.sorted().joined(separator: ", "))",
-                     lab: m.lab, kind: .models, direction: "New models",
-                     link: "https://openrouter.ai/\(m.id)")
-        }
+        let models = modelListings(data.listed.filter { $0.created >= now.addingTimeInterval(-60 * 86_400) })
         return (curated + records + models).sorted { $0.date > $1.date }
     }
 }

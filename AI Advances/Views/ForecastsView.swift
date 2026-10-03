@@ -57,8 +57,8 @@ struct ForecastsView: View {
                                         .foregroundStyle(s.months < 0 ? Palette.color(2) : Palette.color(1))
                                     Text(s.forecast.title)
                                     Text("\(Int(abs(s.months).rounded())) month\(Int(abs(s.months).rounded()) == 1 ? "" : "s") \(s.months < 0 ? "earlier" : "later")")
-                                        .foregroundStyle(.secondary).monospacedDigit()
-                                    Text("now \(Format.monthYear(s.forecast.predicted!))").foregroundStyle(.secondary)
+                                        .foregroundStyle(Palette.text2).monospacedDigit()
+                                    Text("now \(Format.monthYear(s.forecast.predicted!))").foregroundStyle(Palette.text2)
                                 }
                             }
                         }
@@ -85,7 +85,7 @@ struct ForecastsView: View {
                                 Image(systemName: "checkmark.circle.fill").foregroundStyle(Palette.color(2))
                                 Text(f.title)
                                 Spacer()
-                                Text(Format.monthYear(f.reached!)).foregroundStyle(.secondary).monospacedDigit()
+                                Text(Format.monthYear(f.reached!)).foregroundStyle(Palette.text2).monospacedDigit()
                             }
                         }
                     }
@@ -94,7 +94,7 @@ struct ForecastsView: View {
                             ForEach(stalled) { f in
                                 VStack(alignment: .leading, spacing: 1) {
                                     Text(f.title)
-                                    Text("\(f.current). \(f.note ?? "").").font(.caption).foregroundStyle(.secondary)
+                                    Text("\(f.current). \(f.note ?? "").").font(.caption).foregroundStyle(Palette.text2)
                                         .fixedSize(horizontal: false, vertical: true)
                                 }
                             }
@@ -122,7 +122,7 @@ struct ForecastsView: View {
                 .foregroundStyle(by: .value("Kind", f.kind.rawValue))
                 .symbolSize(hoverTitle == f.title ? 120 : 70)
                 .annotation(position: .trailing, spacing: 6) {
-                    Text(Format.monthYear(f.predicted!)).font(.caption).foregroundStyle(.secondary)
+                    Text(Format.monthYear(f.predicted!)).font(.caption).foregroundStyle(Palette.text2)
                 }
             RuleMark(x: .value("Today", now))
                 .foregroundStyle(Palette.muted.opacity(0.5))
@@ -135,6 +135,7 @@ struct ForecastsView: View {
         .chartLegend(position: .bottom, alignment: .leading)
         .chartYSelection(value: $hoverTitle)
         .frame(height: CGFloat(fs.count) * 28 + 60)
+        .chartSummary("Timeline of \(fs.count) forecasts, soonest first. " + fs.map { "\($0.title): most likely \(Format.monthYear($0.predicted!)), likely range \($0.early.map(Format.monthYear) ?? "?") to \($0.late.map(Format.monthYear) ?? "open-ended")" }.joined(separator: ". ") + ".")
     }
 
     private func trackRecordCard(_ record: TrackRecord) -> some View {
@@ -145,11 +146,11 @@ struct ForecastsView: View {
                 GridRow {
                     Text("Milestone"); Text("Forecast in"); Text("Predicted"); Text("Happened"); Text("")
                 }
-                .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                .font(.caption.weight(.semibold)).foregroundStyle(Palette.text2)
                 ForEach(record.items) { i in
                     GridRow {
                         Text(i.title)
-                        Text(Format.monthYear(i.madeOn)).foregroundStyle(.secondary)
+                        Text(Format.monthYear(i.madeOn)).foregroundStyle(Palette.text2)
                         Text(Format.monthYear(i.predicted))
                         Text(Format.monthYear(i.reached))
                         Label(i.inside ? "Within range" : (i.errorMonths > 0 ? "Later than range" : "Earlier than range"),
@@ -165,7 +166,7 @@ struct ForecastsView: View {
     private func detail(_ f: Forecast) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text("\(f.target): most likely \(Format.monthYear(f.predicted!)), likely range \(f.early.map(Format.monthYear) ?? "?") to \(f.late.map(Format.monthYear) ?? "beyond \(Int(Forecasts.maxYearsOut)) years").")
-            Text("Now: \(f.current). \(f.basis).").foregroundStyle(.secondary)
+            Text("Now: \(f.current). \(f.basis).").foregroundStyle(Palette.text2)
         }
         .font(.callout)
     }
@@ -218,6 +219,7 @@ struct ForecastsView: View {
             } }
             .quietAxes()
             .frame(height: 240)
+            .chartSummary((points.first.map { first in "How the predicted date for \(f.title) changed: computed in \(Format.monthYear(first.asOf)) it pointed to \(Format.monthYear(first.predicted)); most recently it points to \(Format.monthYear(points.last!.predicted))." } ?? "No past forecasts for \(f.title)."))
             if points.isEmpty {
                 Footnote(text: "This milestone wasn't on a forecastable trend in the past year.")
             } else if let first = points.first, let last = points.last {
@@ -236,7 +238,7 @@ struct ClaudeOutlookCard: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Written by Claude")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(Color.primary)
                 .padding(.horizontal, 8).padding(.vertical, 2)
                 .background(Color.accentColor.opacity(0.14), in: Capsule())
             Text(outlook.headline).font(.title3.weight(.semibold))

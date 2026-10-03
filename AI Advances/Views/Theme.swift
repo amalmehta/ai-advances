@@ -24,6 +24,8 @@ enum Palette {
         dynamic(0xe34948, 0xe66767), // red
     ]
     static let muted = dynamic(0x898781, 0x898781)
+    /// Secondary text that keeps WCAG AA contrast on the card surface (the system .secondary doesn't).
+    static let text2 = dynamic(0x52514e, 0xc3c2b7)
     static let grid = dynamic(0xe1e0d9, 0x2c2c2a)
     static let surface = dynamic(0xfcfcfb, 0x1a1a19)
 
@@ -39,7 +41,7 @@ struct Card<Content: View>: View {
         VStack(alignment: .leading, spacing: 10) {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.headline)
-                if let subtitle { Text(subtitle).font(.callout).foregroundStyle(.secondary) }
+                if let subtitle { Text(subtitle).font(.callout).foregroundStyle(Palette.text2) }
             }
             content
         }
@@ -58,9 +60,9 @@ struct StatTile: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Label(label, systemImage: symbol).font(.callout).foregroundStyle(.secondary)
+            Label(label, systemImage: symbol).font(.callout).foregroundStyle(Palette.text2)
             Text(value).font(.system(size: 26, weight: .semibold, design: .rounded)).monospacedDigit()
-            Text(detail).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Text(detail).font(.caption).foregroundStyle(Palette.text2).fixedSize(horizontal: false, vertical: true)
         }
         .padding(14)
         .frame(maxWidth: .infinity, minHeight: 116, alignment: .topLeading)
@@ -76,7 +78,7 @@ struct Tooltip: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title).font(.caption.weight(.semibold))
-            ForEach(lines, id: \.self) { Text($0).font(.caption).foregroundStyle(.secondary) }
+            ForEach(lines, id: \.self) { Text($0).font(.caption).foregroundStyle(Palette.text2) }
         }
         .padding(8)
         .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 6))
@@ -117,7 +119,7 @@ struct PageHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title).font(.largeTitle.weight(.semibold))
-            Text(summary).font(.title3).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Text(summary).font(.title3).foregroundStyle(Palette.text2).fixedSize(horizontal: false, vertical: true)
         }
     }
 }
@@ -125,7 +127,7 @@ struct PageHeader: View {
 struct Footnote: View {
     let text: String
     var body: some View {
-        Text(text).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        Text(text).font(.caption).foregroundStyle(Palette.text2).fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -157,7 +159,7 @@ struct LegendItem: View {
         HStack(spacing: 5) {
             if line { Capsule().fill(color).frame(width: 14, height: 2.5) }
             else { Circle().fill(color).frame(width: 8, height: 8) }
-            Text(label).foregroundStyle(.secondary)
+            Text(label).foregroundStyle(Palette.text2)
         }
     }
 }
@@ -168,11 +170,27 @@ struct FreshnessNote: View {
     let what: String
 
     var body: some View {
-        Label(freshness.sentence(what), systemImage: freshness.isStale ? "exclamationmark.triangle.fill" : "calendar")
-            .font(.callout)
-            .foregroundStyle(freshness.isStale ? Palette.color(1) : .secondary)
-            .fixedSize(horizontal: false, vertical: true)
-            .padding(freshness.isStale ? 10 : 0)
-            .background(freshness.isStale ? Palette.color(1).opacity(0.1) : .clear, in: RoundedRectangle(cornerRadius: 8))
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            // Orange only on the icon and background; the text stays dark enough to read (AA contrast).
+            Image(systemName: freshness.isStale ? "exclamationmark.triangle.fill" : "calendar")
+                .foregroundStyle(freshness.isStale ? Palette.color(1) : Palette.text2)
+                .accessibilityHidden(true)
+            Text(freshness.sentence(what))
+                .foregroundStyle(freshness.isStale ? Color.primary : Palette.text2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .font(.callout)
+        .padding(freshness.isStale ? 10 : 0)
+        .background(freshness.isStale ? Palette.color(1).opacity(0.1) : .clear, in: RoundedRectangle(cornerRadius: 8))
+    }
+}
+
+extension View {
+    /// Presents a chart to VoiceOver as one element with a plain-language description,
+    /// instead of every mark separately.
+    func chartSummary(_ text: String) -> some View {
+        accessibilityElement(children: .ignore)
+            .accessibilityLabel(text)
+            .accessibilityAddTraits(.isImage)
     }
 }

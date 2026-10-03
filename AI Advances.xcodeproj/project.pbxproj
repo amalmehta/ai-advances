@@ -19,6 +19,7 @@
 		461796727A8DFA03D8650757 /* ComputeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC30FAEF6055D42E82091489 /* ComputeView.swift */; };
 		4A3A09A6CADB1935BD309F13 /* PageRenderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BFB571626E2AAF1ED798416 /* PageRenderTests.swift */; };
 		4A55CD83AD1EBDF20C96834B /* TrackRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = F267E92F1F40385DCEA96AD5 /* TrackRecord.swift */; };
+		4EC0490CC696CFE7E563E6BC /* Schedule.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8DCA9474DE4F588F2B1869F /* Schedule.swift */; };
 		6048885BF8C46519C8FBB48C /* AdvancesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D545A338DCB0791BA827BC0 /* AdvancesView.swift */; };
 		6CF48239D1C3C9B34B7520A6 /* Advances.json in Resources */ = {isa = PBXBuildFile; fileRef = C1882CB7004FEC7E2C6C23B3 /* Advances.json */; };
 		704E9E4BCACE91821D882104 /* ModelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCE094D777591301829656E /* ModelsView.swift */; };
@@ -36,6 +37,7 @@
 		C615A414BD7E6C61CE0ACF01 /* Labs.json in Resources */ = {isa = PBXBuildFile; fileRef = F5B301DDFC8B5E2B8CD10102 /* Labs.json */; };
 		C9A15942ACDD64BA83988B68 /* CSV.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3A4A06288BF252B291D4972 /* CSV.swift */; };
 		CFF5F2C644FC2811E3E21AEB /* AIAdvancesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F14677CCEE26AA3A4E8094 /* AIAdvancesTests.swift */; };
+		D3A6C4127FBF4D7F4058367A /* AccessibilityAuditTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05AE753A238E1E4F3F7CF481 /* AccessibilityAuditTests.swift */; };
 		DCB089D8019334DF8D4AB1F1 /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A84757CD3E5BB83C7313D20 /* Feed.swift */; };
 		E39507997B616EE04869E842 /* CostView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C73FB40E12AFF8DDB3836B1C /* CostView.swift */; };
 		E82EC44663E62637BA7223F8 /* FrontierChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C022C9D23C87A45A21957C2 /* FrontierChart.swift */; };
@@ -46,6 +48,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		4E8E468E0D7DA99A50D448CD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B338C0D13B2028D86ECDC711 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4D8F87DDEC1AC1314839EAE4;
+			remoteInfo = "AI Advances";
+		};
 		BDE13AE0430AE75F4A089090 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = B338C0D13B2028D86ECDC711 /* Project object */;
@@ -58,7 +67,9 @@
 /* Begin PBXFileReference section */
 		012F19DFF2596D74158B02C7 /* Analysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analysis.swift; sourceTree = "<group>"; };
 		024F58F4940912A8D6334400 /* Loading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loading.swift; sourceTree = "<group>"; };
+		05AE753A238E1E4F3F7CF481 /* AccessibilityAuditTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityAuditTests.swift; sourceTree = "<group>"; };
 		0C022C9D23C87A45A21957C2 /* FrontierChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrontierChart.swift; sourceTree = "<group>"; };
+		10F03F0EBAD89DEDD9DC07EA /* AI Advances UI Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AI Advances UI Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13E2323A25A3505D87537691 /* Parsers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Parsers.swift; sourceTree = "<group>"; };
 		1A84757CD3E5BB83C7313D20 /* Feed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feed.swift; sourceTree = "<group>"; };
 		24FA30095ADCC0A6FDBBF893 /* benchmark_data.zip */ = {isa = PBXFileReference; lastKnownFileType = archive.zip; path = benchmark_data.zip; sourceTree = "<group>"; };
@@ -82,6 +93,7 @@
 		C3A4A06288BF252B291D4972 /* CSV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSV.swift; sourceTree = "<group>"; };
 		C73FB40E12AFF8DDB3836B1C /* CostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CostView.swift; sourceTree = "<group>"; };
 		C75CBEED561E6E845C1D1F66 /* ForecastsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForecastsView.swift; sourceTree = "<group>"; };
+		C8DCA9474DE4F588F2B1869F /* Schedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Schedule.swift; sourceTree = "<group>"; };
 		CC0BD65C55F8978D60B2922D /* Outlook.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Outlook.swift; sourceTree = "<group>"; };
 		CE90224C15C5FC787AEA62E2 /* Updates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updates.swift; sourceTree = "<group>"; };
 		D224F1FFBFE52F8D74A68741 /* AIAdvancesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAdvancesApp.swift; sourceTree = "<group>"; };
@@ -136,10 +148,19 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
+		4AE86CAB1B186626A43523BC /* AI Advances UI Tests */ = {
+			isa = PBXGroup;
+			children = (
+				05AE753A238E1E4F3F7CF481 /* AccessibilityAuditTests.swift */,
+			);
+			path = "AI Advances UI Tests";
+			sourceTree = "<group>";
+		};
 		4DE9B1AEEB4098D9EE1DA2A8 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				E4E70BE58B020469987DD9E5 /* AI Advances Tests.xctest */,
+				10F03F0EBAD89DEDD9DC07EA /* AI Advances UI Tests.xctest */,
 				A90DABA4CACBAFC7EC25764C /* AI Advances.app */,
 			);
 			name = Products;
@@ -161,6 +182,7 @@
 			children = (
 				7F4F7820973DA47E06C64071 /* AI Advances */,
 				346FD548615EB6DE0DE55240 /* AI Advances Tests */,
+				4AE86CAB1B186626A43523BC /* AI Advances UI Tests */,
 				4DE9B1AEEB4098D9EE1DA2A8 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -179,6 +201,7 @@
 				CC0BD65C55F8978D60B2922D /* Outlook.swift */,
 				13E2323A25A3505D87537691 /* Parsers.swift */,
 				E018176D32D98DD92CC086A3 /* Records.swift */,
+				C8DCA9474DE4F588F2B1869F /* Schedule.swift */,
 				F267E92F1F40385DCEA96AD5 /* TrackRecord.swift */,
 				CE90224C15C5FC787AEA62E2 /* Updates.swift */,
 			);
@@ -226,6 +249,24 @@
 			productReference = A90DABA4CACBAFC7EC25764C /* AI Advances.app */;
 			productType = "com.apple.product-type.application";
 		};
+		DB07D8F9BD804330FCC56C37 /* AI Advances UI Tests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 954F41D0C11F118056B72F7E /* Build configuration list for PBXNativeTarget "AI Advances UI Tests" */;
+			buildPhases = (
+				D01B2C5A14AB0BBA941D36D7 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3FAA37C91F65B68B5ECBEB78 /* PBXTargetDependency */,
+			);
+			name = "AI Advances UI Tests";
+			packageProductDependencies = (
+			);
+			productName = "AI Advances UI Tests";
+			productReference = 10F03F0EBAD89DEDD9DC07EA /* AI Advances UI Tests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		ECCDEB25F510455BBA88B373 /* AI Advances Tests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 8FE58C2FB60B11F54C6A4AC5 /* Build configuration list for PBXNativeTarget "AI Advances Tests" */;
@@ -256,6 +297,9 @@
 					4D8F87DDEC1AC1314839EAE4 = {
 						ProvisioningStyle = Automatic;
 					};
+					DB07D8F9BD804330FCC56C37 = {
+						TestTargetID = 4D8F87DDEC1AC1314839EAE4;
+					};
 				};
 			};
 			buildConfigurationList = 0553752052E6D84CF1AD4763 /* Build configuration list for PBXProject "AI Advances" */;
@@ -274,6 +318,7 @@
 			targets = (
 				4D8F87DDEC1AC1314839EAE4 /* AI Advances */,
 				ECCDEB25F510455BBA88B373 /* AI Advances Tests */,
+				DB07D8F9BD804330FCC56C37 /* AI Advances UI Tests */,
 			);
 		};
 /* End PBXProject section */
@@ -323,6 +368,7 @@
 				2DB1E1B42AF36CDCFC3C4046 /* Outlook.swift in Sources */,
 				28CF3C611EE61B9D46A3A856 /* Parsers.swift in Sources */,
 				257A0F0D08FC966DD8567D38 /* Records.swift in Sources */,
+				4EC0490CC696CFE7E563E6BC /* Schedule.swift in Sources */,
 				16EABE5FB5194C7E8BC5BDCD /* Theme.swift in Sources */,
 				4A55CD83AD1EBDF20C96834B /* TrackRecord.swift in Sources */,
 				ADE259A8A8FCEF68BC0B28EA /* TrendsView.swift in Sources */,
@@ -339,9 +385,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D01B2C5A14AB0BBA941D36D7 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D3A6C4127FBF4D7F4058367A /* AccessibilityAuditTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		3FAA37C91F65B68B5ECBEB78 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4D8F87DDEC1AC1314839EAE4 /* AI Advances */;
+			targetProxy = 4E8E468E0D7DA99A50D448CD /* PBXContainerItemProxy */;
+		};
 		C8378D215AE3AD66069EF78A /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 4D8F87DDEC1AC1314839EAE4 /* AI Advances */;
@@ -389,6 +448,23 @@
 				SDKROOT = macosx;
 			};
 			name = Release;
+		};
+		BBE0CFC32870DD46A049BB91 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.amalmehta.ai-advances-ui-tests";
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = "AI Advances";
+			};
+			name = Debug;
 		};
 		D64DCA180B1F2D1BB26F0C88 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -443,7 +519,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -502,7 +578,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -510,6 +586,23 @@
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		E326E7181B0B7AA6480A80C7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.amalmehta.ai-advances-ui-tests";
+				SDKROOT = macosx;
+				TEST_TARGET_NAME = "AI Advances";
 			};
 			name = Release;
 		};
@@ -579,6 +672,15 @@
 			buildConfigurations = (
 				F2B564C580CFE3BC866A727A /* Debug */,
 				3077843DCE948FB2CFF8E6DE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		954F41D0C11F118056B72F7E /* Build configuration list for PBXNativeTarget "AI Advances UI Tests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BBE0CFC32870DD46A049BB91 /* Debug */,
+				E326E7181B0B7AA6480A80C7 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

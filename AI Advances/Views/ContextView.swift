@@ -46,6 +46,7 @@ struct ContextView: View {
                 .quietAxes()
                 .chartOverlay { proxy in HoverLayer(proxy: proxy, points: listed.map { ($0.id, $0.created, Double($0.contextLength)) }, selection: $hover, radius: 12) }
                 .frame(height: 320)
+                .chartSummary("Scatter plot of context window against listing date for \(listed.count) models since 2024. The quarterly median went from \(Format.tokens(Int(medians.first?.1 ?? 0))) to \(Format.tokens(Int(medians.last?.1 ?? 0))) tokens." + (frontier.last.map { " Largest: \($0.name) at \(Format.tokens($0.contextLength))." } ?? ""))
                 HStack(spacing: 16) {
                     LegendItem(label: "Model", color: Palette.color(0))
                     LegendItem(label: "Quarterly median", color: Palette.color(1), line: true)
@@ -78,6 +79,7 @@ struct ContextView: View {
                 .chartLegend(position: .bottom, alignment: .leading)
                 .chartXSelection(value: $hoverQuarter)
                 .frame(height: 280)
+                .chartSummary("Line chart of the share of new models supporting each modality, by quarter." + (shares.last.map { last in " In \(last.quarter): " + shares.filter { $0.quarter == last.quarter }.map { "\($0.modality) \(Format.percent($0.share))" }.joined(separator: ", ") + "." } ?? ""))
                 if let q = hoverQuarter {
                     let rows = shares.filter { $0.quarterStart == Analysis.quarterStart(q) }
                     if let first = rows.first {

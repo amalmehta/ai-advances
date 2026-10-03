@@ -80,6 +80,7 @@ struct SiteData: Encodable {
     }
 
     struct Item: Encodable {
+        let id: String
         let date: Date
         let title, detail, lab, kind, direction: String
         let link: String?

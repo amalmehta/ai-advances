@@ -93,6 +93,7 @@ struct FrontierChart: View {
             }
         }
         .frame(height: height)
+        .chartSummary("Line chart of the best score so far on \(labels.joined(separator: ", ")) since \(Format.monthYear(since)). Current bests: " + labels.compactMap { l in steps.last { $0.benchmark == l }.map { "\(l) \(Format.percent($0.score)) (\($0.model))" } }.joined(separator: "; ") + ".")
     }
 
     private func tooltipLines(at date: Date, steps: [Step]) -> [String] {

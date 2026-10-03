@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Observation
 
@@ -36,8 +37,6 @@ final class DataStore {
                page: URL(string: "https://openrouter.ai/models")!),
     ]
 
-    static let staleAfter: TimeInterval = 12 * 3600
-    static let checkEvery: TimeInterval = 6 * 3600
 
     private(set) var data = Dataset.empty
     private(set) var profiles: [ModelProfile] = []
@@ -50,6 +49,10 @@ final class DataStore {
     private(set) var labs: [LabSummary] = []
     /// How past forecasts did on milestones reached since.
     private(set) var trackRecord: TrackRecord?
+    /// Feed items that appeared since you last opened Latest Advances.
+    private(set) var newFeedIDs: Set<String> = []
+    static let seenFeedKey = "seenFeedIDs"
+
     /// Set when GitHub has a newer release than this copy of the app.
     private(set) var update: (version: String, page: URL)?
 
@@ -68,6 +71,12 @@ final class DataStore {
     var loadError: String?
 
     private var timer: Task<Void, Never>?
+    private var wakeObserver: NSObjectProtocol?
+
+    /// Refreshes once a 7:00 AM has passed since the last refresh.
+    func refreshIfMorningPassed() async {
+        if MorningSchedule.needsRefresh(lastRefresh: lastRefresh, now: Date()) { await refresh() }
+    }
 
     init() {
         lastRefresh = UserDefaults.standard.object(forKey: "lastRefresh") as? Date
@@ -87,14 +96,21 @@ final class DataStore {
     func start() async {
         await reload()
         await checkForUpdate()
-        if lastRefresh.map({ Date().timeIntervalSince($0) > Self.staleAfter }) ?? true {
-            await refresh()
-        }
+        await refreshIfMorningPassed()
+        // Refresh at 7:00 AM each day while the app is open...
         timer?.cancel()
         timer = Task { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(Self.checkEvery))
-                await self?.refresh()
+                let wait = MorningSchedule.nextMorning(after: Date()).timeIntervalSinceNow
+                try? await Task.sleep(for: .seconds(max(60, wait)))
+                await self?.refreshIfMorningPassed()
+            }
+        }
+        // ...and on waking, in case the Mac was asleep at 7.
+        if wakeObserver == nil {
+            wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
+                forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { [weak self] _ in
+                Task { @MainActor in await self?.refreshIfMorningPassed() }
             }
         }
     }
@@ -122,6 +138,7 @@ final class DataStore {
             let loaded = try await Task.detached(priority: .userInitiated) { try Self.parseAll(files) }.value
             data = loaded
             profiles = Analysis.profiles(loaded)
+            updateNewFeed() // before any page can show the feed
             loadError = nil
         } catch {
             loadError = error.localizedDescription
@@ -129,6 +146,24 @@ final class DataStore {
         }
         await recomputeOutlook()
         claudeOutlook = (try? Data(contentsOf: Self.outlookCacheURL)).flatMap { try? JSONDecoder().decode(ClaudeOutlook.self, from: $0) }
+    }
+
+    /// Compares the current feed with what was there when you last looked. On first run nothing
+    /// counts as new, so you aren't greeted by the whole feed.
+    private func updateNewFeed() {
+        let ids = Feed.items(data, now: Date()).map(\.id)
+        guard let seen = UserDefaults.standard.stringArray(forKey: Self.seenFeedKey) else {
+            UserDefaults.standard.set(ids, forKey: Self.seenFeedKey)
+            return
+        }
+        newFeedIDs = Set(ids).subtracting(seen)
+    }
+
+    /// Called when Latest Advances is shown.
+    func markFeedSeen() {
+        guard !data.results.isEmpty else { return }
+        UserDefaults.standard.set(Feed.items(data, now: Date()).map(\.id), forKey: Self.seenFeedKey)
+        newFeedIDs = []
     }
 
     /// Forecasts, their history and the lab summaries; all derived from `data`, so rerun after every load.

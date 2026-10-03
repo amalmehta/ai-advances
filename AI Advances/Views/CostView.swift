@@ -36,10 +36,10 @@ struct CostView: View {
                     ForEach(Analysis.keyBenchmarks, id: \.name) { Text($0.label).tag($0.name) }
                 }
                 .frame(maxWidth: 220)
-                Text("Score at least").foregroundStyle(.secondary)
+                Text("Score at least").foregroundStyle(Palette.text2)
                 Slider(value: $threshold, in: 0.1...0.95, step: 0.05).frame(maxWidth: 220)
                 Text(Format.percent(threshold)).monospacedDigit().frame(width: 44, alignment: .leading)
-                Text("Current best: \(Format.percent(best))").foregroundStyle(.secondary)
+                Text("Current best: \(Format.percent(best))").foregroundStyle(Palette.text2)
             }
             .onChange(of: benchmark) {
                 threshold = max(0.1, (best * 0.75 / 0.05).rounded() * 0.05)
@@ -48,7 +48,7 @@ struct CostView: View {
             Card(title: "Cheapest price to reach \(Format.percent(threshold)) on \(Analysis.shortName(benchmark))",
                  subtitle: fit.map { f in steps.count >= 3 ? "Falling about \(String(format: "%.0f", 1 / f.factorPerYear))× per year (exponential fit over \(steps.count) price drops)." : "" } ?? "Too few price drops yet to fit a trend.") {
                 if steps.isEmpty {
-                    Text("No model with a listed price has reached this score yet. Lower the threshold.").foregroundStyle(.secondary).frame(height: 120)
+                    Text("No model with a listed price has reached this score yet. Lower the threshold.").foregroundStyle(Palette.text2).frame(height: 120)
                 } else {
                     Chart {
                         ForEach(steps) { s in
@@ -63,7 +63,7 @@ struct CostView: View {
                                     if hoverStep == s.id {
                                         Tooltip(title: s.model, lines: ["\(Format.price(s.price)) / M tokens", "\(Analysis.shortName(benchmark)): \(Format.percent(s.score, digits: 1))", Format.date.string(from: s.date)])
                                     } else {
-                                        Text(s.model).font(.caption2).foregroundStyle(.secondary)
+                                        Text(s.model).font(.caption2).foregroundStyle(Palette.text2)
                                     }
                                 }
                         }
@@ -81,6 +81,7 @@ struct CostView: View {
                     .quietAxes()
                     .chartOverlay { proxy in HoverLayer(proxy: proxy, points: steps.map { ($0.id, $0.date, $0.price) }, selection: $hoverStep) }
                     .frame(height: 300)
+                    .chartSummary("Step chart of the cheapest listed price for a model scoring at least \(Format.percent(threshold)) on \(Analysis.shortName(benchmark)): " + steps.map { "\($0.model) at \(Format.price($0.price)) from \(Format.monthYear($0.date))" }.joined(separator: ", then ") + ".")
                 }
             }
 
@@ -118,6 +119,7 @@ struct CostView: View {
                     }
                 }
                 .frame(height: 320)
+                .chartSummary("Scatter plot of price per million tokens against score on \(Analysis.shortName(benchmark)) for \(dots.count) models." + (dots.max { $0.score < $1.score }.map { " Highest score: \($0.name) at \(Format.percent($0.score, digits: 1))." } ?? "") + (dots.min { $0.price < $1.price }.map { " Cheapest: \($0.name) at \(Format.price($0.price))." } ?? ""))
                 HStack(spacing: 16) {
                     LegendItem(label: "Released in the last 6 months", color: Palette.color(1))
                     LegendItem(label: "Older", color: Palette.color(0))

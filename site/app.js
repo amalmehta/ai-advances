@@ -109,6 +109,28 @@ const tip = (C) => ({ fill: C.surface, stroke: C.border });
 // ---------- Data helpers (mirroring the app's Analysis) ----------
 
 let D; // site.json, with dates parsed
+
+// "New since your last visit": IDs of feed items this browser has already seen. Kept in
+// localStorage, which can be missing or blocked, so every access is guarded.
+const SEEN_KEY = "ai-advances.seen-feed";
+let NEW_IDS = new Set();
+function loadSeen() {
+  try {
+    const seen = JSON.parse(localStorage.getItem(SEEN_KEY) ?? "null");
+    if (!Array.isArray(seen)) { markSeen(); return; } // first visit: nothing is "new" yet
+    const known = new Set(seen);
+    NEW_IDS = new Set(D.feed.filter((i) => !known.has(i.id)).map((i) => i.id));
+  } catch { NEW_IDS = new Set(); }
+}
+function markSeen() {
+  try { localStorage.setItem(SEEN_KEY, JSON.stringify(D.feed.map((i) => i.id))); } catch {}
+}
+function updateNewBadge() {
+  const link = document.querySelector('#nav a[data-page="advances"]');
+  if (!link) return;
+  link.querySelector(".new-count")?.remove();
+  if (NEW_IDS.size) link.append(el("span", { class: "new-count", "aria-label": `${NEW_IDS.size} new` }, String(NEW_IDS.size)));
+}
 let CLAUDE = null; // outlook.json, when the daily build has one
 
 function prepare(raw) {
@@ -513,19 +535,24 @@ function labCard(l) {
 }
 
 pages.advances = () => {
+  // The items new on arrival stay marked for this whole visit, even after they're recorded as seen.
+  const shownNew = new Set(NEW_IDS);
   const now = new Date();
-  const kinds = ["All", "Highlights", "New records", "New models"];
+  const kinds = ["All", ...(shownNew.size ? ["New to you"] : []), "Highlights", "New records", "New models"];
+  if (state.kind === "New to you" && !shownNew.size) state.kind = "All";
   const directions = ["All directions", ...[...new Set(D.feed.map((i) => i.direction))].sort()];
   const list = el("ul", { class: "feed" });
   const count = el("span", { class: "muted" });
   const sym = { "Highlights": "✦", "New records": "🏆", "New models": "▣" };
   const renderList = () => {
-    const shown = D.feed.filter((i) => (state.kind === "All" || i.kind === state.kind) && (state.direction === "All directions" || i.direction === state.direction));
+    const shown = D.feed.filter((i) => (state.kind === "All" || i.kind === state.kind || (state.kind === "New to you" && shownNew.has(i.id)))
+      && (state.direction === "All directions" || i.direction === state.direction));
     count.textContent = `${shown.length} items`;
     list.replaceChildren(...shown.map((i) => el("li", {},
       el("span", { class: "date" }, fmt.date(i.date)),
       el("span", { class: "sym", "aria-hidden": "true" }, sym[i.kind]),
       el("div", {},
+        shownNew.has(i.id) ? el("span", { class: "badge new" }, "New") : null,
         i.link ? el("a", { href: i.link, target: "_blank", rel: "noopener", style: "font-weight:550" }, i.title) : el("strong", {}, i.title),
         el("div", { class: "muted" }, i.detail),
         el("div", { class: "meta" }, `${i.lab} · ${i.direction}`)))));
@@ -553,12 +580,16 @@ pages.advances = () => {
     }));
   });
 
+  // Seeing this page counts as seeing these items: they stay marked "New" for this visit only.
+  markSeen();
+  NEW_IDS = new Set();
+  queueMicrotask(updateNewBadge);
   return el("div", {},
     header("Latest advances", "Researched highlights, plus new benchmark records and newly listed models detected in the data every day."),
     freshnessNote(D.highlightsThrough, "Researched highlights run through"),
     card("Highlights and records per month, by direction", "What the last year's advances have been about. New model listings are left out because they'd swamp the chart.", monthly),
     el("div", { class: "controls" },
-      segmented("kind", kinds.map((k) => [k, k === "All" ? "Everything" : k]), state.kind, (v) => { state.kind = v; renderList(); }),
+      segmented("kind", kinds.map((k) => [k, k === "All" ? "Everything" : k === "New to you" ? `New to you (${shownNew.size})` : k]), state.kind, (v) => { state.kind = v; renderList(); }),
       select(directions.map((d) => [d, d]), state.direction, (v) => { state.direction = v; renderList(); }, "Direction"),
       count),
     list);
@@ -880,6 +911,8 @@ async function main() {
     return;
   }
   shell();
+  loadSeen();
+  updateNewBadge();
   route();
   addEventListener("hashchange", route);
   let t;

@@ -53,10 +53,10 @@ struct CapabilitiesView: View {
             Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 5) {
                 ForEach(Array(best.enumerated()), id: \.element.id) { i, r in
                     GridRow {
-                        Text("\(i + 1)").foregroundStyle(.secondary).monospacedDigit()
+                        Text("\(i + 1)").foregroundStyle(Palette.text2).monospacedDigit()
                         VStack(alignment: .leading, spacing: 0) {
                             Text(r.modelGroup).lineLimit(1)
-                            Text(r.organization).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                            Text(r.organization).font(.caption).foregroundStyle(Palette.text2).lineLimit(1)
                         }
                         Spacer(minLength: 0)
                         Text(Format.percent(r.score, digits: 1)).monospacedDigit()

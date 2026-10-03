@@ -38,7 +38,7 @@ struct TrendsView: View {
                         .clipShape(UnevenRoundedRectangle(bottomTrailingRadius: 4, topTrailingRadius: 4))
                         .annotation(position: .trailing) {
                             Text("\(Format.percent(m.gapClosed)) · \(String(format: "%+.0f", m.pointsGained)) pts")
-                                .font(.caption).foregroundStyle(.secondary).monospacedDigit()
+                                .font(.caption).foregroundStyle(Palette.text2).monospacedDigit()
                         }
                 }
                 .chartXScale(domain: 0...1.15)
@@ -51,6 +51,7 @@ struct TrendsView: View {
                 .chartYAxis { AxisMarks(preset: .extended, position: .leading) { _ in AxisValueLabel(horizontalSpacing: 8).foregroundStyle(Color.primary).font(.callout) } }
                 .chartYSelection(value: $hoverArea)
                 .frame(height: CGFloat(momentum.count) * 34 + 30)
+                .chartSummary("Bar chart of the share of remaining headroom each capability area closed in the last \(windowMonths) months: " + momentum.map { "\($0.area) \(Format.percent($0.gapClosed))" }.joined(separator: ", ") + ".")
 
                 if let area = hoverArea, let a = data.areas.first(where: { $0.name == area }),
                    let m = momentum.first(where: { $0.area == area }) {
@@ -62,7 +63,7 @@ struct TrendsView: View {
 
             Text("Frontier by capability area").font(.title2.weight(.semibold)).padding(.top, 4)
             Text("Best score so far on each benchmark since January 2024. Hover for the model holding each record.")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Palette.text2)
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 380), spacing: 16)], spacing: 16) {
                 ForEach(data.areas) { area in
                     Card(title: area.name, subtitle: area.summary) {

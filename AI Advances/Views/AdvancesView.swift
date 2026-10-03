@@ -5,9 +5,12 @@ struct AdvancesView: View {
     @Environment(DataStore.self) private var store
     @State private var kind: Kind = .all
     @State private var direction = "All directions"
+    /// What was new when this page opened; it stays marked for the visit after being recorded as seen.
+    @State private var shownNew: Set<String> = []
 
     enum Kind: String, CaseIterable, Identifiable {
         case all = "Everything"
+        case new = "New to you"
         case curated = "Highlights"
         case records = "New records"
         case models = "New models"
@@ -20,7 +23,9 @@ struct AdvancesView: View {
         let now = Date()
         let all = Feed.items(store.data, now: now)
         let directions = ["All directions"] + Array(Set(all.map(\.direction))).sorted()
-        let shown = all.filter { (kind == .all || $0.kind.rawValue == kind.rawValue) && (direction == "All directions" || $0.direction == direction) }
+        let shown = all.filter { (kind == .all || $0.kind.rawValue == kind.rawValue || (kind == .new && shownNew.contains($0.id)))
+            && (direction == "All directions" || $0.direction == direction) }
+        let kinds = Kind.allCases.filter { $0 != .new || !shownNew.isEmpty }
 
         VStack(alignment: .leading, spacing: 20) {
             PageHeader(title: "Latest advances",
@@ -36,12 +41,14 @@ struct AdvancesView: View {
             }
 
             HStack {
-                Picker("Show", selection: $kind) { ForEach(Kind.allCases) { Text($0.rawValue).tag($0) } }
-                    .pickerStyle(.segmented).frame(maxWidth: 440).labelsHidden()
+                Picker("Show", selection: $kind) {
+                    ForEach(kinds) { k in Text(k == .new ? "New to you (\(shownNew.count))" : k.rawValue).tag(k) }
+                }
+                    .pickerStyle(.segmented).frame(maxWidth: 580).labelsHidden()
                 Picker("Direction", selection: $direction) { ForEach(directions, id: \.self) { Text($0).tag($0) } }
                     .frame(maxWidth: 220)
                 Spacer()
-                Text("\(shown.count) items").foregroundStyle(.secondary)
+                Text("\(shown.count) items").foregroundStyle(Palette.text2)
             }
 
             if store.data.advances.isEmpty && kind == .curated {
@@ -55,21 +62,37 @@ struct AdvancesView: View {
                 }
             }
         }
+        .onAppear {
+            shownNew = store.newFeedIDs
+            if shownNew.isEmpty && kind == .new { kind = .all }
+            store.markFeedSeen()
+        }
+        // Items that arrive in a refresh while this page is open are new too.
+        .onChange(of: store.newFeedIDs) { _, arrived in
+            guard !arrived.isEmpty else { return }
+            shownNew.formUnion(arrived)
+            store.markFeedSeen()
+        }
     }
 
     private func row(_ item: Item) -> some View {
         HStack(alignment: .top, spacing: 14) {
             Text(Format.date.string(from: item.date))
-                .font(.callout).foregroundStyle(.secondary).monospacedDigit()
+                .font(.callout).foregroundStyle(Palette.text2).monospacedDigit()
                 .frame(width: 96, alignment: .leading)
-            Image(systemName: symbol(item.kind)).foregroundStyle(.secondary).frame(width: 18)
+            Image(systemName: symbol(item.kind)).foregroundStyle(Palette.text2).frame(width: 18)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(alignment: .firstTextBaseline) {
+                    if shownNew.contains(item.id) {
+                        Text("New").font(.caption.weight(.semibold))
+                            .padding(.horizontal, 6).padding(.vertical, 1)
+                            .background(Color.accentColor.opacity(0.18), in: Capsule())
+                    }
                     if let link = item.link.flatMap(URL.init(string:)) { Link(item.title, destination: link).font(.body.weight(.medium)) }
                     else { Text(item.title).font(.body.weight(.medium)) }
                 }
-                Text(item.detail).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                Text("\(item.lab) · \(item.direction)").font(.caption).foregroundStyle(.tertiary)
+                Text(item.detail).foregroundStyle(Palette.text2).fixedSize(horizontal: false, vertical: true)
+                Text("\(item.lab) · \(item.direction)").font(.caption).foregroundStyle(Palette.text2)
             }
             Spacer(minLength: 0)
         }
@@ -112,6 +135,7 @@ struct AdvancesView: View {
         .quietAxes()
         .chartLegend(position: .bottom, alignment: .leading)
         .frame(height: 220)
+        .chartSummary("Stacked bar chart of highlights and new records per month over the last year, by direction. Totals: " + order.map { d in "\(d) \(counts.filter { $0.direction == d }.map(\.count).reduce(0, +))" }.joined(separator: ", ") + ".")
     }
 
     private struct MonthKey: Hashable {

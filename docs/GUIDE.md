@@ -1,8 +1,20 @@
 # AI Advances Guide
 
+## Accessibility audit (Mac app)
+
+The **Accessibility Audit** scheme runs Xcode's accessibility audit on every page of the running app (VoiceOver descriptions, contrast, hit areas). Keep the app's window unobstructed while it runs, since contrast is measured from the screen:
+
+```bash
+xcodebuild -project "AI Advances.xcodeproj" -scheme "Accessibility Audit" -derivedDataPath build test
+```
+
+Each chart reads as one element with a plain-language summary of what it shows, and secondary text uses a color with at least 7.7:1 contrast.
+
 ## Install the Mac app
 
 Download the latest **AI-Advances-vX.Y.zip** from [Releases](https://github.com/amalmehta/ai-advances/releases/latest), unzip it, and move **AI Advances** to Applications. It runs on Apple Silicon and Intel Macs with macOS 14 or later.
+
+The app updates its data once each morning: when you open it, at 7:00 AM local time if it's already open, or when your Mac wakes, whichever comes first after 7. ⌘R updates any time.
 
 The app checks GitHub for newer releases when it starts and whenever it refreshes; when there is one, a **Version X available** button appears in the toolbar and opens the download page.
 
@@ -39,7 +51,7 @@ The Xcode project is generated from `project.yml`; `Package.swift` only builds t
 
 ## Website
 
-The website at **https://amalmehta.github.io/ai-advances/** has the same nine pages as the app. It's built by `.github/workflows/update-website.yml`, which runs every day at 06:17 UTC, on every push that touches the site or the analysis code, and on demand (Actions → *Update website* → *Run workflow*). Each run:
+The website at **https://amalmehta.github.io/ai-advances/** has the same nine pages as the app. It's built by `.github/workflows/update-website.yml`, which runs every morning so it's ready by 7:00 AM Pacific (a main run at 10:41 UTC, 3:41 AM PDT, and a backup at 13:13 UTC, 6:13 AM PDT, in case GitHub delays the first; the backup reuses the morning's Claude outlook), on every push that touches the site or the analysis code, and on demand (Actions → *Update website* → *Run workflow*). Each run:
 
 1. Downloads the three sources (falling back to the snapshot in the repo if one fails).
 2. Builds `ai-advances-export` (the `Package.swift` target) from the same `AI Advances/Data` code as the Mac app, and writes `site/data/site.json`.
@@ -62,6 +74,10 @@ python3 -m http.server 8766 --directory site
 ```
 
 Then open http://localhost:8766.
+
+**New since your last visit:** Latest Advances (in the app and on the site) marks items that appeared since you last opened it, shows a count on the sidebar, and adds a "New to you" filter. On a first visit nothing is marked. The site remembers this in the browser's local storage; the app in its preferences.
+
+**Feed:** a model listed under a base name and a serving mode on the same day (e.g. "GPT-6.1 Sol" and "GPT-6.1 Sol Pro") appears once, as "GPT-6.1 Sol (also as Pro)". Different models such as Flash or Mini stay separate.
 
 **Shareable links:** the address bar keeps what you're looking at, so a copied link opens the same view. Examples: `#/models?model=GPT-6 Astra` opens that profile, `#/cost?benchmark=SimpleQA Verified&score=0.6` sets the Cost page, `#/forecasts?forecast=metr-week` selects that forecast's history, `#/capabilities?area=Coding&years=4`. Unknown or garbled values fall back to the defaults. Shared links also show a preview card (title, description and `site/preview.png`).
 

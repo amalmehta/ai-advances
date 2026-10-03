@@ -55,6 +55,7 @@ struct ComputeView: View {
                 .quietAxes()
                 .chartOverlay { proxy in HoverLayer(proxy: proxy, points: models.map { ($0.id, $0.date, $0.computeFLOP!) }, selection: $hover, radius: 12) }
                 .frame(height: 380)
+                .chartSummary("Scatter plot of training compute for \(models.count) notable models since \(sinceYear), frontier models highlighted." + (fit.map { String(format: " Frontier runs grow about %.1f times per year.", $0.factorPerYear) } ?? "") + (models.max { ($0.computeFLOP ?? 0) < ($1.computeFLOP ?? 0) }.map { " Largest: \($0.name)." } ?? ""))
                 HStack(spacing: 16) {
                     LegendItem(label: "Frontier model", color: Palette.color(1))
                     LegendItem(label: "Other notable model", color: Palette.color(0))
@@ -67,10 +68,10 @@ struct ComputeView: View {
                 Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 6) {
                     ForEach(Array(largest.enumerated()), id: \.element.id) { i, m in
                         GridRow {
-                            Text("\(i + 1)").foregroundStyle(.secondary).monospacedDigit()
+                            Text("\(i + 1)").foregroundStyle(Palette.text2).monospacedDigit()
                             Text(m.name)
-                            Text(m.organization).foregroundStyle(.secondary).lineLimit(1)
-                            Text(Format.date.string(from: m.date)).foregroundStyle(.secondary).monospacedDigit()
+                            Text(m.organization).foregroundStyle(Palette.text2).lineLimit(1)
+                            Text(Format.date.string(from: m.date)).foregroundStyle(Palette.text2).monospacedDigit()
                             Text(Format.flop(m.computeFLOP!) + " FLOP").monospacedDigit()
                         }
                     }

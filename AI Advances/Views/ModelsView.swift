@@ -53,14 +53,14 @@ struct ModelsView: View {
                 .frame(maxWidth: 240)
                 Toggle("Released in the last year", isOn: $recentOnly)
                 Spacer()
-                Text("\(rows.count) models").foregroundStyle(.secondary)
+                Text("\(rows.count) models").foregroundStyle(Palette.text2)
             }
 
             Table(rows, selection: $selection, sortOrder: $sortOrder) {
                 TableColumn("Model", value: \.name) { r in
                     VStack(alignment: .leading, spacing: 0) {
                         Text(r.name)
-                        Text(r.lab).font(.caption).foregroundStyle(.secondary)
+                        Text(r.lab).font(.caption).foregroundStyle(Palette.text2)
                     }
                 }
                 .width(min: 140, ideal: 160)
@@ -96,7 +96,7 @@ struct ModelsView: View {
         TableColumn(Analysis.keyBenchmarks[i].label, value: key) { r in
             let v = r[keyPath: key]
             Text(v >= 0 ? Format.percent(v) : "–").monospacedDigit()
-                .foregroundStyle(v >= 0 ? .primary : .tertiary)
+                .foregroundStyle(v >= 0 ? Color.primary : Palette.text2)
         }
         .width(min: 50, ideal: 58)
     }
@@ -133,13 +133,14 @@ struct ModelDetail: View {
                         .foregroundStyle(Palette.color(0))
                         .clipShape(UnevenRoundedRectangle(bottomTrailingRadius: 3, topTrailingRadius: 3))
                         .annotation(position: .trailing) {
-                            Text(Format.percent(score, digits: 1)).font(.caption2).foregroundStyle(.secondary)
+                            Text(Format.percent(score, digits: 1)).font(.caption2).foregroundStyle(Palette.text2)
                         }
                 }
                 .chartXScale(domain: 0...1.1)
                 .chartXAxis(.hidden)
                 .chartYAxis { AxisMarks(preset: .extended, position: .leading) { _ in AxisValueLabel(horizontalSpacing: 8).foregroundStyle(Color.primary) } }
                 .frame(height: CGFloat(scores.count) * 20 + 10)
+                .chartSummary("Bar chart of \(profile.name)'s best scores: " + scores.map { "\(Analysis.shortName($0.key)) \(Format.percent($0.value, digits: 1))" }.joined(separator: ", ") + ".")
             }
         }
     }
@@ -150,7 +151,7 @@ struct ModelDetail: View {
 
     private func fact(_ label: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(label).font(.caption).foregroundStyle(.secondary)
+            Text(label).font(.caption).foregroundStyle(Palette.text2)
             Text(value)
         }
     }

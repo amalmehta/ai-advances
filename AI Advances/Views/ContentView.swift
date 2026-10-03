@@ -38,13 +38,14 @@ struct ContentView: View {
         NavigationSplitView {
             List(Page.allCases, selection: $page) { p in
                 Label(p.rawValue, systemImage: p.symbol).tag(p)
+                    .badge(p == .advances ? store.newFeedIDs.count : 0)
             }
             .navigationSplitViewColumnWidth(min: 190, ideal: 210)
             .safeAreaInset(edge: .bottom) {
                 Button { showFeedback = true } label: {
                     Label("Feedback", systemImage: "bubble.left")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Palette.text2)
                 }
                 .buttonStyle(.plain)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -128,7 +129,7 @@ struct SourcesView: View {
                 let st = store.status[s.file]
                 VStack(alignment: .leading, spacing: 2) {
                     Link(s.name, destination: s.page).font(.body.weight(.medium))
-                    Text(s.credit).font(.caption).foregroundStyle(.secondary)
+                    Text(s.credit).font(.caption).foregroundStyle(Palette.text2)
                     Group {
                         if let st, st.fromSnapshot { Text("Using the snapshot bundled with the app (Sept 30, 2026)") }
                         else if let d = st?.updated { Text("Downloaded \(d.formatted(date: .abbreviated, time: .shortened))") }
@@ -141,13 +142,13 @@ struct SourcesView: View {
                 Link("Claude's daily outlook", destination: URL(string: "https://amalmehta.github.io/ai-advances/#/forecasts")!).font(.body.weight(.medium))
                 Text(store.claudeOutlook.map { "Written \($0.generatedAt.prefix(10)) by \($0.model), from the website's daily build" }
                      ?? "Not downloaded yet; it appears once the website's daily build has written one")
-                    .font(.caption).foregroundStyle(.secondary)
+                    .font(.caption).foregroundStyle(Palette.text2)
             }
             Divider()
-            Text("The app checks for new data on launch when the last update is over 12 hours old, and every 6 hours while it's open.")
-                .font(.caption).foregroundStyle(.secondary)
+            Text("The app updates each morning: at launch, at 7:00 AM if it's open, or when your Mac wakes, whichever comes first after 7. ⌘R updates now.")
+                .font(.caption).foregroundStyle(Palette.text2)
             if let d = store.latestDataDate {
-                Text("Newest entry in the data: \(Format.date.string(from: d))").font(.caption).foregroundStyle(.secondary)
+                Text("Newest entry in the data: \(Format.date.string(from: d))").font(.caption).foregroundStyle(Palette.text2)
             }
         }
         .padding(16)

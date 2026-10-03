@@ -72,7 +72,7 @@ enum Export {
                 [Dates.parse("2020-01-01")!, now].map { SiteData.Point(date: $0, value: fit.value(at: $0)) }
             } ?? [],
             feed: Feed.items(data, now: now).map {
-                SiteData.Item(date: $0.date, title: $0.title, detail: $0.detail, lab: $0.lab,
+                SiteData.Item(id: $0.id, date: $0.date, title: $0.title, detail: $0.detail, lab: $0.lab,
                               kind: $0.kind.rawValue, direction: $0.direction, link: $0.link)
             },
             forecasts: current.map {

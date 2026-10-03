@@ -203,3 +203,8 @@ button.linklike:focus-visible { outline: 2px solid var(--accent); outline-offset
 .download-link + .feedback-tab { margin-top: 0; }
 @media (max-width: 760px) { .download-link { margin: 0 0 0 auto; } .download-link + .feedback-tab { margin: 0; } }
 .freshness { margin-top: 6px; }
+
+/* New since your last visit */
+.new-count { display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 6px; border-radius: 99px; font-size: 11px; font-weight: 700; line-height: 18px; text-align: center; background: var(--accent); color: #fff; }
+#nav a[aria-current="page"] .new-count { background: #fff; color: var(--accent); }
+.badge.new { margin-right: 6px; vertical-align: 1px; }

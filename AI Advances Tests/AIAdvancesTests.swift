@@ -275,3 +275,62 @@ final class AppVersionTests: XCTestCase {
         XCTAssertFalse(AppVersion.isNewer("v1.0", than: "1.1"))
     }
 }
+
+final class MorningScheduleTests: XCTestCase {
+    private let la: Calendar = {
+        var c = Calendar(identifier: .gregorian)
+        c.timeZone = TimeZone(identifier: "America/Los_Angeles")!
+        return c
+    }()
+
+    private func at(_ s: String) -> Date {
+        let f = DateFormatter()
+        f.dateFormat = "yyyy-MM-dd HH:mm"
+        f.timeZone = la.timeZone
+        return f.date(from: s)!
+    }
+
+    func testRefreshesOncePerMorning() {
+        // Refreshed at 8 AM: fresh until 7 AM tomorrow.
+        XCTAssertFalse(MorningSchedule.needsRefresh(lastRefresh: at("2026-10-02 08:00"), now: at("2026-10-02 23:30"), calendar: la))
+        XCTAssertFalse(MorningSchedule.needsRefresh(lastRefresh: at("2026-10-02 08:00"), now: at("2026-10-03 06:59"), calendar: la))
+        XCTAssertTrue(MorningSchedule.needsRefresh(lastRefresh: at("2026-10-02 08:00"), now: at("2026-10-03 07:00"), calendar: la))
+        // Refreshed late at night: the morning still brings a new refresh.
+        XCTAssertTrue(MorningSchedule.needsRefresh(lastRefresh: at("2026-10-02 23:00"), now: at("2026-10-03 07:30"), calendar: la))
+        XCTAssertTrue(MorningSchedule.needsRefresh(lastRefresh: nil, now: at("2026-10-03 07:30"), calendar: la))
+    }
+
+    func testNextMorningCrossesDaylightSavingCleanly() {
+        XCTAssertEqual(MorningSchedule.nextMorning(after: at("2026-10-02 06:00"), calendar: la), at("2026-10-02 07:00"))
+        XCTAssertEqual(MorningSchedule.nextMorning(after: at("2026-10-02 07:00"), calendar: la), at("2026-10-03 07:00"))
+        // Clocks go back on Nov 1, 2026: still 7:00 AM local, not 6 or 8.
+        XCTAssertEqual(MorningSchedule.nextMorning(after: at("2026-10-31 12:00"), calendar: la), at("2026-11-01 07:00"))
+    }
+}
+
+final class FeedTests: XCTestCase {
+    private func listing(_ id: String, _ name: String, _ day: String, lab: String = "OpenAI") -> ListedModel {
+        ListedModel(id: id, name: name, lab: lab, created: Dates.parse(day)!.addingTimeInterval(3600 * 9), contextLength: 1_000_000,
+                    inputPrice: 2, outputPrice: 10, inputModalities: ["text"], outputModalities: ["text"])
+    }
+
+    func testSameDayVariantsMergeIntoOneItem() {
+        let items = Feed.modelListings([
+            listing("openai/gpt-6.1-sol", "GPT-6.1 Sol", "2026-09-29"),
+            listing("openai/gpt-6.1-sol-pro", "GPT-6.1 Sol Pro", "2026-09-29"),
+            listing("openai/gpt-6-luna", "GPT-6 Luna", "2026-09-22"),
+            listing("openai/gpt-6-luna-mini", "GPT-6 Luna Mini", "2026-09-22"),   // a different model
+            listing("openai/gpt-6.1-sol-x", "GPT-6.1 Sol Pro", "2026-10-15"),      // same name, a different day
+        ])
+        XCTAssertEqual(items.count, 4)
+        XCTAssertTrue(items.contains { $0.title == "OpenAI lists GPT-6.1 Sol (also as Pro)" && $0.link == "https://openrouter.ai/openai/gpt-6.1-sol" })
+        XCTAssertTrue(items.contains { $0.title == "OpenAI lists GPT-6 Luna Mini" })
+    }
+
+    func testBaseName() {
+        XCTAssertEqual(Feed.baseName("Muse Spark 1.3 Contributor"), "Muse Spark 1.3")
+        XCTAssertEqual(Feed.baseName("GLM 5.3 Prime"), "GLM 5.3")
+        XCTAssertEqual(Feed.baseName("Pro"), "Pro")
+        XCTAssertEqual(Feed.baseName("Gemini 3.8 Flash"), "Gemini 3.8 Flash")
+    }
+}
