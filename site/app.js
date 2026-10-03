@@ -874,7 +874,17 @@ function route() {
 
 function shell() {
   $("#nav").replaceChildren(...PAGES.map(([id, name]) => el("li", {}, el("a", { href: `#/${id}`, "data-page": id }, name))));
-  $("#status").textContent = `Data through ${fmt.date(D.latestDataDate)} · updated ${fmt.date(D.generatedAt)}`;
+  // The site is rebuilt every morning; if that stops, say so rather than quietly showing old data.
+  const age = Math.floor((Date.now() - D.generatedAt) / DAY);
+  if (age > 2) {
+    $("#status").textContent = `⚠ Last updated ${fmt.date(D.generatedAt)}, ${age} days ago`;
+    $("#status").classList.add("stale");
+    $("#status").title = "The daily update hasn't run since then, so recent models and results are missing.";
+    $("#page").before(el("p", { class: "freshness stale site-stale", role: "status" },
+      `⚠ This site normally updates every morning, but the last update was ${age} days ago (${fmt.date(D.generatedAt)}). Everything shown is from then.`));
+  } else {
+    $("#status").textContent = `Data through ${fmt.date(D.latestDataDate)} · updated ${fmt.date(D.generatedAt)}`;
+  }
   $("#sources-panel").replaceChildren(
     el("strong", {}, "Data sources"),
     ...D.sources.map((s) => el("p", {}, el("a", { href: s.page, target: "_blank", rel: "noopener" }, s.name), el("br"), el("span", { class: "small muted" }, s.credit))),

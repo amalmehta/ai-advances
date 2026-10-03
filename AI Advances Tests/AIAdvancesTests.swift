@@ -321,8 +321,11 @@ final class FeedTests: XCTestCase {
             listing("openai/gpt-6-luna", "GPT-6 Luna", "2026-09-22"),
             listing("openai/gpt-6-luna-mini", "GPT-6 Luna Mini", "2026-09-22"),   // a different model
             listing("openai/gpt-6.1-sol-x", "GPT-6.1 Sol Pro", "2026-10-15"),      // same name, a different day
+            listing("google/gemini-3.1-pro", "Gemini 3.1 Pro", "2026-09-22", lab: "Google"),  // a tier, not a variant
         ])
-        XCTAssertEqual(items.count, 4)
+        XCTAssertEqual(items.count, 5)
+        XCTAssertTrue(items.contains { $0.title == "Google lists Gemini 3.1 Pro" })
+        XCTAssertTrue(items.contains { $0.title == "OpenAI lists GPT-6.1 Sol Pro" })   // alone that day
         XCTAssertTrue(items.contains { $0.title == "OpenAI lists GPT-6.1 Sol (also as Pro)" && $0.link == "https://openrouter.ai/openai/gpt-6.1-sol" })
         XCTAssertTrue(items.contains { $0.title == "OpenAI lists GPT-6 Luna Mini" })
     }
@@ -332,5 +335,20 @@ final class FeedTests: XCTestCase {
         XCTAssertEqual(Feed.baseName("GLM 5.3 Prime"), "GLM 5.3")
         XCTAssertEqual(Feed.baseName("Pro"), "Pro")
         XCTAssertEqual(Feed.baseName("Gemini 3.8 Flash"), "Gemini 3.8 Flash")
+    }
+}
+
+final class LabCountTests: XCTestCase {
+    func testServingVariantsCountOnce() {
+        var data = Dataset()
+        func listing(_ name: String, _ day: String) -> ListedModel {
+            ListedModel(id: name, name: name, lab: "OpenAI", created: Dates.parse(day)!, contextLength: 1000,
+                        inputPrice: 1, outputPrice: 1, inputModalities: ["text"], outputModalities: ["text"])
+        }
+        data.listed = [listing("GPT-6 Sol", "2026-09-22"), listing("GPT-6 Sol Pro", "2026-09-22"),
+                       listing("GPT-6 Luna", "2026-09-22"), listing("GPT-6 Luna Mini", "2026-09-22"),
+                       listing("GPT-5 Pro", "2026-08-01")]   // no plain "GPT-5" listed: its own model
+        let openAI = Labs.summaries(data, notes: [], now: Dates.parse("2026-10-01")!).first { $0.name == "OpenAI" }!
+        XCTAssertEqual(Set(openAI.recentModels), ["GPT-6 Sol", "GPT-6 Luna", "GPT-6 Luna Mini", "GPT-5 Pro"])
     }
 }

@@ -26,17 +26,26 @@ enum Feed {
         return words.joined(separator: " ")
     }
 
+    /// The name a listing is grouped under: its base model, but only when that base model is
+    /// also among `names`. A lone "Gemini 3 Pro" is its own model, not a variant of "Gemini 3".
+    static func groupName(_ name: String, among names: Set<String>) -> String {
+        let base = baseName(name)
+        return base != name && names.contains(base) ? base : name
+    }
+
     /// One feed item per model per day: a base model and its variants listed the same day merge.
     static func modelListings(_ listed: [ListedModel]) -> [FeedItem] {
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(identifier: "UTC")!
+        let dayKey = { (m: ListedModel) in "\(m.lab)|\(cal.startOfDay(for: m.created).timeIntervalSince1970)" }
+        let namesByDay = Dictionary(grouping: listed, by: dayKey).mapValues { Set($0.map(\.name)) }
         let groups = Dictionary(grouping: listed) { m in
-            "\(m.lab)|\(baseName(m.name))|\(cal.startOfDay(for: m.created).timeIntervalSince1970)"
+            "\(dayKey(m))|\(groupName(m.name, among: namesByDay[dayKey(m)]!))"
         }
         return groups.values.map { group in
             let sorted = group.sorted { $0.name.count < $1.name.count }   // the base listing first
             let m = sorted[0]
-            let base = baseName(m.name)
+            let base = m.name
             let variants = sorted.map(\.name).filter { $0 != base }
             let also = variants.isEmpty ? "" : " (also as " + variants.map { String($0.dropFirst(base.count)).trimmingCharacters(in: .whitespaces) }.joined(separator: ", ") + ")"
             return FeedItem(id: "m" + m.id, date: group.map(\.created).min()!, title: "\(m.lab) lists \(base)\(also)",

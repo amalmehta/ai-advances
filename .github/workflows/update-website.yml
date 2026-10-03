@@ -134,6 +134,10 @@ jobs:
           sleep 1
           node scripts/smoke_test.mjs http://localhost:8766/
 
+  unit-tests:
+    # The same tests as every push (tests.yml); the site only deploys if they pass.
+    uses: ./.github/workflows/tests.yml
+
   freshness:
     # Opens an issue when the hand-researched lab notes or highlights pass 45 days old,
     # and closes it once they've been refreshed.
@@ -150,7 +154,7 @@ jobs:
         run: python3 scripts/check_freshness.py
 
   deploy:
-    needs: [build, smoke-test]
+    needs: [build, smoke-test, unit-tests]
     runs-on: ubuntu-latest
     environment:
       name: github-pages

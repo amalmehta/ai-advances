@@ -89,19 +89,26 @@ enum Labs {
             }
         }
 
-        // First appearance of each model, from either source.
+        // First appearance of each model, from either source. Serving modes of one model
+        // ("GPT-6 Sol" and "GPT-6 Sol Pro") count once, the same rule as the feed; a "Pro" with
+        // no plain sibling (e.g. "Gemini 3 Pro") stays its own model.
+        var labNames: [String: Set<String>] = [:]
+        for r in data.results { if let lab = Labs.lab(forEpoch: r.organization) { labNames[lab, default: []].insert(r.modelGroup) } }
+        for m in data.listed { if let lab = Labs.lab(forOpenRouter: m.lab) { labNames[lab, default: []].insert(m.name) } }
         var firstSeen: [String: [String: (name: String, date: Date)]] = [:]
         for r in data.results {
             guard let lab = Labs.lab(forEpoch: r.organization) else { continue }
-            let key = Analysis.matchKey(r.modelGroup)
+            let name = Feed.groupName(r.modelGroup, among: labNames[lab] ?? [])
+            let key = Analysis.matchKey(name)
             if let seen = firstSeen[lab]?[key], seen.date <= r.releaseDate { continue }
-            firstSeen[lab, default: [:]][key] = (r.modelGroup, r.releaseDate)
+            firstSeen[lab, default: [:]][key] = (name, r.releaseDate)
         }
         for m in data.listed {
             guard let lab = Labs.lab(forOpenRouter: m.lab) else { continue }
-            let key = Analysis.matchKey(m.name)
+            let name = Feed.groupName(m.name, among: labNames[lab] ?? [])
+            let key = Analysis.matchKey(name)
             if let seen = firstSeen[lab]?[key], seen.date <= m.created { continue }
-            firstSeen[lab, default: [:]][key] = (m.name, m.created)
+            firstSeen[lab, default: [:]][key] = (name, m.created)
         }
 
         return directory.map { entry in

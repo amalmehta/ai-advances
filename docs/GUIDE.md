@@ -57,7 +57,10 @@ The website at **https://amalmehta.github.io/ai-advances/** has the same nine pa
 2. Builds `ai-advances-export` (the `Package.swift` target) from the same `AI Advances/Data` code as the Mac app, and writes `site/data/site.json`.
 3. Adds the day's forecasts to `forecast-log.json` on the `data` branch, as a commit by `github-actions[bot]`. This is the website's forecast history; `main` stays clean.
 4. Loads every page in headless Chromium at desktop and phone widths (`scripts/smoke_test.mjs`) and checks that nothing errors, every chart renders, no page shows "NaN" or "undefined", nothing scrolls sideways, and shareable links restore their view. If anything fails, the deploy is skipped and yesterday's site stays up.
-5. Publishes `site/` to GitHub Pages.
+5. Runs the unit tests on a Mac runner (the same `tests.yml` job that runs on every push and pull request).
+6. Publishes `site/` to GitHub Pages, only if the smoke test and the unit tests both passed.
+
+If the morning update ever stops running, the site says so: once its data is more than 2 days old, the status pill and a banner show when it was last updated.
 
 To work on the site locally:
 
@@ -77,7 +80,7 @@ Then open http://localhost:8766.
 
 **New since your last visit:** Latest Advances (in the app and on the site) marks items that appeared since you last opened it, shows a count on the sidebar, and adds a "New to you" filter. On a first visit nothing is marked. The site remembers this in the browser's local storage; the app in its preferences.
 
-**Feed:** a model listed under a base name and a serving mode on the same day (e.g. "GPT-6.1 Sol" and "GPT-6.1 Sol Pro") appears once, as "GPT-6.1 Sol (also as Pro)". Different models such as Flash or Mini stay separate.
+**Feed and lab counts:** a serving mode of a model (e.g. "GPT-6.1 Sol Pro" alongside "GPT-6.1 Sol") counts as the same model: listed the same day, they appear once in the feed as "GPT-6.1 Sol (also as Pro)", and the Labs page counts them once. A "Pro" or "Prime" with no plain sibling (e.g. "Gemini 3 Pro") is its own model. Different models such as Flash or Mini always stay separate.
 
 **Shareable links:** the address bar keeps what you're looking at, so a copied link opens the same view. Examples: `#/models?model=GPT-6 Astra` opens that profile, `#/cost?benchmark=SimpleQA Verified&score=0.6` sets the Cost page, `#/forecasts?forecast=metr-week` selects that forecast's history, `#/capabilities?area=Coding&years=4`. Unknown or garbled values fall back to the defaults. Shared links also show a preview card (title, description and `site/preview.png`).
 

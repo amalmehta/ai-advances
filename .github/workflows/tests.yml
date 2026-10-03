@@ -1,0 +1,29 @@
+name: Tests
+
+# Runs the unit tests (forecasts, track record, matching, parsing, schedules…) on every push
+# and pull request, so a change that breaks the shared analysis code is caught right away
+# rather than at the next release. The website build runs the same job before deploying.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+
+jobs:
+  unit-tests:
+    runs-on: macos-26
+    defaults:
+      run:
+        shell: bash   # -o pipefail, so a failing xcodebuild still fails when piped
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unit tests
+        run: |
+          xcodebuild -project "AI Advances.xcodeproj" -scheme "AI Advances" -derivedDataPath build test \
+            | grep -E "error:|failed|Executed .* tests|TEST (SUCCEEDED|FAILED)"
+      - name: Outlook script checks
+        run: |
+          swift build -c release
+          .build/release/ai-advances-export --sources "AI Advances/Resources/Seed" --resources "AI Advances/Resources" --out /tmp/site
+          python3 scripts/test_write_outlook.py /tmp/site/site.json
