@@ -23,6 +23,7 @@
 		6048885BF8C46519C8FBB48C /* AdvancesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D545A338DCB0791BA827BC0 /* AdvancesView.swift */; };
 		6CF48239D1C3C9B34B7520A6 /* Advances.json in Resources */ = {isa = PBXBuildFile; fileRef = C1882CB7004FEC7E2C6C23B3 /* Advances.json */; };
 		704E9E4BCACE91821D882104 /* ModelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCE094D777591301829656E /* ModelsView.swift */; };
+		795BFD2536D0CAA0DE73CEE2 /* CalibrationExperiment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28F7E59C9569630B749DD87 /* CalibrationExperiment.swift */; };
 		8254946A84C83E0F074E0BA7 /* openrouter_models.json in Resources */ = {isa = PBXBuildFile; fileRef = 9EC2B8F8D51EDA36FEE1944E /* openrouter_models.json */; };
 		8FA2ECE8EBA210AFB09AF215 /* ContextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8E71E26FD97C819E95FD40C /* ContextView.swift */; };
 		A3AE5FDFAB4F97F15A54927B /* CapabilitiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CD35CF3AD0A8C576F676851 /* CapabilitiesView.swift */; };
@@ -98,6 +99,7 @@
 		CE90224C15C5FC787AEA62E2 /* Updates.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Updates.swift; sourceTree = "<group>"; };
 		D224F1FFBFE52F8D74A68741 /* AIAdvancesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAdvancesApp.swift; sourceTree = "<group>"; };
 		E018176D32D98DD92CC086A3 /* Records.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Records.swift; sourceTree = "<group>"; };
+		E28F7E59C9569630B749DD87 /* CalibrationExperiment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalibrationExperiment.swift; sourceTree = "<group>"; };
 		E4E70BE58B020469987DD9E5 /* AI Advances Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AI Advances Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ECCE094D777591301829656E /* ModelsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelsView.swift; sourceTree = "<group>"; };
 		F267E92F1F40385DCEA96AD5 /* TrackRecord.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackRecord.swift; sourceTree = "<group>"; };
@@ -123,6 +125,7 @@
 			isa = PBXGroup;
 			children = (
 				96F14677CCEE26AA3A4E8094 /* AIAdvancesTests.swift */,
+				E28F7E59C9569630B749DD87 /* CalibrationExperiment.swift */,
 				7BFB571626E2AAF1ED798416 /* PageRenderTests.swift */,
 			);
 			path = "AI Advances Tests";
@@ -381,6 +384,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CFF5F2C644FC2811E3E21AEB /* AIAdvancesTests.swift in Sources */,
+				795BFD2536D0CAA0DE73CEE2 /* CalibrationExperiment.swift in Sources */,
 				4A3A09A6CADB1935BD309F13 /* PageRenderTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
