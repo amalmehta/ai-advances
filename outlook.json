@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-11T16:25:55+00:00",
-  "dataThrough": "2026-10-08",
+  "generatedAt": "2026-10-12T19:59:48+00:00",
+  "dataThrough": "2026-10-12",
   "model": "claude-opus-5-5",
-  "headline": "Math is nearly solved; agents doing real work remain the gap",
-  "outlook": "Math is where the field has moved fastest, closing about 95% of its remaining headroom over the past year: FrontierMath, its Tier 4 set and ARC-AGI-2 have all crossed 90% since June, and GPT-6.1 Sol posted 100% on FrontierMath Tier 4 in late September. Agents doing real work are moving more slowly, closing only about a third of their headroom. GPT-6 Astra's 20.8% on the Remote Labor Index and Claude Opus 5's 31.4% on OSWorld 2 put 90% no earlier than 2027 on current trends, even though APEX-Agents jumped from 68.6% to 82.2% across three records in eight days in September. Meanwhile, the length of task models can handle is doubling roughly every 4.1 months and now stands at 17.4 hours with Claude Mythos Preview, which on current trends makes a full 40-hour work-week most likely around December, though the range stretches to August 2027. Terminal-Bench and GeoBench are running behind their fits despite being close to 90%, and past forecast ranges caught the real date only 59% of the time, so the next year looks like cheaper, stronger reasoning (GPQA-level performance has fallen from $3.44 to $0.055 per million tokens) alongside an open question about how quickly longer task horizons turn into reliable real-world work.",
-  "requestId": "req_011Cfvm8iwH3WKNQ3EVDTBye"
+  "headline": "Math is nearly saturated while real-world agent work remains the open frontier",
+  "outlook": "Math has all but run out of road: models closed 95% of the remaining headroom there over the past year, and both FrontierMath and its Tier 4 set crossed 90% in recent months. Agents doing real work are the slowest-moving area, at 34% of headroom closed, with OSWorld 2 at 31.4% and the Remote Labor Index at 20.8%, even as APEX-Agents jumped from 68.6% to 82.2% in a single week of releases. The measure linking these is task length: the longest tasks models can handle now stand at 17.4 hours and have been doubling roughly every 4.1 months, which on current trends points to work-week-length tasks most likely around December, though the plausible range runs into August 2027. Meanwhile, GPQA-level capability has fallen from $3.44 to $0.055 per million tokens, so whatever agents can do next is likely to arrive cheaply. Treat the dates loosely, since past likely ranges caught the real date only 59% of the time, and Terminal-Bench and GeoBench are both stalled behind their fitted trends.",
+  "requestId": "req_011CfxwFwCqh955FgUHtwTpY"
 }
