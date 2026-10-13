@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-12T19:59:48+00:00",
-  "dataThrough": "2026-10-12",
+  "generatedAt": "2026-10-13T17:47:57+00:00",
+  "dataThrough": "2026-10-13",
   "model": "claude-opus-5-5",
-  "headline": "Math is nearly saturated while real-world agent work remains the open frontier",
-  "outlook": "Math has all but run out of road: models closed 95% of the remaining headroom there over the past year, and both FrontierMath and its Tier 4 set crossed 90% in recent months. Agents doing real work are the slowest-moving area, at 34% of headroom closed, with OSWorld 2 at 31.4% and the Remote Labor Index at 20.8%, even as APEX-Agents jumped from 68.6% to 82.2% in a single week of releases. The measure linking these is task length: the longest tasks models can handle now stand at 17.4 hours and have been doubling roughly every 4.1 months, which on current trends points to work-week-length tasks most likely around December, though the plausible range runs into August 2027. Meanwhile, GPQA-level capability has fallen from $3.44 to $0.055 per million tokens, so whatever agents can do next is likely to arrive cheaply. Treat the dates loosely, since past likely ranges caught the real date only 59% of the time, and Terminal-Bench and GeoBench are both stalled behind their fitted trends.",
-  "requestId": "req_011CfxwFwCqh955FgUHtwTpY"
+  "headline": "Math is nearly solved; agents and real-world work remain the frontier",
+  "outlook": "The past year closed 95% of the remaining headroom on math benchmarks, with FrontierMath reaching 90% in September, but only about a third of the headroom on agents and real work, where the Remote Labor Index sits at 20.8% and OSWorld 2 at 31.4%. That gap is narrowing from another direction: the length of tasks AI can handle has reached 17.4 hours with Claude Mythos Preview and has been doubling roughly every four months, so on current trends a full 40-hour work-week is most likely around December, though the range runs to August 2027. At the same time, GPQA-level performance has fallen from $3.44 per million tokens with Gemini 2.5 Pro in March 2025 to $0.055 with Qwen3.7 Flash, and on a 24-fold yearly decline it would most likely drop below a cent in early 2027. Not everything follows the fitted curves, though: Terminal-Bench and GeoBench are both stuck below 90% months after their trends said they would cross it. Since past likely ranges caught the real date only 59% of the time, the safest reading is that the next year likely belongs to longer, cheaper agentic work, while the exact timing remains uncertain.",
+  "requestId": "req_011Cfzf1rMtjAikcUwzUcnec"
 }
