@@ -35,7 +35,7 @@ def problems(site_dir: str, now: dt.datetime) -> dict[str, str | None]:
                 f"The Claude-written outlook was last written {written:%b %d, %Y %H:%M} UTC, "
                 f"{(now - written).days} days ago, so the site and app are showing an old outlook.\n\n"
                 "Check the latest *Update website* run's \"Write Claude outlook\" step. The usual cause is a revoked or "
-                "expired API key: replace the `NEW_SECRET` repository secret. This issue closes itself once a fresh outlook is written.")
+                "expired API key: add a new key as the `ANTHROPIC_API_KEY` repository secret (or replace `NEW_SECRET`). This issue closes itself once a fresh outlook is written.")
 
     fell_back = site.get("sourcesFellBack") or []
     if fell_back:
@@ -52,7 +52,7 @@ def main() -> None:
     p.add_argument("--dry-run", action="store_true")
     p.add_argument("--now", help="ISO time, for testing")
     args = p.parse_args()
-    now = dt.datetime.fromisoformat(args.now) if args.now else dt.datetime.now(dt.timezone.utc)
+    now = dt.datetime.fromisoformat(args.now.replace("Z", "+00:00")) if args.now else dt.datetime.now(dt.timezone.utc)
     for title, body in problems(args.site_dir, now).items():
         if args.dry_run:
             print(f"{'PROBLEM' if body else 'ok     '} {title}" + (f": {body[:90]}…" if body else ""))

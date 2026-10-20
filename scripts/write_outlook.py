@@ -209,6 +209,9 @@ def main() -> int:
         except anthropic.APIConnectionError:
             keep_previous(args.previous, args.out, "couldn't reach the API")
             return 0
+        except Exception as e:  # e.g. an SDK change rejecting an argument: never fail the build
+            keep_previous(args.previous, args.out, f"unexpected error: {type(e).__name__}: {e}")
+            return 0
 
         if response.stop_reason == "refusal":
             category = response.stop_details.category if response.stop_details else None

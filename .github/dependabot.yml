@@ -1,0 +1,13 @@
+# Keep pinned versions current: GitHub Actions, the Playwright used by the smoke test, and the
+# Anthropic SDK used by the outlook and re-research scripts. Updates arrive as pull requests.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: monthly }
+  - package-ecosystem: npm
+    directory: /
+    schedule: { interval: monthly }
+  - package-ecosystem: pip
+    directory: /scripts
+    schedule: { interval: monthly }

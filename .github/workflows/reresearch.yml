@@ -1,0 +1,52 @@
+name: Re-research content
+
+# Monthly (and on demand): Claude Opus 5.5 re-researches the lab focus notes and adds new
+# highlights, citing only pages it actually loaded, then opens a pull request for review.
+# Nothing merges automatically. Costs roughly $5-10 per run on the Anthropic API key.
+
+on:
+  schedule:
+    - cron: "17 15 1 * *"   # 1st of each month, 15:17 UTC
+  workflow_dispatch:
+    inputs:
+      labs:
+        description: "Only these labs (comma-separated names as in Labs.json); empty = all"
+        required: false
+        default: ""
+
+permissions: {}
+
+concurrency:
+  group: reresearch
+  cancel-in-progress: false
+
+jobs:
+  reresearch:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install the pinned SDK
+        run: python3 -m pip install -q -r scripts/requirements.txt
+      - name: Research
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || secrets.NEW_SECRET }}
+          LABS: ${{ github.event.inputs.labs }}
+        run: python3 scripts/reresearch.py ${LABS:+--labs "$LABS"}
+      - name: Open a pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- "AI Advances/Resources"; then echo "No changes"; exit 0; fi
+          branch="reresearch-$(date -u +%Y-%m-%d)"
+          git checkout -b "$branch"
+          git add "AI Advances/Resources/Labs.json" "AI Advances/Resources/Advances.json"
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Re-research lab notes and highlights ($(date -u +%F))"
+          git push -q origin "$branch"
+          gh pr create --base main --head "$branch" \
+            --title "Re-researched lab notes and highlights ($(date -u +'%b %Y'))" \
+            --body-file reresearch-summary.md

@@ -14,7 +14,11 @@ let package = Package(
         .executableTarget(
             name: "ai-advances-export",
             path: ".",
-            exclude: ["AI Advances/Data/DataStore.swift"],
+            // Only the shared Data code and the exporter; exclude the rest so a build doesn't scan
+            // DerivedData, .build, the site or the app.
+            exclude: ["AI Advances/Data/DataStore.swift", "build", "site", "docs", "scripts", "node_modules",
+                      "AI Advances/App", "AI Advances/Views", "AI Advances/Resources",
+                      "AI Advances Tests", "AI Advances UI Tests", "AI Advances.xcodeproj"],
             sources: ["AI Advances/Data", "Exporter"]),
     ]
 )

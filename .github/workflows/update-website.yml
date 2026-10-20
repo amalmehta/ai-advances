@@ -2,7 +2,7 @@ name: Update website
 
 # Every morning: download the latest Epoch AI and OpenRouter data, recompute trends, forecasts
 # and lab stats with the same Swift code as the Mac app, have Claude write the day's outlook
-# (if the NEW_SECRET secret holds an Anthropic API key), publish to GitHub Pages, and only then
+# (with the Anthropic API key in the ANTHROPIC_API_KEY or NEW_SECRET secret), publish to GitHub Pages, and only then
 # save the day's forecasts and outlook to the `data` branch.
 #
 # Failure handling: the site only deploys if the browser smoke test (and, for code changes, the
@@ -129,7 +129,8 @@ jobs:
         continue-on-error: true
         timeout-minutes: 8
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.NEW_SECRET }}
+          # ANTHROPIC_API_KEY is the documented secret name; NEW_SECRET is the original one.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || secrets.NEW_SECRET }}
         run: |
           python3 -m pip install -q -r scripts/requirements.txt
           python3 scripts/test_write_outlook.py site/data/site.json
