@@ -10,8 +10,9 @@ site = json.load(open(sys.argv[1] if len(sys.argv) > 1 else "site/data/site.json
 facts = w.rounded(w.fact_sheet(site))
 tiles = facts["headlineTrends"]
 
-# Rounding: no long decimals reach Claude.
-assert all(len(str(v).split(".")[-1]) <= 3 for v in tiles.values() if isinstance(v, float)), tiles
+# Rounding: every figure reaching Claude has at most 3 significant digits ($0.0512 is fine; $0.05123 isn't).
+assert all(float(f"{v:.3g}") == v for v in tiles.values() if isinstance(v, float)), tiles
+assert w.rounded(0.051234) == 0.0512 and w.rounded(3.4375) == 3.44 and w.rounded(1044.78) == 1040.0
 
 # Restating fact-sheet numbers is fine: rounded, as a percentage, minutes as hours.
 months = round(tiles["horizonDoublingMonths"], 1)
