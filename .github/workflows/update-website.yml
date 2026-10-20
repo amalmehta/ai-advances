@@ -6,12 +6,15 @@ name: Update website
 # the `data` branch, and publish the site to GitHub Pages.
 
 on:
-  # Ready by 7 AM Pacific. Cron is in UTC with no daylight saving, and GitHub often starts
-  # scheduled runs late, so: a main run before dawn and a backup that also covers delays.
-  #   10:41 UTC = 3:41 AM PDT / 2:41 AM PST      13:13 UTC = 6:13 AM PDT / 5:13 AM PST
-  # The backup reuses the morning's Claude outlook (see write_outlook.py --reuse-hours).
+  # Ready by 7 AM Pacific. Cron is in UTC with no daylight saving, and GitHub starts scheduled
+  # runs late: in October 2026 runs began 4.5-4.7 hours after their cron time. So the runs are
+  # scheduled early enough that even with that delay they finish before 7 AM PT:
+  #   06:47 UTC (11:47 PM PDT, starts ~4:30 AM PDT)   08:59 UTC (1:59 AM PDT, starts ~6:40 AM PDT)
+  #   13:13 UTC is a late backup if both fail. Later runs reuse the morning's Claude outlook
+  #   (write_outlook.py --reuse-hours), so there's still one Claude call a day.
   schedule:
-    - cron: "41 10 * * *"
+    - cron: "47 6 * * *"
+    - cron: "59 8 * * *"
     - cron: "13 13 * * *"
   workflow_dispatch:
   push:
@@ -82,6 +85,9 @@ jobs:
       - name: Write Claude outlook
         # Optional: without the NEW_SECRET secret (the Anthropic API key), or if the call
         # fails, this keeps yesterday's outlook, or skips it, and the build carries on.
+        # continue-on-error: a problem in this optional step must never stop the site updating
+        # (on Oct 19, 2026 an over-strict check here blocked two days of deploys).
+        continue-on-error: true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.NEW_SECRET }}
         run: |
