@@ -1,9 +1,13 @@
 name: Update website
 
-# Daily: download the latest Epoch AI and OpenRouter data, recompute trends, forecasts
-# and lab stats with the same Swift code as the Mac app, have Claude write the day's
-# outlook (if the NEW_SECRET secret holds an Anthropic API key), log today's forecasts and outlook on
-# the `data` branch, and publish the site to GitHub Pages.
+# Every morning: download the latest Epoch AI and OpenRouter data, recompute trends, forecasts
+# and lab stats with the same Swift code as the Mac app, have Claude write the day's outlook
+# (if the NEW_SECRET secret holds an Anthropic API key), publish to GitHub Pages, and only then
+# save the day's forecasts and outlook to the `data` branch.
+#
+# Failure handling: the site only deploys if the browser smoke test (and, for code changes, the
+# unit tests) pass, so a bad day leaves yesterday's site up. Anything that goes wrong opens a
+# GitHub issue (see the `alert` and `health` jobs) instead of only leaving a log warning.
 
 on:
   # Ready by 7 AM Pacific. Cron is in UTC with no daylight saving, and GitHub starts scheduled
@@ -25,13 +29,13 @@ on:
       - "AI Advances/Data/**"
       - "AI Advances/Resources/*.json"
       - "Package.swift"
+      - "package.json"
+      - "package-lock.json"
       - "scripts/**"
       - ".github/workflows/update-website.yml"
 
-permissions:
-  contents: write    # push the forecast log to the data branch
-  pages: write
-  id-token: write
+# Nothing by default; each job asks only for what it needs.
+permissions: {}
 
 concurrency:
   group: update-website
@@ -39,31 +43,53 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     container: swift:6.1-jammy
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      fell_back: ${{ steps.download.outputs.fell_back }}
     steps:
       - name: Install tools
         run: apt-get update -qq && apt-get install -y -qq unzip curl git python3-pip >/dev/null
 
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@v7
 
-      - name: Download sources
-        # Falls back to the snapshot in the repo if a source is down or returns garbage.
+      - name: Download and validate sources
+        # A source that can't be downloaded, or that downloads but isn't valid (an HTML error
+        # page with a 200, a truncated zip), falls back to the snapshot in the repo. The list of
+        # fallbacks is shown on the site, raises an issue, and stops today's forecasts being logged.
+        id: download
         run: |
           mkdir -p sources
+          fell_back=""
+          valid() {
+            case "$1" in
+              *.zip)  unzip -tq "$2" >/dev/null 2>&1 ;;
+              *.csv)  head -1 "$2" | grep -q "Publication date" ;;
+              *.json) python3 -c "import json,sys; assert len(json.load(open(sys.argv[1]))['data']) > 100" "$2" 2>/dev/null ;;
+            esac
+          }
           get() {
-            if curl -fsSL --retry 3 --max-time 120 -A "AI Advances website" -o "sources/$1" "$2"; then
+            if curl -fsSL --retry 3 --retry-all-errors --max-time 120 -A "AI Advances website" -o "sources/$1" "$2" && valid "$1" "sources/$1"; then
               echo "Downloaded $1"
             else
-              echo "::warning::Couldn't download $1; using the bundled snapshot"
+              echo "::warning::Couldn't download a valid $1; using the bundled snapshot"
               cp "AI Advances/Resources/Seed/$1" "sources/$1"
+              fell_back="$fell_back${fell_back:+,}$1"
             fi
           }
           get benchmark_data.zip https://epoch.ai/data/benchmark_data.zip
           get notable_ai_models.csv https://epoch.ai/data/notable_ai_models.csv
           get openrouter_models.json https://openrouter.ai/api/v1/models
+          echo "fell_back=$fell_back" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the exporter build
+        uses: actions/cache@v6
+        with:
+          path: .build
+          key: exporter-${{ runner.os }}-swift61-${{ hashFiles('Package.swift', 'AI Advances/Data/**', 'Exporter/**') }}
 
       - name: Build exporter
         run: swift build -c release
@@ -71,27 +97,41 @@ jobs:
       - name: Check out forecast log
         run: |
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git fetch origin data
+          git fetch --depth=1 origin data:refs/remotes/origin/data
           git worktree add data-branch origin/data
+          python3 -c "import json; print(len(json.load(open('data-branch/forecast-log.json'))))" > log-count-before
 
       - name: Export site data
+        env:
+          FELL_BACK: ${{ steps.download.outputs.fell_back }}
         run: |
+          # Log today's forecasts only when every source is fresh: a forecast computed from the
+          # old snapshot would be a misleading entry in the track record.
+          log_args=""
+          if [ -z "$FELL_BACK" ]; then log_args="--log data-branch/forecast-log.json"; fi
           .build/release/ai-advances-export \
             --sources sources \
             --resources "AI Advances/Resources" \
             --out site/data \
-            --log data-branch/forecast-log.json
+            --fell-back "$FELL_BACK" $log_args
+          # The log only ever grows; refuse to continue if it somehow shrank.
+          before=$(cat log-count-before)
+          after=$(python3 -c "import json; print(len(json.load(open('data-branch/forecast-log.json'))))")
+          echo "Forecast log entries: $before -> $after"
+          [ "$after" -ge "$before" ] || { echo "::error::Forecast log shrank from $before to $after entries"; exit 1; }
 
       - name: Write Claude outlook
         # Optional: without the NEW_SECRET secret (the Anthropic API key), or if the call
         # fails, this keeps yesterday's outlook, or skips it, and the build carries on.
         # continue-on-error: a problem in this optional step must never stop the site updating
-        # (on Oct 19, 2026 an over-strict check here blocked two days of deploys).
+        # (on Oct 19, 2026 an over-strict check here blocked two days of deploys). A stale outlook
+        # raises an issue through the `health` job instead.
         continue-on-error: true
+        timeout-minutes: 8
         env:
           ANTHROPIC_API_KEY: ${{ secrets.NEW_SECRET }}
         run: |
-          python3 -m pip install -q anthropic
+          python3 -m pip install -q -r scripts/requirements.txt
           python3 scripts/test_write_outlook.py site/data/site.json
           python3 scripts/write_outlook.py \
             --site site/data/site.json \
@@ -99,72 +139,181 @@ jobs:
             --previous data-branch/outlook.json
           if [ -f site/data/outlook.json ]; then cp site/data/outlook.json data-branch/outlook.json; fi
 
-      - name: Save forecast log and outlook
-        working-directory: data-branch
-        run: |
-          git add -A
-          if git diff --cached --quiet; then echo "No change"; exit 0; fi
-          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
-            commit -q -m "Forecast log and outlook for $(date -u +%F)"
-          git push origin HEAD:data
-
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
-      - name: Keep a copy of the site for the smoke test
-        uses: actions/upload-artifact@v4
+      - name: Keep a copy of the site for the smoke test and health check
+        uses: actions/upload-artifact@v7
         with:
           name: site-preview
           path: site
           retention-days: 3
 
+      - name: Keep today's forecast log and outlook (saved after deploy; also a 90-day backup)
+        uses: actions/upload-artifact@v7
+        with:
+          name: data-branch-update
+          path: |
+            data-branch/forecast-log.json
+            data-branch/outlook.json
+          if-no-files-found: ignore
+          retention-days: 90
+
   smoke-test:
     # Loads every page in headless Chromium (desktop and phone widths) and blocks the deploy
     # on any error, so a bad data day leaves yesterday's site up instead of a broken one.
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           name: site-preview
           path: built-site
-      - name: Install Playwright
-        run: |
-          npm install --no-save --silent playwright
-          npx playwright install --with-deps chromium > /dev/null
+      - name: Install the pinned Playwright
+        run: npm ci --no-audit --no-fund
+      - name: Cache the Playwright browser
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('package-lock.json') }}
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium > /dev/null
       - name: Check every page
         run: |
           python3 -m http.server 8766 --directory built-site > /dev/null 2>&1 &
-          sleep 1
-          node scripts/smoke_test.mjs http://localhost:8766/
+          for i in $(seq 1 40); do curl -sf -o /dev/null http://localhost:8766/ && break; sleep 0.25; done
+          node scripts/smoke_test.mjs http://localhost:8766/ built-site/data/site.json
 
   unit-tests:
-    # The same tests as every push (tests.yml); the site only deploys if they pass.
+    # Code changes run the unit tests before deploying. Scheduled runs build a commit that
+    # already passed them on push, so they skip this and don't depend on a macOS runner.
+    if: github.event_name == 'push'
     uses: ./.github/workflows/tests.yml
+    permissions:
+      contents: read
 
-  freshness:
-    # Opens an issue when the hand-researched lab notes or highlights pass 45 days old,
-    # and closes it once they've been refreshed.
-    runs-on: ubuntu-latest
+  deploy:
+    needs: [build, smoke-test, unit-tests]
+    if: >-
+      always() && needs.build.result == 'success' && needs.smoke-test.result == 'success' &&
+      (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
+
+  save-data:
+    # Only after a successful deploy, so a day the gates rejected never enters the track record.
+    needs: [build, deploy]
+    if: always() && needs.deploy.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: data
+      - name: Record before
+        run: python3 -c "import json; print(len(json.load(open('forecast-log.json'))))" > /tmp/before
+      - uses: actions/download-artifact@v8
+        with:
+          name: data-branch-update
+          path: .
+      - name: Commit and push
+        run: |
+          before=$(cat /tmp/before)
+          after=$(python3 -c "import json; print(len(json.load(open('forecast-log.json'))))")
+          [ "$after" -ge "$before" ] || { echo "::error::Refusing to save a forecast log that shrank ($before -> $after)"; exit 1; }
+          git add forecast-log.json outlook.json 2>/dev/null || git add forecast-log.json
+          if git diff --cached --quiet; then echo "No change"; exit 0; fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Forecast log and outlook for $(date -u +%F)"
+          git push origin HEAD:data
+
+  health:
+    # Problems that don't fail the build but leave the site wrong: a stale Claude outlook (e.g. a
+    # revoked API key) or sources that fell back to the snapshot. Opens or closes GitHub issues.
+    needs: [build, deploy]
+    if: always() && needs.deploy.result == 'success'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
     permissions:
       contents: read
       issues: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: site-preview
+          path: built-site
+      - name: Report problems as issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: python3 scripts/report_health.py built-site
+
+  freshness:
+    # Opens an issue when the hand-researched lab notes or highlights pass 45 days old,
+    # and closes it once they've been refreshed.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
       - name: Check researched content age
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: python3 scripts/check_freshness.py
 
-  deploy:
-    needs: [build, smoke-test, unit-tests]
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  alert:
+    # If the build, tests, deploy or save failed or were cancelled, say so in an issue; GitHub's
+    # own failure email isn't reliable for scheduled runs. Closed by the next successful run.
+    needs: [build, smoke-test, unit-tests, deploy, save-data]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
     steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/checkout@v7
+      - name: Open or close the build-failure issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RESULTS: >-
+            build=${{ needs.build.result }} smoke-test=${{ needs.smoke-test.result }}
+            unit-tests=${{ needs.unit-tests.result }} deploy=${{ needs.deploy.result }}
+            save-data=${{ needs.save-data.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          python3 - <<'EOF'
+          import os, sys
+          sys.path.insert(0, "scripts")
+          import github_issue
+          title = "Daily website build failed"
+          results = dict(r.split("=") for r in os.environ["RESULTS"].split())
+          bad = {k: v for k, v in results.items() if v in ("failure", "cancelled")}
+          if bad:
+              github_issue.upsert(title, "The latest *Update website* run didn't finish: "
+                  + ", ".join(f"**{k}** {v}" for k, v in bad.items())
+                  + f".\n\nThe site keeps showing the last good build until a run succeeds.\n\nRun: {os.environ['RUN_URL']}")
+          elif results.get("deploy") == "success":
+              github_issue.close(title, f"Fixed: the latest run deployed successfully ({os.environ['RUN_URL']}).")
+          EOF

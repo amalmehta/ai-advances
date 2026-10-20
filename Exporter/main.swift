@@ -3,6 +3,7 @@ import Foundation
 // ai-advances-export: builds the website's data from the same sources and analysis as the Mac app.
 //
 //   ai-advances-export --sources <dir> --resources <dir> --out <dir> [--log <file>] [--date yyyy-MM-dd]
+//                      [--fell-back <comma-separated source files that came from the snapshot>]
 //
 // --sources   folder holding benchmark_data.zip, notable_ai_models.csv, openrouter_models.json
 // --resources the app's Resources folder (CapabilityAreas.json, Advances.json, Labs.json)
@@ -41,7 +42,13 @@ do {
 }
 let notes = (try? Loader.decode([LabNote].self, from: resources.appendingPathComponent("Labs.json"))) ?? []
 
-let site = Export.build(data, notes: notes, now: now, logURL: argument("--log").map(URL.init(fileURLWithPath:)))
+let fellBack = argument("--fell-back").map { $0.split(separator: ",").map(String.init).filter { !$0.isEmpty } } ?? []
+let site: SiteData
+do {
+    site = try Export.build(data, notes: notes, now: now, logURL: argument("--log").map(URL.init(fileURLWithPath:)), fellBack: fellBack)
+} catch {
+    fail("Couldn't record the forecast log: \(error.localizedDescription). Not overwriting it.")
+}
 
 let encoder = JSONEncoder()
 encoder.dateEncodingStrategy = .formatted(Dates.day)

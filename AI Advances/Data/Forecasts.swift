@@ -262,26 +262,40 @@ enum Forecasts {
 
 /// Saved forecasts, one entry per day. The app keeps its own; the website's lives on the `data` branch.
 enum ForecastLog {
-    static func load(from url: URL) -> [ForecastLogEntry] {
-        guard let data = try? Data(contentsOf: url) else { return [] }
-        let d = JSONDecoder()
-        d.dateDecodingStrategy = .iso8601
-        return (try? d.decode([ForecastLogEntry].self, from: data)) ?? []
+    enum LogError: LocalizedError {
+        case unreadable(URL, Error)
+        var errorDescription: String? {
+            if case .unreadable(let url, let e) = self { return "Can't read the forecast log at \(url.path): \(e.localizedDescription)" }
+            return nil
+        }
+    }
+
+    /// The saved entries; empty only when there's no file yet. A file that exists but can't be
+    /// decoded throws, rather than reading as empty, so it is never silently overwritten.
+    static func load(from url: URL) throws -> [ForecastLogEntry] {
+        guard FileManager.default.fileExists(atPath: url.path) else { return [] }
+        do {
+            let d = JSONDecoder()
+            d.dateDecodingStrategy = .iso8601
+            return try d.decode([ForecastLogEntry].self, from: Data(contentsOf: url))
+        } catch {
+            throw LogError.unreadable(url, error)
+        }
     }
 
     /// Records today's forecasts, replacing any entry already saved today.
-    static func record(_ forecasts: [Forecast], on day: Date = Date(), to url: URL) -> [ForecastLogEntry] {
+    static func record(_ forecasts: [Forecast], on day: Date = Date(), to url: URL) throws -> [ForecastLogEntry] {
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(identifier: "UTC")!
         let today = cal.startOfDay(for: day)
-        var log = load(from: url).filter { !cal.isDate($0.asOf, inSameDayAs: today) }
+        var log = try load(from: url).filter { !cal.isDate($0.asOf, inSameDayAs: today) }
         log.append(ForecastLogEntry(asOf: today, reconstructed: false,
                                     forecasts: Dictionary(uniqueKeysWithValues: forecasts.map { ($0.id, $0.snapshot) })))
         log.sort { $0.asOf < $1.asOf }
         let e = JSONEncoder()
         e.dateEncodingStrategy = .iso8601
-        e.outputFormatting = [.prettyPrinted, .sortedKeys]
-        try? e.encode(log).write(to: url, options: .atomic)
+        e.outputFormatting = [.sortedKeys]   // compact: the log gains an entry every day
+        try e.encode(log).write(to: url, options: .atomic)
         return log
     }
 }

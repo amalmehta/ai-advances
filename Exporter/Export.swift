@@ -7,14 +7,14 @@ enum Export {
         SiteData.Source(name: "OpenRouter model list", credit: "OpenRouter public models API", page: "https://openrouter.ai/models"),
     ]
 
-    static func build(_ data: Dataset, notes: [LabNote], now: Date, logURL: URL?) -> SiteData {
+    static func build(_ data: Dataset, notes: [LabNote], now: Date, logURL: URL?, fellBack: [String] = []) throws -> SiteData {
         let profiles = Analysis.profiles(data)
         let since2022 = Dates.parse("2022-01-01")!
         let since2024 = Dates.parse("2024-01-01")!
 
         // Forecasts, today's log entry and history.
         let current = Forecasts.all(data, profiles: profiles, asOf: now)
-        let live = logURL.map { ForecastLog.record(current, on: now, to: $0) } ?? []
+        let live = try logURL.map { try ForecastLog.record(current, on: now, to: $0) } ?? []
         let history = Forecasts.reconstructed(data, now: now) + live
         let upcoming = current.filter { $0.reached == nil && $0.predicted != nil }.sorted { $0.predicted! < $1.predicted! }
         let shifts = Forecasts.shifts(upcoming, history: history, now: now)
@@ -90,6 +90,7 @@ enum Export {
                     .init(id: $0.forecastID, title: $0.title, madeOn: $0.madeOn, predicted: $0.predicted, reached: $0.reached,
                           early: $0.early, late: $0.late, errorMonths: $0.errorMonths, inside: $0.inside)
                 }),
+            sourcesFellBack: fellBack,
             labNotesAsOf: Freshness.labNotes(notes),
             highlightsThrough: Freshness.highlights(data.advances),
             labs: Labs.summaries(data, notes: notes, now: now).map { l in

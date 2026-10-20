@@ -172,7 +172,15 @@ final class DataStore {
         let result = await Task.detached(priority: .utility) { () -> ([Forecast], [ForecastLogEntry], [ForecastLogEntry], [LabSummary], TrackRecord) in
             let current = Forecasts.all(data, profiles: profiles, asOf: now)
             let past = Forecasts.reconstructed(data, now: now)
-            let log = ForecastLog.record(current, on: now, to: DataStore.forecastLogURL)
+            let log: [ForecastLogEntry]
+            do {
+                log = try ForecastLog.record(current, on: now, to: DataStore.forecastLogURL)
+            } catch {
+                // A damaged local log is set aside (not deleted) and a new one started.
+                let url = DataStore.forecastLogURL
+                try? FileManager.default.moveItem(at: url, to: url.deletingPathExtension().appendingPathExtension("damaged-\(Int(now.timeIntervalSince1970)).json"))
+                log = (try? ForecastLog.record(current, on: now, to: url)) ?? []
+            }
             let notes = (try? DataStore.bundled([LabNote].self, "Labs")) ?? []
             return (current, past, log, Labs.summaries(data, notes: notes, now: now),
                     TrackRecord.score(history: past + log, current: current))

@@ -152,6 +152,8 @@ struct SiteData: Encodable {
     let shifts: [Shift]
     let history: [HistoryEntry]
     let trackRecord: Record
+    /// Sources that couldn't be downloaded today, so the site used the bundled snapshot for them.
+    let sourcesFellBack: [String]
     /// Dates of the hand-researched content, so the site can flag it when it goes stale.
     let labNotesAsOf: Date?
     let highlightsThrough: Date?
