@@ -143,7 +143,7 @@ struct LabCard: View {
                     }
                 }
                 HStack(spacing: 10) {
-                    Text("Researched \(note.asOf)").font(.caption).foregroundStyle(Palette.text2)
+                    Text("Researched \(displayDate(note.asOf))").font(.caption).foregroundStyle(Palette.text2)
                     ForEach(Array(note.sources.enumerated()), id: \.offset) { i, s in
                         if let url = URL(string: s) { Link("Source \(i + 1)", destination: url).font(.caption) }
                     }

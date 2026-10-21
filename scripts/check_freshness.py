@@ -11,7 +11,10 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
-import subprocess
+import sys
+
+sys.path.insert(0, "scripts")
+import github_issue  # noqa: E402
 
 STALE_AFTER_DAYS = 45
 TITLE = "Researched content is out of date"
@@ -29,10 +32,6 @@ def ages(today: dt.date) -> dict:
     }
 
 
-def gh(*args: str) -> str:
-    return subprocess.run(["gh", *args], check=True, capture_output=True, text=True).stdout
-
-
 def main() -> None:
     p = argparse.ArgumentParser()
     p.add_argument("--today", type=dt.date.fromisoformat, default=dt.date.today())
@@ -48,24 +47,13 @@ def main() -> None:
         print("Dry run: would", "open or update the issue" if stale else "close any open issue")
         return
 
-    open_issues = json.loads(gh("issue", "list", "--state", "open", "--search", f'"{TITLE}" in:title', "--json", "number,title"))
-    existing = next((i["number"] for i in open_issues if i["title"] == TITLE), None)
-
     if stale:
         lines = "\n".join(f"- **{k}**: last updated {w}, {d} days ago" for k, (w, d) in stale.items())
-        body = (f"The website and app flag these as possibly out of date (more than {STALE_AFTER_DAYS} days old):\n\n{lines}\n\n"
-                "Everything data-driven is still updating daily. To refresh, re-research the files above "
-                "(see docs/GUIDE.md, \"Refreshing the lab notes\"); this issue closes itself on the next "
-                "daily build after they're updated.")
-        if existing:
-            gh("issue", "edit", str(existing), "--body", body)
-            print(f"Updated issue #{existing}")
-        else:
-            print(gh("issue", "create", "--title", TITLE, "--body", body).strip())
-    elif existing:
-        gh("issue", "close", str(existing), "--comment", "The researched content has been refreshed, so this is resolved.")
-        print(f"Closed issue #{existing}")
-
+        github_issue.upsert(TITLE, f"The website and app flag these as possibly out of date (more than {STALE_AFTER_DAYS} days old):\n\n{lines}\n\n"
+                            "Everything data-driven is still updating daily. To refresh, run the *Re-research content* workflow or edit the files "
+                            "(see docs/GUIDE.md, \"Refreshing the lab notes\"); this issue closes itself on the next daily build after they're updated.")
+    else:
+        github_issue.close(TITLE, "The researched content has been refreshed, so this is resolved.")
 
 if __name__ == "__main__":
     main()

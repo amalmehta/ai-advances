@@ -1,8 +1,8 @@
 name: Tests
 
-# Runs the unit tests (forecasts, track record, matching, parsing, schedules…) on every push
-# and pull request, so a change that breaks the shared analysis code is caught right away
-# rather than at the next release. The website build runs the same job before deploying.
+# Runs on every push and pull request (and before each website deploy for code changes):
+#  - the unit tests on macOS (forecasts, track record, matching, parsing, schedules, app logic)
+#  - the website exporter on Linux, where it runs in production, plus the outlook script checks
 
 on:
   push:
@@ -10,20 +10,55 @@ on:
   pull_request:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   unit-tests:
     runs-on: macos-26
+    timeout-minutes: 25
     defaults:
       run:
         shell: bash   # -o pipefail, so a failing xcodebuild still fails when piped
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Unit tests
         run: |
-          xcodebuild -project "AI Advances.xcodeproj" -scheme "AI Advances" -derivedDataPath build test \
+          xcodebuild -project "AI Advances.xcodeproj" -scheme "AI Advances" -derivedDataPath build \
+            -resultBundlePath TestResults.xcresult test \
             | grep -E "error:|failed|Executed .* tests|TEST (SUCCEEDED|FAILED)"
-      - name: Outlook script checks
+      - name: Keep the test results for diagnosis
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: TestResults.xcresult
+          retention-days: 14
+
+  exporter-linux:
+    runs-on: ubuntu-24.04
+    container: swift:6.1-jammy
+    timeout-minutes: 20
+    steps:
+      - name: Install tools
+        run: apt-get update -qq && apt-get install -y -qq unzip python3 >/dev/null
+      - uses: actions/checkout@v7
+      - uses: actions/cache@v6
+        with:
+          path: .build
+          key: exporter-${{ runner.os }}-swift61-${{ hashFiles('Package.swift', 'AI Advances/Data/**', 'Exporter/**') }}
+      - name: Build and run the exporter on the bundled snapshot
         run: |
           swift build -c release
-          .build/release/ai-advances-export --sources "AI Advances/Resources/Seed" --resources "AI Advances/Resources" --out /tmp/site
-          python3 scripts/test_write_outlook.py /tmp/site/site.json
+          echo '[]' > /tmp/log.json
+          .build/release/ai-advances-export --sources "AI Advances/Resources/Seed" \
+            --resources "AI Advances/Resources" --out /tmp/site/data --log /tmp/log.json
+          python3 -c "import json; d = json.load(open('/tmp/site/data/site.json')); assert d['forecasts'] and d['models'] and d['labs'], 'empty export'"
+          python3 -c "import json; assert len(json.load(open('/tmp/log.json'))) == 1, 'log not written'"
+      - name: Outlook script checks
+        run: python3 scripts/test_write_outlook.py /tmp/site/data/site.json
+      - name: Health and freshness scripts (dry run)
+        run: |
+          python3 scripts/report_health.py /tmp/site --dry-run
+          python3 scripts/check_freshness.py --dry-run
+          python3 scripts/reresearch.py --dry-run > /dev/null

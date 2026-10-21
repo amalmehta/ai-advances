@@ -33,6 +33,8 @@ struct TimeHorizon: Hashable, Sendable, Identifiable {
     let releaseDate: Date
     /// METR 50% time horizon, in minutes of human expert time.
     let minutes: Double
+    /// Share of METR's task suite the model solved (`average_score`), when given.
+    var averageScore: Double? = nil
 }
 
 // MARK: - Epoch AI notable models
@@ -81,8 +83,37 @@ struct Advance: Codable, Hashable, Sendable, Identifiable {
     let direction: String
     let summary: String
     let source: String
+    /// `date` parsed once when decoded; feeds and sorts read it constantly.
+    let day: Date
 
-    var day: Date { Dates.parse(date) ?? .distantPast }
+    private enum CodingKeys: String, CodingKey {
+        case date, datePrecision, title, lab, category, direction, summary, source
+    }
+
+    init(date: String, datePrecision: String?, title: String, lab: String, category: String,
+         direction: String, summary: String, source: String) {
+        self.date = date
+        self.datePrecision = datePrecision
+        self.title = title
+        self.lab = lab
+        self.category = category
+        self.direction = direction
+        self.summary = summary
+        self.source = source
+        day = Dates.parse(date) ?? .distantPast
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(date: try c.decode(String.self, forKey: .date),
+                  datePrecision: try c.decodeIfPresent(String.self, forKey: .datePrecision),
+                  title: try c.decode(String.self, forKey: .title),
+                  lab: try c.decode(String.self, forKey: .lab),
+                  category: try c.decode(String.self, forKey: .category),
+                  direction: try c.decode(String.self, forKey: .direction),
+                  summary: try c.decode(String.self, forKey: .summary),
+                  source: try c.decode(String.self, forKey: .source))
+    }
 }
 
 struct CapabilityArea: Codable, Hashable, Sendable, Identifiable {
@@ -101,6 +132,9 @@ struct Dataset: Sendable {
     var listed: [ListedModel] = []
     var advances: [Advance] = []
     var areas: [CapabilityArea] = []
+    /// Problems found while parsing (a benchmark read from a fallback file, a tracked benchmark
+    /// with no results). The exporter prints them; nothing is dropped silently.
+    var warnings: [String] = []
 
     static let empty = Dataset()
 }

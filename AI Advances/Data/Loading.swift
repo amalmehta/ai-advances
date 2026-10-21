@@ -13,12 +13,26 @@ enum Loader {
         let unzipped = FileManager.default.temporaryDirectory.appendingPathComponent("ai-advances-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: unzipped) }
         try unzip(files["benchmark_data.zip"]!, to: unzipped)
-        (d.benchmarks, d.results, d.horizons) = try EpochParser.benchmarks(in: unzipped)
+        let areas = try decode([CapabilityArea].self, from: resources.capabilityAreas)
+        let tracked = Set(areas.flatMap(\.benchmarks) + Analysis.keyBenchmarks.map(\.name))
+            .union(Analysis.curatedSuccessors.values)
+        let epoch = try EpochParser.parse(in: unzipped, tracked: tracked)
+        (d.benchmarks, d.results, d.horizons) = (epoch.infos, epoch.results, epoch.horizons)
+        d.warnings = epoch.warnings
         d.notable = try EpochParser.notableModels(String(contentsOf: files["notable_ai_models.csv"]!, encoding: .utf8))
         d.listed = try OpenRouterParser.models(Data(contentsOf: files["openrouter_models.json"]!))
-        d.areas = try decode([CapabilityArea].self, from: resources.capabilityAreas)
+        d.areas = Analysis.followSupersession(areas, data: d)
         d.advances = try decode([Advance].self, from: resources.advances).sorted { $0.day > $1.day }
+        d.warnings += missingTracked(d).map { "\($0): tracked, but Epoch's data has no results for it." }
         return d
+    }
+
+    /// Tracked benchmarks (capability areas and the Models table's columns) with no results.
+    static func missingTracked(_ d: Dataset) -> [String] {
+        let have = Set(d.results.map(\.benchmark))
+        var seen = Set<String>()
+        return (d.areas.flatMap(\.benchmarks) + Analysis.keyBenchmarks(for: d).map(\.name))
+            .filter { !have.contains($0) && seen.insert($0).inserted }
     }
 
     static func decode<T: Decodable>(_ type: T.Type, from url: URL) throws -> T {

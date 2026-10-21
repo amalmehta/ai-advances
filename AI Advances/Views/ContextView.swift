@@ -12,13 +12,14 @@ struct ContextView: View {
         let frontier = Analysis.contextFrontier(store.data.listed).filter { $0.created >= since }
         let medians = Analysis.medianContextByQuarter(store.data.listed, since: since)
         let shares = Analysis.modalityShares(store.data.listed, since: since)
+        let partial = Analysis.contextMedians(store.data.listed, since: since).last?.partial == true
         let labels = Analysis.modalities.map(\.label)
 
         VStack(alignment: .leading, spacing: 20) {
             PageHeader(title: "Context & Modalities",
                        summary: "How much text models can take in at once, and which kinds of input and output they handle. From every model listed on OpenRouter since 2024.")
 
-            Card(title: "Context window by release", subtitle: "Each dot is a model. The line is the median for models listed that quarter.") {
+            Card(title: "Context window by release", subtitle: "Each dot is a model. The line is the median for models listed that quarter" + (partial ? "; the last quarter is still in progress." : ".")) {
                 Chart {
                     ForEach(listed) { m in
                         PointMark(x: .value("Listed", m.created), y: .value("Context", Double(m.contextLength)))
@@ -47,6 +48,16 @@ struct ContextView: View {
                 .chartOverlay { proxy in HoverLayer(proxy: proxy, points: listed.map { ($0.id, $0.created, Double($0.contextLength)) }, selection: $hover, radius: 12) }
                 .frame(height: 320)
                 .chartSummary("Scatter plot of context window against listing date for \(listed.count) models since 2024. The quarterly median went from \(Format.tokens(Int(medians.first?.1 ?? 0))) to \(Format.tokens(Int(medians.last?.1 ?? 0))) tokens." + (frontier.last.map { " Largest: \($0.name) at \(Format.tokens($0.contextLength))." } ?? ""))
+                .accessibilityChartDescriptor(ChartData(
+                    title: "Context window by release",
+                    summary: "Each point is a model; the second series is the median for models listed that quarter.",
+                    x: .date("Listed"), y: .number("Context window, tokens", log: true, format: { Format.tokens(Int($0)) }),
+                    series: [
+                        .init(name: "Models", continuous: false,
+                              points: listed.sorted { $0.created < $1.created }.map { .init(x: ChartData.x($0.created), y: Double($0.contextLength), label: "\($0.name), \($0.lab)") }),
+                        .init(name: "Quarterly median", continuous: true,
+                              points: medians.map { .init(x: ChartData.x($0.0.addingTimeInterval(45 * 86_400)), y: $0.1, label: nil) }),
+                    ]))
                 HStack(spacing: 16) {
                     LegendItem(label: "Model", color: Palette.color(0))
                     LegendItem(label: "Quarterly median", color: Palette.color(1), line: true)

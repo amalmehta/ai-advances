@@ -10,9 +10,9 @@
 |---|---|
 | ![The AI Advances website on the Forecasts page](docs/images/website.jpg) | Same nine pages as the Mac app, in the browser, on phones too. A GitHub Action rebuilds it every day with the same Swift analysis code. |
 
-| Direction Trends | Labs |
+| Trends | Labs |
 |---|---|
-| ![Headline trends and fastest-moving capability areas](docs/images/direction-trends.png) | ![Heatmap of where each lab leads, plus lab focus cards](docs/images/labs.png) |
+| ![Headline trends and fastest-moving capability areas](docs/images/trends.png) | ![Heatmap of where each lab leads, plus lab focus cards](docs/images/labs.png) |
 
 | Capabilities | Models | Cost |
 |---|---|---|
@@ -43,7 +43,7 @@ flowchart LR
     CL --> A
 ```
 
-Both update every morning: the website is rebuilt before dawn Pacific time (ready by 7 AM), and the app refreshes at launch or 7 AM local. The data needs no API keys. The optional Claude-written outlook uses an Anthropic API key stored as the `NEW_SECRET` repository secret.
+Both update every morning: the website is rebuilt before dawn Pacific time (ready by 7 AM), and the app refreshes at launch or 7 AM local. The data needs no API keys. The optional Claude-written outlook and the monthly re-research of lab notes use an Anthropic API key stored as the `ANTHROPIC_API_KEY` repository secret.
 
 **[Setup and usage guide →](docs/GUIDE.md)**
 

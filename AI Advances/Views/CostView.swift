@@ -3,8 +3,8 @@ import Charts
 
 struct CostView: View {
     @Environment(DataStore.self) private var store
-    @State private var benchmark = "GPQA diamond"
-    @State private var threshold = 0.8
+    @SceneStorage("cost.benchmark") private var benchmark = "GPQA diamond"
+    @SceneStorage("cost.threshold") private var threshold = 0.8
     @State private var hoverStep: String?
     @State private var hoverDot: String?
 
@@ -25,7 +25,7 @@ struct CostView: View {
             guard let s = p.score(benchmark), let l = p.listing, !l.isFree else { return nil }
             return Dot(name: p.name, lab: p.lab, price: l.blendedPrice, score: s, released: p.released)
         }
-        let best = Analysis.frontierValue(Analysis.frontier(store.data.results, benchmark: benchmark), at: Date()) ?? 1
+        let best = Analysis.frontierValue(store.derived.frontiers[benchmark] ?? [], at: Date()) ?? 1
 
         VStack(alignment: .leading, spacing: 20) {
             PageHeader(title: "Cost",
@@ -33,7 +33,7 @@ struct CostView: View {
 
             HStack(spacing: 16) {
                 Picker("Benchmark", selection: $benchmark) {
-                    ForEach(Analysis.keyBenchmarks, id: \.name) { Text($0.label).tag($0.name) }
+                    ForEach(store.derived.keyBenchmarks, id: \.name) { Text($0.label).tag($0.name) }
                 }
                 .frame(maxWidth: 220)
                 Text("Score at least").foregroundStyle(Palette.text2)
@@ -82,6 +82,12 @@ struct CostView: View {
                     .chartOverlay { proxy in HoverLayer(proxy: proxy, points: steps.map { ($0.id, $0.date, $0.price) }, selection: $hoverStep) }
                     .frame(height: 300)
                     .chartSummary("Step chart of the cheapest listed price for a model scoring at least \(Format.percent(threshold)) on \(Analysis.shortName(benchmark)): " + steps.map { "\($0.model) at \(Format.price($0.price)) from \(Format.monthYear($0.date))" }.joined(separator: ", then ") + ".")
+                    .accessibilityChartDescriptor(ChartData(
+                        title: "Cheapest price to reach \(Format.percent(threshold)) on \(Analysis.shortName(benchmark))",
+                        summary: "Each point is a new cheapest model at this score.",
+                        x: .date("Date"), y: .number("Price per million tokens", log: true, format: Format.price),
+                        series: [.init(name: "Cheapest price", continuous: true,
+                                       points: steps.map { .init(x: ChartData.x($0.date), y: $0.price, label: $0.model) })]))
                 }
             }
 
@@ -120,6 +126,7 @@ struct CostView: View {
                 }
                 .frame(height: 320)
                 .chartSummary("Scatter plot of price per million tokens against score on \(Analysis.shortName(benchmark)) for \(dots.count) models." + (dots.max { $0.score < $1.score }.map { " Highest score: \($0.name) at \(Format.percent($0.score, digits: 1))." } ?? "") + (dots.min { $0.price < $1.price }.map { " Cheapest: \($0.name) at \(Format.price($0.price))." } ?? ""))
+                .accessibilityChartDescriptor(scatterData(dots))
                 HStack(spacing: 16) {
                     LegendItem(label: "Released in the last 6 months", color: Palette.color(1))
                     LegendItem(label: "Older", color: Palette.color(0))
@@ -128,6 +135,21 @@ struct CostView: View {
                 Footnote(text: "Prices are today's OpenRouter list prices (3:1 input:output blend), so older models show their current, often reduced, price.")
             }
         }
+    }
+
+    private func scatterData(_ dots: [Dot]) -> ChartData {
+        let recent = yearsAgo(0.5)
+        let series = [("Released in the last 6 months", dots.filter { $0.released >= recent }),
+                      ("Older", dots.filter { $0.released < recent })]
+            .filter { !$0.1.isEmpty }
+            .map { name, ds in
+                ChartData.Series(name: name, continuous: false,
+                                 points: ds.sorted { $0.price < $1.price }.map { .init(x: $0.price, y: $0.score, label: "\($0.name), \($0.lab)") })
+            }
+        return ChartData(title: "Price against score, \(Analysis.shortName(benchmark))",
+                         summary: "Every model with both a score and a listed price. Up and to the left is better value.",
+                         x: .number("Price per million tokens", log: true, format: Format.price),
+                         y: .number("Score", format: { Format.percent($0, digits: 1) }), series: series)
     }
 
     private func distance(_ d: Dot, _ loc: CGPoint, _ origin: CGPoint, _ proxy: ChartProxy) -> CGFloat {

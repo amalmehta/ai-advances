@@ -66,6 +66,8 @@ struct Forecast: Identifiable, Hashable {
     let late: Date?
     /// Why there's no date: the trend never gets there, or it says the target is overdue.
     let note: String?
+    /// The benchmark is no longer updated by Epoch, so there's no forecast (see `note`).
+    var inactive: Bool = false
 
     var snapshot: ForecastSnapshot { ForecastSnapshot(predicted: predicted, early: early, late: late, reached: reached) }
 }
@@ -95,6 +97,12 @@ enum Forecasts {
     static let saturation = 0.9
     /// Furthest a forecast date is allowed to sit before it's reported as "not on the current trend".
     static let maxYearsOut = 15.0
+    /// Width of the likely range, in standard errors, calibrated on past forecasts
+    /// (CalibrationExperiment, Oct 2026): over 18 months of reconstructed forecasts, z = 2.75 put
+    /// 84% of real dates inside the range (the old 1.645 put 58%). Tested on milestones it wasn't
+    /// tuned on, coverage was about 2 in 3, because some misses are regime changes (a benchmark
+    /// stalling, or jumping years early) that no smooth trend anticipates.
+    static let calibratedZ = 2.75
 
     private static func date(_ years: Double?) -> Date? {
         years.map { Date(timeIntervalSinceReferenceDate: $0 * 365.25 * 86_400) }
@@ -105,28 +113,33 @@ enum Forecasts {
         return log(q / (1 - q))
     }
 
-    /// Restricts everything to what was public on `asOf`, for reconstructing past forecasts.
+    /// Restricts everything to what was public on `asOf`, for reconstructing past forecasts:
+    /// results for models released by then, on benchmarks that existed by then.
     static func dataset(_ d: Dataset, asOf: Date) -> Dataset {
         var c = d
-        c.results = d.results.filter { $0.releaseDate <= asOf }
+        let unreleased = Set(d.benchmarks.filter { ($0.releaseDate ?? .distantPast) > asOf }.map(\.name))
+        c.benchmarks = d.benchmarks.filter { !unreleased.contains($0.name) }
+        c.results = d.results.filter { $0.releaseDate <= asOf && !unreleased.contains($0.benchmark) }
         c.horizons = d.horizons.filter { $0.releaseDate <= asOf }
         c.notable = d.notable.filter { $0.date <= asOf }
         c.listed = d.listed.filter { $0.created <= asOf }
+        c.areas = d.areas.map { CapabilityArea(name: $0.name, summary: $0.summary, benchmarks: $0.benchmarks.filter { !unreleased.contains($0) }) }
         return c
     }
 
-    static func all(_ data: Dataset, profiles: [ModelProfile], asOf: Date) -> [Forecast] {
+    /// Every forecast as of `asOf`. `z` is the range width in standard errors.
+    static func all(_ data: Dataset, profiles: [ModelProfile], asOf: Date, z: Double = calibratedZ) -> [Forecast] {
         var out: [Forecast] = []
-        out += horizon(data, asOf: asOf)
-        out += compute(data, asOf: asOf)
-        out += price(profiles, asOf: asOf)
-        out += saturationForecasts(data, asOf: asOf)
+        out += horizon(data, asOf: asOf, z: z)
+        out += compute(data, asOf: asOf, z: z)
+        out += price(profiles, asOf: asOf, z: z)
+        out += saturationForecasts(data, asOf: asOf, z: z)
         return out
     }
 
     private static func make(id: String, kind: Forecast.Kind, area: String, title: String, target: String,
                              current: String, basis: String, reached: Date?, fit: LinearFit?, targetY: Double,
-                             asOf: Date) -> Forecast {
+                             asOf: Date, z: Double) -> Forecast {
         var predicted: Date?, early: Date?, late: Date?, note: String?
         if reached == nil {
             let now = Dates.years(asOf)
@@ -138,7 +151,7 @@ enum Forecasts {
                 } else if p > limit {
                     note = "More than \(Int(maxYearsOut)) years out on the current trend"
                 } else {
-                    let r = fit.range(reaching: targetY)
+                    let r = fit.range(reaching: targetY, z: z)
                     predicted = date(p)
                     early = date(min(p, max(r.early ?? p, now)))
                     late = date(r.late.flatMap { $0 <= limit ? max($0, p) : nil })
@@ -153,46 +166,51 @@ enum Forecasts {
 
     // MARK: Task horizon
 
-    static func horizon(_ data: Dataset, asOf: Date) -> [Forecast] {
+    static func horizon(_ data: Dataset, asOf: Date, z: Double = calibratedZ) -> [Forecast] {
         let since = Dates.parse("2023-01-01")!
         let frontier = Analysis.horizonFrontier(data.horizons)
         let pts = frontier.filter { $0.releaseDate >= since }.map { (x: Dates.years($0.releaseDate), y: log10($0.minutes)) }
         let fit = LinearFit.fit(pts)
         let doubling = fit.map { 12 * log10(2) / $0.slope }
+        let latest = data.horizons.map(\.releaseDate).max()
+        let current = frontier.last.map { h in
+            (Analysis.horizonIsLowerBound(h) ? "at least " : "") + "\(Format.minutes(h.minutes)) now (\(h.modelGroup))"
+        } ?? "no data"
         return horizonTargets.map { t in
             make(id: t.id, kind: .agents, area: "Agents & real work",
                  title: "AI handles tasks taking \(t.label)",
                  target: "METR 50% time horizon ≥ \(Int(t.minutes / 60)) hours",
-                 current: frontier.last.map { "\(Format.minutes($0.minutes)) now (\($0.modelGroup))" } ?? "no data",
-                 basis: "Exponential fit to \(pts.count) record-setting models since 2023" + (doubling.map { ", doubling every \(Format.months($0))" } ?? ""),
+                 current: current,
+                 basis: "Exponential fit to \(pts.count) record-setting models since 2023" + (doubling.map { ", doubling every \(Format.months($0))" } ?? "")
+                     + (latest.map { "; the newest model METR has measured was released \(Format.monthYear($0))" } ?? ""),
                  reached: frontier.first { $0.minutes >= t.minutes }?.releaseDate,
-                 fit: fit, targetY: log10(t.minutes), asOf: asOf)
+                 fit: fit, targetY: log10(t.minutes), asOf: asOf, z: z)
         }
     }
 
     // MARK: Compute
 
-    static func compute(_ data: Dataset, asOf: Date) -> [Forecast] {
+    static func compute(_ data: Dataset, asOf: Date, z: Double = calibratedZ) -> [Forecast] {
         let since = Dates.parse("2020-01-01")!
-        let models = data.notable.filter { $0.isFrontier && $0.date >= since && $0.computeFLOP != nil }
+        let models = Analysis.computeRecords(data.notable, since: since)
         let pts = models.map { (x: Dates.years($0.date), y: log10($0.computeFLOP!)) }
         let fit = LinearFit.fit(pts)
         let biggest = data.notable.filter { $0.computeFLOP != nil }.max { $0.computeFLOP! < $1.computeFLOP! }
         return computeTargets.map { t in
             let e = Int(log10(t).rounded())
             return make(id: "compute-1e\(e)", kind: .scale, area: "Compute",
-                        title: "A training run reaches 10^\(e) FLOP",
-                        target: "Largest known training run ≥ 10^\(e) FLOP",
+                        title: "A training run reaches \(Format.power10(e)) FLOP",
+                        target: "Largest known training run ≥ \(Format.power10(e)) FLOP",
                         current: biggest.map { "\(Format.flop($0.computeFLOP!)) now (\($0.name))" } ?? "no data",
-                        basis: "Exponential fit to \(pts.count) frontier training runs since 2020" + (fit.map { String(format: ", %.1f× per year", pow(10, $0.slope)) } ?? ""),
+                        basis: "Exponential fit to \(pts.count) record-setting training runs since 2020" + (fit.map { String(format: ", %.1f× per year", pow(10, $0.slope)) } ?? ""),
                         reached: data.notable.filter { ($0.computeFLOP ?? 0) >= t }.map(\.date).min(),
-                        fit: fit, targetY: log10(t), asOf: asOf)
+                        fit: fit, targetY: log10(t), asOf: asOf, z: z)
         }
     }
 
     // MARK: Price
 
-    static func price(_ profiles: [ModelProfile], asOf: Date) -> [Forecast] {
+    static func price(_ profiles: [ModelProfile], asOf: Date, z: Double = calibratedZ) -> [Forecast] {
         let target = 0.01
         let steps = Analysis.cheapestOverTime(profiles, benchmark: "GPQA diamond", threshold: 0.8)
         // Falling prices: fit on -log10 so "reaching" works with a positive slope.
@@ -204,15 +222,18 @@ enum Forecasts {
                      current: steps.last.map { "\(Format.price($0.price)) now (\($0.model))" } ?? "no priced model yet",
                      basis: "Exponential fit to \(pts.count) successive price drops" + (fit.map { String(format: ", falling %.0f× per year", pow(10, $0.slope)) } ?? ""),
                      reached: steps.first { $0.price < target }?.date,
-                     fit: fit, targetY: -log10(target), asOf: asOf)]
+                     fit: fit, targetY: -log10(target), asOf: asOf, z: z)]
     }
 
     // MARK: Benchmark saturation
 
     /// When each tracked benchmark's best score reaches 90%, from an S-curve (linear in logit)
-    /// fitted to the record-setting results of the last two years.
-    static func saturationForecasts(_ data: Dataset, asOf: Date) -> [Forecast] {
+    /// fitted to the record-setting results of the last two years. A benchmark Epoch no longer
+    /// updates gets no date, only a note saying so.
+    static func saturationForecasts(_ data: Dataset, asOf: Date, z: Double = calibratedZ) -> [Forecast] {
         let since = asOf.addingTimeInterval(-2 * 365.25 * 86_400)
+        let lastResult = Analysis.lastResultDates(data.results)
+        let inactive = Analysis.inactiveBenchmarks(data.results, now: asOf)
         return data.areas.flatMap { area in
             area.benchmarks.compactMap { b -> Forecast? in
                 let f = Analysis.frontier(data.results, benchmark: b)
@@ -223,13 +244,23 @@ enum Forecasts {
                 // Anchor the start of the window with the record standing at that time.
                 if let start = Analysis.frontierValue(f, at: since) { pts.insert((Dates.years(since), logit(start / ceiling)), at: 0) }
                 let name = Analysis.shortName(b)
+                let reached = f.first { $0.score >= target }?.date
+                if reached == nil, inactive.contains(b) {
+                    return Forecast(id: "sat-" + b, kind: .capabilities, area: area.name,
+                                    title: "\(name) reaches \(Format.percent(target))",
+                                    target: "Best score on \(name) ≥ \(Format.percent(target))",
+                                    current: "\(Format.percent(last.score, digits: 1)) now (\(last.model))",
+                                    basis: "No forecast: no new results since \(lastResult[b].map(Format.monthYear) ?? "?")",
+                                    reached: nil, predicted: nil, early: nil, late: nil,
+                                    note: "No longer updated by Epoch", inactive: true)
+                }
                 return make(id: "sat-" + b, kind: .capabilities, area: area.name,
                             title: "\(name) reaches \(Format.percent(target))",
                             target: "Best score on \(name) ≥ \(Format.percent(target))",
                             current: "\(Format.percent(last.score, digits: 1)) now (\(last.model))",
                             basis: "S-curve fit to \(pts.count) records over the last two years",
-                            reached: f.first { $0.score >= target }?.date,
-                            fit: LinearFit.fit(pts), targetY: logit(saturation), asOf: asOf)
+                            reached: reached,
+                            fit: LinearFit.fit(pts), targetY: logit(saturation), asOf: asOf, z: z)
             }
         }
     }
@@ -238,14 +269,14 @@ enum Forecasts {
 
     /// Forecasts recomputed at the start of each of the last `months` months. 18 months gives the
     /// track record enough past forecasts to score.
-    static func reconstructed(_ data: Dataset, now: Date, months: Int = 18) -> [ForecastLogEntry] {
+    static func reconstructed(_ data: Dataset, now: Date, months: Int = 18, z: Double = calibratedZ) -> [ForecastLogEntry] {
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(identifier: "UTC")!
         let thisMonth = cal.date(from: cal.dateComponents([.year, .month], from: now))!
         return (1...months).reversed().map { back in
             let asOf = cal.date(byAdding: .month, value: -back + 1, to: thisMonth)!
             let d = dataset(data, asOf: asOf)
-            let fs = all(d, profiles: Analysis.profiles(d), asOf: asOf)
+            let fs = all(d, profiles: Analysis.profiles(d), asOf: asOf, z: z)
             return ForecastLogEntry(asOf: asOf, reconstructed: true,
                                     forecasts: Dictionary(uniqueKeysWithValues: fs.map { ($0.id, $0.snapshot) }))
         }
@@ -254,26 +285,40 @@ enum Forecasts {
 
 /// Saved forecasts, one entry per day. The app keeps its own; the website's lives on the `data` branch.
 enum ForecastLog {
-    static func load(from url: URL) -> [ForecastLogEntry] {
-        guard let data = try? Data(contentsOf: url) else { return [] }
-        let d = JSONDecoder()
-        d.dateDecodingStrategy = .iso8601
-        return (try? d.decode([ForecastLogEntry].self, from: data)) ?? []
+    enum LogError: LocalizedError {
+        case unreadable(URL, Error)
+        var errorDescription: String? {
+            if case .unreadable(let url, let e) = self { return "Can't read the forecast log at \(url.path): \(e.localizedDescription)" }
+            return nil
+        }
+    }
+
+    /// The saved entries; empty only when there's no file yet. A file that exists but can't be
+    /// decoded throws, rather than reading as empty, so it is never silently overwritten.
+    static func load(from url: URL) throws -> [ForecastLogEntry] {
+        guard FileManager.default.fileExists(atPath: url.path) else { return [] }
+        do {
+            let d = JSONDecoder()
+            d.dateDecodingStrategy = .iso8601
+            return try d.decode([ForecastLogEntry].self, from: Data(contentsOf: url))
+        } catch {
+            throw LogError.unreadable(url, error)
+        }
     }
 
     /// Records today's forecasts, replacing any entry already saved today.
-    static func record(_ forecasts: [Forecast], on day: Date = Date(), to url: URL) -> [ForecastLogEntry] {
+    static func record(_ forecasts: [Forecast], on day: Date = Date(), to url: URL) throws -> [ForecastLogEntry] {
         var cal = Calendar(identifier: .gregorian)
         cal.timeZone = TimeZone(identifier: "UTC")!
         let today = cal.startOfDay(for: day)
-        var log = load(from: url).filter { !cal.isDate($0.asOf, inSameDayAs: today) }
+        var log = try load(from: url).filter { !cal.isDate($0.asOf, inSameDayAs: today) }
         log.append(ForecastLogEntry(asOf: today, reconstructed: false,
                                     forecasts: Dictionary(uniqueKeysWithValues: forecasts.map { ($0.id, $0.snapshot) })))
         log.sort { $0.asOf < $1.asOf }
         let e = JSONEncoder()
         e.dateEncodingStrategy = .iso8601
-        e.outputFormatting = [.prettyPrinted, .sortedKeys]
-        try? e.encode(log).write(to: url, options: .atomic)
+        e.outputFormatting = [.sortedKeys]   // compact: the log gains an entry every day
+        try e.encode(log).write(to: url, options: .atomic)
         return log
     }
 }

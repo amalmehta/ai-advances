@@ -3,7 +3,7 @@ import Charts
 
 struct ForecastsView: View {
     @Environment(DataStore.self) private var store
-    @State private var selectedID = ""
+    @SceneStorage("forecasts.selected") private var selectedID = ""
     @State private var hoverTitle: String?
 
     static let kinds = Forecast.Kind.allCases.map(\.rawValue)
@@ -18,7 +18,7 @@ struct ForecastsView: View {
         let stalled = store.forecasts.filter { $0.reached == nil && $0.predicted == nil }
         let reached = store.forecasts.filter { $0.reached != nil }.sorted { $0.reached! > $1.reached! }
         let shifts = Forecasts.shifts(upcoming, history: store.reconstructedLog + store.liveLog, now: now)
-        let selected = upcoming.first { $0.id == selectedID } ?? upcoming.first
+        let selected = effectiveSelection(selectedID, among: upcoming.map(\.id)).flatMap { id in upcoming.first { $0.id == id } }
 
         VStack(alignment: .leading, spacing: 20) {
             PageHeader(title: "Where the field is going next",
@@ -31,7 +31,7 @@ struct ForecastsView: View {
 
                 Card(title: store.claudeOutlook == nil ? "Outlook" : "Computed outlook",
                      subtitle: "Written by a fixed template from the numbers below; changes when they do.") {
-                    Text(Forecasts.outlook(upcoming, shifts: shifts, now: now))
+                    Text(Forecasts.outlook(upcoming, shifts: shifts, now: now, all: store.forecasts))
                         .fixedSize(horizontal: false, vertical: true)
                         .textSelection(.enabled)
                 }
@@ -67,7 +67,7 @@ struct ForecastsView: View {
 
                 Card(title: "How a forecast has shifted",
                      subtitle: "The predicted date as computed on each date. Circles are recomputed from only the data public then; squares were saved by the app on the day.") {
-                    Picker("Forecast", selection: $selectedID) {
+                    Picker("Forecast", selection: Binding(get: { selected?.id ?? "" }, set: { selectedID = $0 })) {
                         ForEach(upcoming) { Text($0.title).tag($0.id) }
                     }
                     .frame(maxWidth: 420)
@@ -102,10 +102,10 @@ struct ForecastsView: View {
                     }
                 }
 
-                Footnote(text: "Method: compute, task horizon and price use straight-line fits on a log scale (steady exponential change). Benchmarks use an S-curve fitted to the record-setting scores of the last two years, since scores flatten as they near 100%. Likely ranges combine the uncertainty in the fitted slope with how far records scatter around the trend; they don't account for breakthroughs, benchmark changes or slowdowns, and the track record shows how often they've held. Extrapolations, not guarantees.")
+                Footnote(text: "Method: compute, task horizon and price use straight-line fits on a log scale (steady exponential change). Benchmarks use an S-curve fitted to the record-setting scores of the last two years, since scores flatten as they near 100%. Likely ranges combine the uncertainty in the fitted slope with how far records scatter around the trend, widened so that on past forecasts they caught about 80% of real dates. Tested on milestones the width wasn't tuned on, about 2 in 3 held: sudden stalls and jumps aren't predictable from a trend. Extrapolations, not guarantees.")
             }
         }
-        .onAppear { if selectedID.isEmpty { selectedID = upcoming.first?.id ?? "" } }
+        .keepSelection($selectedID, among: upcoming.map(\.id))
     }
 
     // MARK: Timeline
@@ -140,7 +140,7 @@ struct ForecastsView: View {
 
     private func trackRecordCard(_ record: TrackRecord) -> some View {
         Card(title: "Track record",
-             subtitle: "How earlier forecasts did on milestones that have since been reached. For each, the forecast made closest to six months ahead.") {
+             subtitle: "How earlier forecasts did on milestones that have since been reached, and on ranges that ran out first. For each, the forecast made closest to six months ahead.") {
             Text(record.summary).fixedSize(horizontal: false, vertical: true)
             Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 6) {
                 GridRow {
@@ -152,15 +152,25 @@ struct ForecastsView: View {
                         Text(i.title)
                         Text(Format.monthYear(i.madeOn)).foregroundStyle(Palette.text2)
                         Text(Format.monthYear(i.predicted))
-                        Text(Format.monthYear(i.reached))
-                        Label(i.inside ? "Within range" : (i.errorMonths > 0 ? "Later than range" : "Earlier than range"),
-                              systemImage: i.inside ? "checkmark.circle.fill" : "xmark.circle")
-                            .foregroundStyle(i.inside ? Palette.color(2) : Palette.color(1))
+                        Text(i.outcome == .expired ? "Not yet" : Format.monthYear(i.reached))
+                        outcomeLabel(i.outcome)
                     }
                     .monospacedDigit()
                 }
             }
         }
+    }
+
+    private func outcomeLabel(_ o: TrackRecord.Outcome) -> some View {
+        let (text, symbol, good): (String, String, Bool?) = switch o {
+        case .inside: ("Within range", "checkmark.circle.fill", true)
+        case .early: ("Earlier than range", "xmark.circle", false)
+        case .late: ("Later than range", "xmark.circle", false)
+        case .expired: ("Range ran out", "xmark.circle", false)
+        case .openEnded: ("Open-ended, not scored", "circle.dashed", nil)
+        }
+        return Label(text, systemImage: symbol)
+            .foregroundStyle(good == true ? Palette.color(2) : good == false ? Palette.color(1) : Palette.text2)
     }
 
     private func detail(_ f: Forecast) -> some View {
@@ -243,7 +253,7 @@ struct ClaudeOutlookCard: View {
                 .background(Color.accentColor.opacity(0.14), in: Capsule())
             Text(outlook.headline).font(.title3.weight(.semibold))
             Text(outlook.outlook).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
-            Footnote(text: "Claude (\(outlook.model)) wrote this on \(outlook.generatedAt.prefix(10)) in the website's daily build, from the same numbers this app shows (data through \(outlook.dataThrough ?? "?")). It's an AI-written reading of trend extrapolations, not a prediction you should rely on.")
+            Footnote(text: "Claude (\(outlook.model)) wrote this on \(displayDate(outlook.generatedAt)) in the website's daily build, from the same numbers this app shows (data through \(displayDate(outlook.dataThrough))). It's an AI-written reading of trend extrapolations, not a prediction you should rely on.")
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)

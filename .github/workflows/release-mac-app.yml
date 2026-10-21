@@ -1,7 +1,8 @@
 name: Release Mac app
 
 # Builds a universal (Apple Silicon + Intel) AI Advances.app and attaches it to a GitHub
-# Release. Run it from Actions → "Release Mac app" → Run workflow, or push a tag like v1.1.
+# Release. Run it from Actions → "Release Mac app" → Run workflow with a version like v1.5, or
+# push a tag of that name. The app's version is set from the tag, so they can't disagree.
 #
 # The app is ad-hoc signed, not notarized (that needs a paid Apple Developer account), so
 # macOS asks for confirmation the first time it opens; docs/GUIDE.md explains how.
@@ -10,50 +11,94 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version tag to create, e.g. v1.1"
+        description: "Version tag to create, e.g. v1.5"
         required: true
+      overwrite:
+        description: "Replace the zip if this release already exists"
+        type: boolean
+        default: false
   push:
     tags: ["v*"]
 
-permissions:
-  contents: write    # create the release and upload the zip
+permissions: {}
+
+concurrency:
+  group: release-${{ github.event.inputs.version || github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
   release:
+    # Only from main or a version tag.
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     runs-on: macos-26
+    timeout-minutes: 40
+    permissions:
+      contents: write    # create the release and upload the zip
     defaults:
       run:
-        # Explicit bash runs with -o pipefail, so a failing xcodebuild piped into tail still fails the job.
+        # Explicit bash runs with -o pipefail, so a failing xcodebuild piped into a filter still fails the job.
         shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - name: Pick version
+      - name: Check the version
         id: version
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version || github.ref_name }}
         run: |
-          TAG="${{ github.event.inputs.version || github.ref_name }}"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "Releasing $TAG"
+          [[ "$INPUT_VERSION" =~ ^v[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || { echo "::error::Version must look like v1.5 or v1.5.1, got '$INPUT_VERSION'"; exit 1; }
+          echo "tag=$INPUT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "number=${INPUT_VERSION#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Refuse to replace a published release unless asked
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          OVERWRITE: ${{ github.event.inputs.overwrite || 'false' }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1 && [ "$OVERWRITE" != "true" ]; then
+            echo "::error::Release $TAG already exists; rerun with 'overwrite' ticked to replace its zip"; exit 1
+          fi
 
       - name: Test
-        run: xcodebuild -project "AI Advances.xcodeproj" -scheme "AI Advances" -derivedDataPath build test | tail -5
+        run: |
+          xcodebuild -project "AI Advances.xcodeproj" -scheme "AI Advances" -derivedDataPath build \
+            -resultBundlePath TestResults.xcresult test | grep -E "error:|failed|Executed .* tests|TEST (SUCCEEDED|FAILED)"
+
+      - name: Keep the test results for diagnosis
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: TestResults.xcresult
+          retention-days: 14
 
       - name: Build universal Release app
+        env:
+          NUMBER: ${{ steps.version.outputs.number }}
+          TAG: ${{ steps.version.outputs.tag }}
         run: |
           xcodebuild -project "AI Advances.xcodeproj" -scheme "AI Advances" -configuration Release \
-            -derivedDataPath build ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO build | tail -3
+            -derivedDataPath build ARCHS="arm64 x86_64" ONLY_ACTIVE_ARCH=NO MARKETING_VERSION="$NUMBER" build \
+            | grep -E "error:|BUILD (SUCCEEDED|FAILED)"
           APP="build/Build/Products/Release/AI Advances.app"
           lipo -archs "$APP/Contents/MacOS/AI Advances"
-          ditto -c -k --keepParent "$APP" "AI-Advances-${{ steps.version.outputs.tag }}.zip"
+          built=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$APP/Contents/Info.plist")
+          [ "$built" = "$NUMBER" ] || { echo "::error::Built app reports version $built, expected $NUMBER"; exit 1; }
+          ditto -c -k --keepParent "$APP" "AI-Advances-$TAG.zip"
+          shasum -a 256 "AI-Advances-$TAG.zip" | tee checksum.txt
 
       - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
         run: |
-          TAG="${{ steps.version.outputs.tag }}"
+          SHA=$(cut -d' ' -f1 checksum.txt)
           NOTES="Universal Mac app (Apple Silicon and Intel), macOS 14 or later.
 
-          Unzip, move **AI Advances** to Applications and open it. It isn't notarized, so the first time macOS will say it can't verify the app: open **System Settings → Privacy & Security**, scroll down and click **Open Anyway**. See the [guide](https://github.com/${{ github.repository }}/blob/main/docs/GUIDE.md#install-the-mac-app)."
+          Unzip, move **AI Advances** to Applications and open it. It isn't notarized, so the first time macOS will say it can't verify the app: open **System Settings → Privacy & Security**, scroll down and click **Open Anyway**. See the [guide](https://github.com/${{ github.repository }}/blob/main/docs/GUIDE.md#install-the-mac-app).
+
+          SHA-256 of the zip: \`$SHA\`"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "AI-Advances-$TAG.zip" --clobber
           else

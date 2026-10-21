@@ -5,8 +5,10 @@ import XCTest
 /// unobstructed while it runs.
 final class AccessibilityAuditTests: XCTestCase {
     static let pages = ProcessInfo.processInfo.environment["AUDIT_PAGES"]?.components(separatedBy: ",")
-        ?? ["Direction Trends", "Forecasts", "Labs", "Latest Advances", "Capabilities",
+        ?? ["Trends", "Forecasts", "Labs", "Latest Advances", "Capabilities",
             "Models", "Cost", "Context & Modalities", "Compute"]
+
+    static let sandbox = FileManager.default.temporaryDirectory.appendingPathComponent("AI Advances UI Tests", isDirectory: true)
 
     override func setUp() { continueAfterFailure = true }
 
@@ -30,6 +32,9 @@ final class AccessibilityAuditTests: XCTestCase {
         for page in Self.pages {
             let app = XCUIApplication()
             app.launchArguments = ["-page", page, "-ApplePersistenceIgnoreState", "YES"]
+            // Keep the audited app away from the real data and settings.
+            app.launchEnvironment["AI_ADVANCES_DATA_DIR"] = Self.sandbox.path
+            app.launchEnvironment["AI_ADVANCES_DEFAULTS_SUITE"] = "com.amalmehta.ai-advances.ui-tests"
             app.launch()
             app.activate()
             XCTAssertTrue(app.staticTexts.firstMatch.waitForExistence(timeout: 45), "\(page) didn't load")

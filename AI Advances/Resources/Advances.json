@@ -1,5 +1,75 @@
 [
   {
+    "date": "2026-10-19",
+    "datePrecision": "day",
+    "title": "MiniMax M3.1 Flash cuts agent costs 70%",
+    "lab": "MiniMax",
+    "category": "Cost & efficiency",
+    "direction": "Efficiency",
+    "summary": "MiniMax says M3.1 Flash runs nearly three times faster and cuts agentic usage costs 70%, scoring 73.7% on DeepSWE v1.1 at $0.15/$0.60 per million tokens.",
+    "source": "https://www.minimax.io/blog/minimax-m31f"
+  },
+  {
+    "date": "2026-10-15",
+    "datePrecision": "day",
+    "title": "Meta releases Muse Spark Open weights",
+    "lab": "Meta",
+    "category": "Open weights",
+    "direction": "Openness",
+    "summary": "Meta published weights for Muse Spark Open, an 816B-parameter (42B active) multimodal model with 1M context; large API resellers must sign a separate license agreement.",
+    "source": "https://research.meta.ai/blog/muse-spark-open"
+  },
+  {
+    "date": "2026-10-13",
+    "datePrecision": "day",
+    "title": "Gemini 4 Argon opens to developers and subscribers",
+    "lab": "Google DeepMind",
+    "category": "Model release",
+    "direction": "Agents",
+    "summary": "Google made Argon available through the paid Gemini API, enterprise products, and Google AI Pro and Ultra plans, while expanding unrestricted access for cyber defenders.",
+    "source": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-gemini-4-argon/"
+  },
+  {
+    "date": "2026-10-12",
+    "datePrecision": "day",
+    "title": "Meta launches Muse Wonder",
+    "lab": "Meta",
+    "category": "Model release",
+    "direction": "Agents",
+    "summary": "Meta's most capable models yet: Muse Wonder, at $4/$20 per million tokens with 1M context via API and Muse Code, and a larger Muse Wonder Full for Muse Code subscribers.",
+    "source": "https://research.meta.ai/blog/muse-wonder"
+  },
+  {
+    "date": "2026-10-07",
+    "datePrecision": "day",
+    "title": "Claude Haiku 5.5 released",
+    "lab": "Anthropic",
+    "category": "Cost & efficiency",
+    "direction": "Efficiency",
+    "summary": "Haiku 5.5 costs $0.10/$0.50 per million tokens for prompts under 100K, runs about 75% cheaper than Haiku 4.5, and is the first Haiku with adjustable effort.",
+    "source": "https://www.anthropic.com/news/claude-haiku-5-5"
+  },
+  {
+    "date": "2026-10-06",
+    "datePrecision": "day",
+    "title": "Mistral previews Large 4",
+    "lab": "Mistral AI",
+    "category": "Model release",
+    "direction": "Openness",
+    "summary": "Mistral opened a preview API for Large 4, a 1T-parameter (52B active) multimodal mixture-of-experts model trained in its own European datacenters, promising weights by month's end.",
+    "source": "https://mistral.ai/news/mistral-large-4"
+  },
+  {
+    "date": "2026-09-30",
+    "datePrecision": "day",
+    "title": "Google unveils Gemini 4 Argon",
+    "lab": "Google DeepMind",
+    "category": "Model release",
+    "direction": "Coding",
+    "summary": "Argon scored 77.9% on DeepSWE v1.1 and raised the output limit to 1M tokens; Google gave it first to vetted cyber defenders before wider release.",
+    "source": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-4-argon/"
+  },
+  {
     "date": "2026-09-29",
     "datePrecision": "day",
     "title": "OpenAI launches always-on Dots agents",
@@ -16,8 +86,8 @@
     "lab": "Anthropic",
     "category": "Model release",
     "direction": "Coding",
-    "summary": "Sonnet 5.5 keeps $2/$10 pricing, runs over 30% faster, and scores 70.6% on Terminal-Bench 4.0, nearly matching Opus 5.5 on GDPval-AA.",
-    "source": "https://www.unite.ai/anthropic-releases-claude-sonnet-5-5-at-unchanged-sonnet-5-pricing/"
+    "summary": "Sonnet 5.5 keeps $2/$10 pricing, generates output over 30% faster, scores 70.6% on Terminal-Bench 4.0, and nearly ties Opus 5.5 on GDPval-AA v2.1 Elo (1844 vs 1846).",
+    "source": "https://www.anthropic.com/news/claude-sonnet-5-5"
   },
   {
     "date": "2026-09-23",
@@ -46,7 +116,7 @@
     "lab": "Anthropic",
     "category": "Model release",
     "direction": "Coding",
-    "summary": "Opus 5.5 matches Fable 5.1 on most work at $4/$20 per million tokens, jumping from 52.3% to 66.4% on Terminal-Bench 4.0.",
+    "summary": "Anthropic says Opus 5.5 performs like Fable 5.1, its strongest general-release model, on most work at $4/$20 per million tokens, rising from 52.3% to 66.4% on Terminal-Bench 4.0.",
     "source": "https://www.anthropic.com/news/claude-opus-5-5"
   },
   {
@@ -57,16 +127,16 @@
     "category": "Coding",
     "direction": "Coding",
     "summary": "Grok 4.7 adds a larger base model and longer RL on multi-hour coding, reaching 71.0% on DeepSWE v1.1 at unchanged $2/$6 pricing.",
-    "source": "https://sqmagazine.co.uk/xai-launches-grok-4-7-coding-model/"
+    "source": "https://x.ai/news/grok-4-7"
   },
   {
     "date": "2026-09-11",
     "datePrecision": "day",
-    "title": "GPT-6 Astra scores 97.6% on FrontierMath Tier 4",
+    "title": "GPT-6 Astra sets a FrontierMath Tier 4 record",
     "lab": "OpenAI",
     "category": "Reasoning",
     "direction": "Reasoning",
-    "summary": "Epoch AI's hardest research-math tier is now close to solved: GPT-6 Astra scored 97.6%, up from a 22% best a year earlier.",
+    "summary": "On Epoch AI's 43 research-level Tier 4 (v2) problems, Astra scored 97.6%, topping Claude Fable 5's 90.2% from June; GPT-6.1 Sol later reached 100%.",
     "source": "https://epoch.ai/benchmarks/frontiermath-tier-4-v2"
   },
   {
@@ -130,34 +200,34 @@
     "source": "https://blog.google/innovation-and-ai/models-and-research/google-deepmind/gemini-robotics-er-2/"
   },
   {
-    "date": "2026-07-27",
-    "datePrecision": "day",
-    "title": "Kimi K3 becomes the largest open-weight model",
-    "lab": "Moonshot AI",
-    "category": "Open weights",
-    "direction": "Openness",
-    "summary": "Moonshot released weights for its 2.8-trillion-parameter Kimi K3, which Artificial Analysis rated alongside GPT-5.5 and Claude Opus 4.8.",
-    "source": "https://www.opensourceforu.com/2026/07/moonshot-ai-unveils-2-8t-parameter-open-source-kimi-k3/"
-  },
-  {
     "date": "2026-07-24",
     "datePrecision": "day",
     "title": "Claude Opus 5 released",
     "lab": "Anthropic",
     "category": "Model release",
     "direction": "Agents",
-    "summary": "Opus 5 kept $5/$25 pricing while reporting 96% on SWE-bench Verified, 70.6% on OSWorld 2.0 and about 30% on ARC-AGI-3.",
-    "source": "https://www.marktechpost.com/2026/07/24/meet-the-new-claude-opus-5-frontier-class-agentic-coding-and-computer-use-at-unchanged-opus-pricing/"
+    "summary": "Opus 5 kept $5/$25 pricing, reporting 96.0% on SWE-bench Verified, 30.2% on ARC-AGI-3 and 70.6% on OSWorld 2.0 by Anthropic's scoring (31.4% full-task success on the official leaderboard).",
+    "source": "https://www-cdn.anthropic.com/c5fbac3f0b1280a933ebd26d3cb8bb9f5bdeaf48/Claude%20Opus%205%20System%20Card.pdf"
   },
   {
     "date": "2026-07-23",
     "datePrecision": "day",
-    "title": "First officially graded perfect AI scores at the IMO",
+    "title": "Chinese labs report perfect AI scores at IMO 2026",
     "lab": "Huawei / Xiaohongshu",
     "category": "Reasoning",
     "direction": "Reasoning",
-    "summary": "Huawei's Celia and Xiaohongshu's dots-note-3.0 scored 42/42 under official IMO grading; other labs' perfect scores came from unofficial, AI-graded runs.",
-    "source": "https://www.digitalapplied.com/blog/imo-2026-perfect-scores-ai-benchmark-saturation"
+    "summary": "Huawei's Celia and Xiaohongshu's dots-note-3.0 scored 42/42; Xiaohongshu says IMO organizers graded its answers. Other labs' perfect-score claims came from unofficial tests.",
+    "source": "https://standardmedia.co.ke/business/amp/sci-tech/article/2001553533/ai-catches-up-with-humans-to-score-100pc-at-top-maths-contest"
+  },
+  {
+    "date": "2026-07-16",
+    "datePrecision": "day",
+    "title": "Moonshot launches Kimi K3, the largest open-weight model",
+    "lab": "Moonshot AI",
+    "category": "Open weights",
+    "direction": "Openness",
+    "summary": "Moonshot launched the 2.8-trillion-parameter Kimi K3 via API; weights followed July 27 under a custom license requiring large commercial API providers to sign a separate agreement.",
+    "source": "https://huggingface.co/moonshotai/Kimi-K3"
   },
   {
     "date": "2026-07-09",
@@ -166,17 +236,17 @@
     "lab": "OpenAI",
     "category": "Model release",
     "direction": "Agents",
-    "summary": "OpenAI's three-tier GPT-5.6 family reached general availability with a roughly 1M-token context window, led by Sol for agentic coding and science.",
-    "source": "https://www.startuphub.ai/ai-news/artificial-intelligence/2026/openai-launches-gpt-5-6-sol-leads-charge"
+    "summary": "After a limited preview, OpenAI made its three-tier GPT-5.6 family (Sol, Terra and Luna) generally available across ChatGPT, Codex and the API.",
+    "source": "https://openai.com/index/gpt-5-6/"
   },
   {
     "date": "2026-06-09",
     "datePrecision": "day",
-    "title": "Claude Fable 5 and Mythos 5 launch",
+    "title": "Claude Fable 5 launches, then goes offline",
     "lab": "Anthropic",
     "category": "Model release",
     "direction": "Scale",
-    "summary": "Anthropic's first public Mythos-class model debuted at $10/$50 with 1M context, but a US export directive forced it offline three days later.",
+    "summary": "Fable 5, the first public release of Anthropic's most capable model tier, launched at $10/$50 pricing with 1M context; a US export directive took it offline within three days.",
     "source": "https://www.infoq.com/news/2026/06/claude-5-release/"
   },
   {
@@ -216,8 +286,8 @@
     "lab": "DeepSeek",
     "category": "Open weights",
     "direction": "Openness",
-    "summary": "DeepSeek released MIT-licensed V4-Pro (1.6T parameters) and V4-Flash with 1M-token context, pricing Pro output around a tenth of GPT-5.5's.",
-    "source": "https://winbuzzer.com/2026/04/27/deepseek-v4-open-weights-launch-xcxwbn/"
+    "summary": "DeepSeek open-sourced MIT-licensed V4-Pro (1.6T parameters, 49B active) and V4-Flash (284B, 13B active), both with 1M-token context windows.",
+    "source": "https://api-docs.deepseek.com/news/news260424"
   },
   {
     "date": "2026-04-23",
@@ -256,8 +326,8 @@
     "lab": "ARC Prize Foundation",
     "category": "Research",
     "direction": "Reasoning",
-    "summary": "The interactive ARC-AGI-3 benchmark debuted with humans solving every environment while the best frontier model, Gemini 3.1 Pro, managed 0.37%.",
-    "source": "https://officechai.com/ai/arc-agi-3/"
+    "summary": "The interactive ARC-AGI-3 benchmark debuted with humans solving 100% of its game-like environments while frontier AI systems scored under 1%.",
+    "source": "https://arcprize.org/blog/arc-agi-3-launch"
   },
   {
     "date": "2026-03-05",
@@ -266,8 +336,8 @@
     "lab": "OpenAI",
     "category": "Agents",
     "direction": "Agents",
-    "summary": "GPT-5.4 built computer use into the model and scored 75% on OSWorld-Verified, above the 72.4% human baseline.",
-    "source": "https://en.wikipedia.org/wiki/GPT-5.4"
+    "summary": "GPT-5.4 built computer use into the model and scored 75.0% on OSWorld-Verified, above the 72.4% human baseline.",
+    "source": "https://openai.com/index/introducing-gpt-5-4/"
   },
   {
     "date": "2026-02-19",
@@ -276,8 +346,8 @@
     "lab": "Google DeepMind",
     "category": "Reasoning",
     "direction": "Reasoning",
-    "summary": "Gemini 3.1 Pro more than doubled its predecessor on ARC-AGI-2 and offered a 1M-token context window aimed at agent workloads.",
-    "source": "https://www.marktechpost.com/2026/02/19/google-ai-releases-gemini-3-1-pro-with-1-million-token-context-and-77-1-percent-arc-agi-2-reasoning-for-ai-agents/"
+    "summary": "Gemini 3.1 Pro posted a verified 77.1% on ARC-AGI-2, more than double Gemini 3 Pro's reasoning score on the benchmark.",
+    "source": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-1-pro/"
   },
   {
     "date": "2026-02-11",
@@ -296,7 +366,7 @@
     "lab": "OpenAI",
     "category": "Model release",
     "direction": "Reasoning",
-    "summary": "OpenAI's rushed GPT-5.2 reached 52.9% on ARC-AGI-2 and 70.9% on GDPval knowledge-work tasks.",
+    "summary": "GPT-5.2 reached 52.9% on ARC-AGI-2, and GPT-5.2 Thinking beat or tied industry professionals in 70.9% of GDPval knowledge-work comparisons.",
     "source": "https://simonwillison.net/2025/Dec/11/gpt-52/"
   },
   {
