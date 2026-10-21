@@ -12,7 +12,7 @@
 
 | Trends | Labs |
 |---|---|
-| ![Headline trends and fastest-moving capability areas](docs/images/direction-trends.png) | ![Heatmap of where each lab leads, plus lab focus cards](docs/images/labs.png) |
+| ![Headline trends and fastest-moving capability areas](docs/images/trends.png) | ![Heatmap of where each lab leads, plus lab focus cards](docs/images/labs.png) |
 
 | Capabilities | Models | Cost |
 |---|---|---|
