@@ -1,11 +1,13 @@
-import * as Plot from "https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6/+esm";
+// Observable Plot is loaded by index.html from vendor/ (one pinned bundle) and picked up in main(),
+// so a missing library shows an error instead of leaving the page on "Loading…".
+let Plot;
 
 const ISSUES_URL = "https://github.com/amalmehta/ai-advances/issues/new";
 const DAY = 86_400_000;
 const YEAR = 365.25 * DAY;
 
 const PAGES = [
-  ["trends", "Direction Trends"],
+  ["trends", "Trends"],
   ["forecasts", "Forecasts"],
   ["labs", "Labs"],
   ["advances", "Latest Advances"],
@@ -34,12 +36,17 @@ function el(tag, attrs = {}, ...children) {
 }
 
 const date = (s) => (s ? new Date(s + "T00:00:00Z") : null);
+/** "1 model", "3 models". */
+const plural = (n, word, many = word + "s") => `${n} ${n === 1 ? word : many}`;
+const SUPERSCRIPT = { "-": "⁻", 0: "⁰", 1: "¹", 2: "²", 3: "³", 4: "⁴", 5: "⁵", 6: "⁶", 7: "⁷", 8: "⁸", 9: "⁹" };
+/** "10²⁷" rather than "10^27". */
+const pow10 = (e) => `10${String(e).replace(/[-\d]/g, (c) => SUPERSCRIPT[c])}`;
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const fmt = {
   pct: (v, d = 0) => (v == null ? "–" : `${(v * 100).toFixed(d)}%`),
   price: (v) => (v == null ? "–" : v >= 10 ? `$${v.toFixed(0)}` : v >= 1 ? `$${v.toFixed(2)}` : `$${v.toFixed(3)}`),
-  tokens: (n) => (n >= 1e6 ? `${+(n / 1e6).toPrecision(n % 1e6 === 0 ? 3 : 2)}M` : n >= 1000 ? `${Math.floor(n / 1000)}K` : `${n}`),
-  flop: (v) => { const e = Math.floor(Math.log10(v)); return `${(v / 10 ** e).toFixed(1)} × 10^${e}`; },
+  tokens: (n) => (n == null || !Number.isFinite(n) ? "–" : n >= 1e6 ? `${+(n / 1e6).toPrecision(n % 1e6 === 0 ? 3 : 2)}M` : n >= 1000 ? `${Math.floor(n / 1000)}K` : `${n}`),
+  flop: (v) => { if (!(v > 0)) return "–"; const e = Math.floor(Math.log10(v)); return `${(v / 10 ** e).toFixed(1)} × ${pow10(e)}`; },
   minutes: (m) => (m < 60 ? `${m.toFixed(0)} min` : m < 1440 ? `${(m / 60).toFixed(1)} hours` : `${(m / 1440).toFixed(1)} days`),
   months: (m) => `${m.toFixed(1)} months`,
   monthYear: (d) => `${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`,
@@ -62,14 +69,86 @@ function card(title, subtitle, ...content) {
     ...content);
 }
 
-function header(title, summary) {
-  return el("div", {}, el("h1", {}, title), el("p", { class: "muted", style: "margin:0;font-size:17px" }, summary));
+/** Page heading: the H1 matches the page's name in the nav; the question it answers leads the summary. */
+function header(title, question, summary, ...extra) {
+  return el("div", {}, el("h1", {}, title),
+    el("p", { class: "lede" }, el("strong", {}, question), " ", summary, ...extra));
+}
+
+// ---------- Plain-language definitions ----------
+
+const TERMS = {
+  headroom: ["Headroom", "The gap between the best score at the start of the period and the most a benchmark allows (100%, or a lower ceiling where some questions are known to be flawed). Closing 50% of the headroom means the best score moved halfway from where it was to the top."],
+  horizon: ["Task horizon (METR)", "METR times how long tasks take skilled people, then finds the task length at which a model succeeds half the time. A 2-hour horizon means the model completes about half of tasks that take an expert 2 hours. METR's hardest tasks cap what it can measure, so the newest models may be shown as \"at least\" a value."],
+  range: ["Likely range", "The span of dates the forecast considers likely. It's sized so that on past forecasts, about 4 in 5 real dates fell inside it. A bar starting at today's line means the milestone could already happen any time."],
+  flop: ["FLOP", "Floating-point operations: the number of arithmetic steps used to train a model, a standard measure of training compute. 10²⁶ FLOP is a 1 followed by 26 zeros; each step up the scale is ten times more compute."],
+  blend: ["3:1 price blend", "One number for a model's price: three parts input price to one part output price per million tokens, (3 × input + output) ÷ 4, because typical use sends about three times as many tokens in as it gets back."],
+  firstSeen: ["First seen", "The earliest date a model appears in the data: its first benchmark result at Epoch AI or its listing on OpenRouter. Usually within days of the public release."],
+};
+// One line on what each benchmark tests, keyed by its short name.
+const BENCHMARKS = {
+  "GPQA": "Graduate-level multiple-choice questions in biology, physics and chemistry, written so that experts get them right but skilled non-experts with web search usually don't.",
+  "HLE": "Humanity's Last Exam: thousands of hard, expert-written questions across academic fields, meant to sit at the edge of human knowledge.",
+  "SimpleQA": "Short factual questions with one checkable answer: does the model know the fact, without making something up?",
+  "FrontierMath": "Hundreds of new, unpublished math problems from hard undergraduate to research level, with answers a computer can check.",
+  "FrontierMath T4": "FrontierMath's hardest tier: research-level problems that take professional mathematicians a long time.",
+  "ProofBench": "Writing complete mathematical proofs, graded for whether each proof is correct, not just the final answer.",
+  "ARC-AGI-2": "Visual grid puzzles that are easy for people but require working out a new rule from a few examples; built to resist memorization.",
+  "FrontierCode": "Hard, original programming problems that test writing correct code, not recalling known solutions.",
+  "WeirdML": "Unusual machine-learning tasks: the model must write and run code that trains a model on a small, odd dataset.",
+  "APEX-Agents": "Long professional tasks from banking, consulting and law, done by an AI agent working with files and tools.",
+  "OSWorld 2": "Operating a real computer: the agent uses desktop apps and a browser by looking at the screen and clicking and typing.",
+  "Terminal-Bench": "Tasks done in a command-line terminal, such as setting up software, fixing builds and processing data.",
+  "SWE-bench": "Fixing real GitHub issues in open-source Python projects, checked by each project's own tests.",
+  "GDPval": "Work products from dozens of occupations (reports, plans, designs), judged by industry experts against professionals' work.",
+  "Remote Labor Index": "Real paid freelance projects; the score is the share completed well enough that a client would accept them.",
+  "SimpleBench": "Multiple-choice trick questions about everyday space, time and social reasoning that people find easy.",
+  "Chess Puzzles": "Chess tactics puzzles: find the best move in positions with a forced winning line.",
+  "VPCT": "Visual Physics Comprehension Test: predict from a diagram where a ball dropped into ramps and buckets will land.",
+  "GeoBench": "Look at a photo and say where on Earth it was taken, scored by distance.",
+  "DeepSWE": "Long, multi-step software-engineering tasks in real codebases.",
+  "FrontierSWE": "Large software-engineering projects that take skilled engineers many hours.",
+};
+const benchmarkInfo = (shortName) => BENCHMARKS[shortName] ?? BENCHMARKS[shortName?.replace(/ (Verified|v\d.*)$/, "")];
+
+let infoCount = 0;
+/** A small (i) button that shows a plain-language definition (click or keyboard; Escape or a click elsewhere closes it). */
+function info(term, text) {
+  const [title, body] = text ? [term, text] : TERMS[term] ?? [term, ""];
+  if (!body) return null;
+  const id = `info-${++infoCount}`;
+  const pop = el("span", { class: "info-pop", id, role: "note", hidden: true }, el("strong", {}, title), " ", body);
+  const btn = el("button", { type: "button", class: "info", "aria-label": `What is ${title}?`, "aria-expanded": "false", "aria-controls": id,
+    onclick: (e) => { e.stopPropagation(); setInfo(wrap, pop.hidden); } }, "i");
+  const wrap = el("span", { class: "info-wrap" }, btn, pop);
+  return wrap;
+}
+function setInfo(wrap, open) {
+  if (open) document.querySelectorAll(".info-wrap.open").forEach((w) => w !== wrap && setInfo(w, false));
+  wrap.classList.toggle("open", open);
+  const pop = wrap.querySelector(".info-pop");
+  pop.hidden = !open;
+  // Keep the popover on screen: shift it sideways if it would run off either edge.
+  pop.style.transform = "";
+  if (open) {
+    const r = pop.getBoundingClientRect(), edge = 8;
+    const dx = r.right > innerWidth - edge ? innerWidth - edge - r.right : r.left < edge ? edge - r.left : 0;
+    if (dx) pop.style.transform = `translateX(${Math.round(dx)}px)`;
+  }
+  wrap.querySelector("button.info").setAttribute("aria-expanded", String(open));
+}
+function closePopovers(e) {
+  for (const w of document.querySelectorAll(".info-wrap.open")) if (!e || !w.contains(e.target)) setInfo(w, false);
+  const sources = $(".sources");
+  if (sources?.open && (!e || !sources.contains(e.target))) sources.open = false;
 }
 
 const footnote = (text) => el("p", { class: "footnote" }, text);
 
-function segmented(name, options, value, onChange) {
-  return el("div", { class: "segmented", role: "radiogroup" },
+/** A row of radio buttons. `label` names the group for screen readers ({labelledby} points at visible text). */
+function segmented(name, options, value, onChange, label) {
+  return el("div", { class: "segmented", role: "radiogroup",
+    "aria-label": typeof label === "string" ? label : null, "aria-labelledby": label?.labelledby ?? null },
     options.map(([v, label]) => el("label", {},
       el("input", { type: "radio", name, value: v, checked: String(v) === String(value), onchange: () => onChange(v) }),
       el("span", {}, label))));
@@ -86,19 +165,36 @@ function legend(items) {
     el("span", {}, el("i", { class: line ? "line" : null, style: `background:${color}` }), label)));
 }
 
-/** A chart slot that re-renders at its own width (on resize and theme change). */
+/** A chart slot that re-renders at its own width (on width changes and theme changes). */
 function chart(render) {
   const host = el("div", { class: "chart" });
   host._render = () => {
     const w = host.clientWidth || 800;
+    host._width = w;
     host.replaceChildren(render(w, colors()));
     host.querySelectorAll("svg[aria-label]").forEach((svg) => svg.setAttribute("role", "img"));
+    if (host.parentElement?.classList.contains("scroll-x")) updateFade(host.parentElement);
   };
   queueMicrotask(host._render);
   return host;
 }
 
-function rerenderCharts() { document.querySelectorAll(".chart").forEach((c) => c._render?.()); }
+/** Redraws charts; on a resize only those whose width changed (a phone's address bar moving changes only the height). */
+function rerenderCharts(force = false) {
+  document.querySelectorAll(".chart").forEach((c) => { if (force || c.clientWidth !== c._width) c._render?.(); });
+}
+
+/** Fades whichever edge of a sideways scroller has more content past it. */
+function updateFade(s) {
+  const more = s.scrollWidth - s.clientWidth > 2;
+  s.classList.toggle("fade-left", more && s.scrollLeft > 2);
+  s.classList.toggle("fade-right", more && s.scrollLeft < s.scrollWidth - s.clientWidth - 2);
+}
+function edgeFade(s) {
+  s.addEventListener("scroll", () => updateFade(s), { passive: true });
+  queueMicrotask(() => updateFade(s));
+  return s;
+}
 
 const plotBase = (C, extra) => ({
   style: { background: "transparent", color: C.text2, fontSize: "12px", overflow: "visible" },
@@ -211,16 +307,23 @@ const DEFAULTS = { window: "12", areaName: null, since: 2, kind: "All", directio
   costBench: "GPQA diamond", threshold: 0.8, computeSince: 2018, forecastId: null, compare: [] };
 
 // Settings that belong in each page's link, so a copied URL opens the same view:
-// [link parameter, state key, parse].
+// [link parameter, state key, parse]. A parse returns undefined for a value it doesn't accept,
+// and the setting falls back to its default. Values that depend on the data (a lab, a model,
+// a forecast) are checked again by their page once the data is known.
+const oneOf = (allowed, cast = String) => (s) => (allowed.includes(cast(s)) ? cast(s) : undefined);
+const textParam = (s) => (s.trim() ? s.trim().slice(0, 200) : undefined);
+const COMPUTE_SINCE = [2012, 2018, 2022];
+const ADVANCE_KINDS = ["All", "New to you", "Highlights", "New records", "New models"];
 const LINKED = {
-  trends: [["window", "window", String]],
-  forecasts: [["forecast", "forecastId", String]],
-  advances: [["show", "kind", String], ["direction", "direction", String]],
-  capabilities: [["area", "areaName", String], ["years", "since", Number]],
-  models: [["model", "selected", String], ["lab", "lab", String], ["q", "search", String],
+  trends: [["window", "window", oneOf(["6", "12", "24"])]],
+  forecasts: [["forecast", "forecastId", textParam]],
+  advances: [["show", "kind", oneOf(ADVANCE_KINDS)], ["direction", "direction", textParam]],
+  capabilities: [["area", "areaName", textParam], ["years", "since", oneOf([1, 2, 4], Number)]],
+  models: [["model", "selected", textParam], ["lab", "lab", textParam], ["q", "search", (s) => s.slice(0, 200)],
     ["compare", "compare", (s) => s.split("|").filter(Boolean).slice(0, 4)]],
-  cost: [["benchmark", "costBench", String], ["score", "threshold", Number]],
-  compute: [["since", "computeSince", Number]],
+  cost: [["benchmark", "costBench", textParam],
+    ["score", "threshold", (s) => { const v = Number(s); return Number.isFinite(v) && v >= 0.1 && v <= 0.95 ? Math.round(v * 100) / 100 : undefined; }]],
+  compute: [["since", "computeSince", oneOf(COMPUTE_SINCE, Number)]],
 };
 let currentPage = null;
 
@@ -253,10 +356,13 @@ pages.trends = () => {
   const tiles = el("div", { class: "grid tiles" },
     tile("Training compute", t.computeFactorPerYear ? `${t.computeFactorPerYear.toFixed(1)}× / year` : "–",
       t.computeDoublingMonths ? `Frontier training runs double every ${fmt.months(t.computeDoublingMonths)} (fit since 2020, ${t.computeModels} models).` : ""),
-    tile("Longest task AI can do", t.horizonMinutes ? fmt.minutes(t.horizonMinutes) : "–",
-      `${t.horizonModel ?? ""}, METR 50% time horizon. ${t.horizonDoublingMonths ? `Doubles every ${fmt.months(t.horizonDoublingMonths)}.` : ""}`),
-    tile("Price of GPQA ≥ 80%", fmt.price(t.priceNow),
-      t.priceNow ? `Per million tokens, ${t.priceModel}. ${(t.priceFirst / t.priceNow).toFixed(0)}× cheaper than the first model to get there, ${t.priceFirstModel}.` : "No priced model has reached 80% yet."),
+    tile(["Longest task AI can do", info("horizon")], t.horizonMinutes ? `${t.horizonIsLowerBound ? "≥ " : ""}${fmt.minutes(t.horizonMinutes)}` : "–",
+      [t.horizonModel, "METR 50% time horizon"].filter(Boolean).join(", ")
+        + (t.horizonAsOf ? `, measured ${fmt.date(date(t.horizonAsOf))}` : "") + "."
+        + (t.horizonIsLowerBound ? " At METR's measurement ceiling, so the real value may be higher." : "")
+        + (t.horizonDoublingMonths ? ` Doubles every ${fmt.months(t.horizonDoublingMonths)}.` : "")),
+    tile(["Price of GPQA ≥ 80%", info("GPQA", BENCHMARKS.GPQA)], fmt.price(t.priceNow),
+      t.priceNow ? `Per million tokens (3:1 blend), ${t.priceModel}.` + (t.priceFirst ? ` ${(t.priceFirst / t.priceNow).toFixed(0)}× cheaper than the first model to get there, ${t.priceFirstModel}.` : "") : "No priced model has reached 80% yet."),
     tile("Largest context window", `${fmt.tokens(t.maxContext)} tokens`,
       t.medianContextThisQuarter ? `Median for models listed this quarter: ${fmt.tokens(t.medianContextThisQuarter)}.` : ""));
 
@@ -264,33 +370,57 @@ pages.trends = () => {
     const rows = D.areas.filter((a) => a.momentum[state.window])
       .map((a) => ({ area: a.name, ...a.momentum[state.window] }))
       .sort((a, b) => b.gapClosed - a.gapClosed);
+    const value = (r) => `${fmt.pct(r.gapClosed)} · ${r.pointsGained >= 0 ? "+" : ""}${r.pointsGained.toFixed(0)} pts`;
+    // On narrow screens each area's name and value sit above its bar, so the bars get the full width.
+    const narrow = w < 560;
     return Plot.plot(plotBase(C, {
       ariaLabel: `Bar chart of the share of remaining headroom each capability area closed in the last ${state.window} months: ${rows.map((r) => `${r.area} ${fmt.pct(r.gapClosed)}`).join(", ")}.`,
-      width: w, height: rows.length * 36 + 40, marginLeft: Math.min(170, w * 0.35), marginRight: 110,
+      width: w, height: rows.length * (narrow ? 50 : 36) + 40,
+      marginLeft: narrow ? 14 : Math.min(170, w * 0.35), marginRight: narrow ? 20 : 110,
       x: { domain: [0, 1], tickFormat: (v) => fmt.pct(v), label: null, grid: true },
-      y: { domain: rows.map((r) => r.area), label: null },
+      y: { domain: rows.map((r) => r.area), label: null, axis: narrow ? null : "left" },
       marks: [
-        Plot.barX(rows, { x: "gapClosed", y: "area", fill: C.series[0], rx: 4, insetTop: 6, insetBottom: 6,
+        Plot.barX(rows, { x: "gapClosed", y: "area", fill: C.series[0], rx: 4, insetTop: narrow ? 24 : 6, insetBottom: narrow ? 4 : 6,
           tip: { ...tip(C), format: { x: (v) => fmt.pct(v) } },
           channels: { "Points gained": (r) => `${r.pointsGained >= 0 ? "+" : ""}${r.pointsGained.toFixed(0)}`, Benchmarks: "benchmarksUsed" } }),
-        Plot.text(rows, { x: "gapClosed", y: "area", dx: 6, textAnchor: "start", fill: C.text2,
-          text: (r) => `${fmt.pct(r.gapClosed)} · ${r.pointsGained >= 0 ? "+" : ""}${r.pointsGained.toFixed(0)} pts` }),
+        narrow
+          ? Plot.text(rows, { x: 0, y: "area", dy: -10, textAnchor: "start", fill: C.text, text: (r) => `${r.area}  ·  ${value(r)}` })
+          : Plot.text(rows, { x: "gapClosed", y: "area", dx: 6, textAnchor: "start", fill: C.text2, text: value }),
       ],
     }));
   });
 
   return el("div", {},
-    header("Where AI is heading", "The four long-run trends, and which capabilities are moving fastest. Everything here recalculates when new data arrives."),
+    introCard(),
+    header("Trends", "Where is AI heading?", "The four long-run trends, and which capabilities are moving fastest. Everything here recalculates when new data arrives."),
     tiles,
-    card("Where progress is fastest", "Share of the remaining headroom closed on each area's benchmarks, averaged. 100% would mean the benchmarks are solved.",
+    card("Where progress is fastest", ["Share of the remaining headroom ", info("headroom"), " closed on each area's benchmarks, averaged. 100% would mean the benchmarks are solved."],
       segmented("window", [["6", "Last 6 months"], ["12", "Last 12 months"], ["24", "Last 24 months"]], state.window,
-        (v) => { state.window = v; momentumChart._render(); }),
+        (v) => { state.window = v; momentumChart._render(); }, "Time window"),
       momentumChart,
       footnote("Hover a bar for the details. Benchmarks newer than the window count from their first result.")),
     el("h2", {}, "Frontier by capability area"),
     el("p", { class: "muted", style: "margin-top:2px" }, "Best score so far on each benchmark since January 2024. Hover for the model holding each record."),
     el("div", { class: "grid" }, D.areas.map((a) => card(a.name, a.summary, frontierChart(a, date("2024-01-01"), false, 190)))));
 };
+
+// First visit: what the site answers, with a way in to each part. Dismissed for good with the button.
+const INTRO_KEY = "ai-advances.intro-dismissed";
+function introCard() {
+  try { if (localStorage.getItem(INTRO_KEY)) return null; } catch {}
+  const node = el("section", { class: "card intro", "aria-labelledby": "intro-title" },
+    el("div", { class: "intro-head" },
+      el("h2", { id: "intro-title" }, "What this site answers"),
+      el("button", { type: "button", class: "intro-close", "aria-label": "Dismiss this introduction",
+        onclick: () => { try { localStorage.setItem(INTRO_KEY, "1"); } catch {} node.remove(); $("#page").focus({ preventScroll: true }); } }, "Got it")),
+    el("p", { class: "muted", style: "margin:2px 0 10px" }, "AI Advances tracks public benchmark, model and compute data and rebuilds every page each morning."),
+    el("ul", { class: "intro-list" },
+      el("li", {}, el("a", { href: "#/advances" }, "What's new?"), " The latest records, models and researched highlights."),
+      el("li", {}, el("a", { href: "#/capabilities" }, "What can models do?"), " Best scores by area, and every model on the ", el("a", { href: "#/models" }, "Models"), " page."),
+      el("li", {}, el("a", { href: "#/forecasts" }, "Where is the field heading?"), " Dated forecasts with a track record, and the trends below."),
+      el("li", {}, el("a", { href: "#/labs" }, "What are the labs working on?"), " Where each lab leads, how fast it ships, and its bets.")));
+  return node;
+}
 
 function tile(label, value, detail) {
   return el("div", { class: "card tile" }, el("div", { class: "label" }, label), el("div", { class: "value" }, value), el("div", { class: "detail" }, detail));
@@ -331,12 +461,13 @@ pages.forecasts = () => {
   if (!upcoming.some((f) => f.id === state.forecastId)) state.forecastId = upcoming[0]?.id;
 
   const timeline = chart((w, C) => {
-    const clamp = (d) => new Date(Math.min(+d, +axisEnd));
+    const clamp = (d) => new Date(Math.max(+now, Math.min(+d, +axisEnd)));
     const rows = upcoming.map((f) => ({ ...f, x1: clamp(f.early ?? f.predicted), x2: clamp(f.late ?? axisEnd), p: clamp(f.predicted) }));
+    const range = (r) => `${r.early ? (r.early <= now ? "any time now" : fmt.monthYear(r.early)) : "?"} – ${r.late ? fmt.monthYear(r.late) : "open-ended"}`;
     // Titles go in a left column when there's room, otherwise above each row.
     const narrow = w < 960;
     return Plot.plot(plotBase(C, {
-      ariaLabel: `Timeline of ${rows.length} forecasts, soonest first. ${rows.map((r) => `${r.title}: most likely ${fmt.monthYear(r.predicted)}, likely range ${r.early ? fmt.monthYear(r.early) : "?"} to ${r.late ? fmt.monthYear(r.late) : "open-ended"}`).join(". ")}.`,
+      ariaLabel: `Timeline of ${rows.length} forecasts, soonest first. ${rows.map((r) => `${r.title}: most likely ${fmt.monthYear(r.predicted)}, likely range ${range(r).replace(" – ", " to ")}`).join(". ")}.`,
       width: w, height: rows.length * (narrow ? 44 : 30) + 50, marginLeft: narrow ? 8 : 330, marginRight: 70,
       x: { type: "utc", domain: [now, axisEnd], label: null, grid: true },
       y: { domain: rows.map((r) => r.title), label: null, axis: narrow ? null : "left" },
@@ -349,7 +480,7 @@ pages.forecasts = () => {
           channels: {
             Forecast: "title",
             "Most likely": (r) => fmt.monthYear(r.predicted),
-            "Likely range": (r) => `${r.early ? fmt.monthYear(r.early) : "?"} – ${r.late ? fmt.monthYear(r.late) : "open-ended"}`,
+            "Likely range": (r) => (r.early && r.early <= now ? `${range(r)} (starts today: could already happen)` : range(r)),
             Now: "current",
           } }),
         Plot.text(rows, { x: "p", y: "title", text: (r) => fmt.monthYear(r.predicted), dx: 9, textAnchor: "start", fill: C.text2 }),
@@ -363,18 +494,19 @@ pages.forecasts = () => {
   renderHistory();
 
   return el("div", {},
-    header("Where the field is going next", "Dated predictions from extrapolating today's trends. Every forecast is recomputed daily, and each day's set is logged so you can watch them move."),
+    header("Forecasts", "Where is the field going next?", "Dated predictions from extrapolating today's trends. Every forecast is recomputed daily, and each day's set is logged so you can watch them move."),
     CLAUDE ? claudeCard() : null,
     card(CLAUDE ? "Computed outlook" : "Outlook", "Written by a fixed template from the numbers below; changes when they do.", el("p", { style: "margin:0" }, D.outlook)),
-    card("Forecast timeline", "Dot: most likely date if the trend holds. Bar: likely range. Ranges running off the right edge are open-ended."
-      + (D.trackRecord.coverage != null ? ` Past ranges caught the real date ${fmt.pct(D.trackRecord.coverage)} of the time (see Track record).` : ""),
+    card("Forecast timeline", ["Dot: most likely date if the trend holds. Bar: likely range ", info("range"), ". A bar starting at today's line means it could already happen any time; one running off the right edge is open-ended."
+      + (D.trackRecord.coverage != null ? ` Past ranges caught the real date ${fmt.pct(D.trackRecord.coverage)} of the time (see Track record).` : "")],
       timeline, footnote("Hover a dot for its range and current value.")),
     D.shifts.length ? card("What moved in the last 3 months", "Change in each predicted date since the forecast computed three months ago. Earlier means the field sped up.",
       el("div", { class: "rows" }, D.shifts.slice(0, 8).map((s) => {
-        const m = Math.round(Math.abs(s.months));
+        const abs = Math.abs(s.months), m = Math.round(abs);
+        const moved = abs < 0.5 ? "unchanged" : `${abs < 1 ? "<1 month" : plural(m, "month")} ${s.months < 0 ? "earlier" : "later"}`;
         return el("div", { class: "row" },
-          el("span", {}, el("span", { class: s.months < 0 ? "up" : "down" }, s.months < 0 ? "◀ " : "▶ "), s.title),
-          el("span", { class: "muted tnum" }, `${m} month${m === 1 ? "" : "s"} ${s.months < 0 ? "earlier" : "later"} · now ${fmt.monthYear(date(s.predicted))}`));
+          el("span", {}, abs < 0.5 ? el("span", { class: "muted" }, "= ") : el("span", { class: s.months < 0 ? "up" : "down" }, s.months < 0 ? "◀ " : "▶ "), s.title),
+          el("span", { class: "muted tnum" }, `${moved} · now ${fmt.monthYear(date(s.predicted))}`));
       }))) : null,
     card("How a forecast has shifted", "The predicted date as computed on each date. Hollow points are recomputed from only the data public then; filled points were saved by the daily update.",
       el("div", { class: "controls" }, select(upcoming.map((f) => [f.id, f.title]), state.forecastId, (v) => { state.forecastId = v; renderHistory(); }, "Forecast")),
@@ -385,9 +517,12 @@ pages.forecasts = () => {
         el("div", { class: "rows" }, reached.map((f) => el("div", { class: "row" },
           el("span", {}, el("span", { class: "check" }, "✓ "), f.title), el("span", { class: "muted tnum" }, fmt.monthYear(f.reached)))))),
       stalled.length ? card("Stalled or off trend", "Milestones the current trend can't date: progress has stopped short of them, or they're too far out.",
-        el("div", { class: "rows" }, stalled.map((f) => el("div", {}, el("div", {}, f.title), el("div", { class: "small muted" }, `${f.current}. ${f.note ?? ""}.`))))) : null),
+        el("div", { class: "rows" }, stalled.map((f) => el("div", {}, el("div", {}, f.title), el("div", { class: "small muted" }, sentences(f.current, f.note)))))) : null),
     footnote("Method: compute, task horizon and price use straight-line fits on a log scale (steady exponential change). Benchmarks use an S-curve fitted to the record-setting scores of the last two years, since scores flatten as they near 100%. Likely ranges combine the uncertainty in the fitted slope with how far records scatter around the trend, widened so that on past forecasts they caught about 80% of real dates. Tested on milestones the width wasn't tuned on, about 2 in 3 held: sudden stalls and jumps aren't predictable from a trend. Extrapolations, not guarantees."));
 };
+
+/** Joins bits of text as sentences, skipping empty ones and not doubling full stops. */
+const sentences = (...parts) => parts.filter((p) => p && String(p).trim()).map((p) => String(p).trim().replace(/[.\s]+$/, "") + ".").join(" ");
 
 /** When hand-researched content was last updated; a warning once it's more than 45 days old. */
 function freshnessNote(iso, what) {
@@ -404,27 +539,37 @@ function freshnessNote(iso, what) {
 
 function trackRecordCard() {
   const r = D.trackRecord;
-  return card("Track record", "How earlier forecasts did on milestones that have since been reached. For each, the forecast made closest to six months ahead.",
+  const month = (s) => (s ? fmt.monthYear(date(s)) : "–");
+  // Newer exports mark open-ended ranges and ranges that ran out without the milestone; older ones don't.
+  const outcome = (i) => i.openEnded ? ["muted", "○ Open-ended range"]
+    : !i.reached ? ["down", "✗ Range passed, not yet reached"]
+    : i.inside ? ["check", "✓ Within range"] : ["down", i.errorMonths > 0 ? "✗ Later than range" : "✗ Earlier than range"];
+  const heads = ["Milestone", "Forecast in", "Predicted", "Happened", "Result"];
+  return card("Track record", "How earlier forecasts did on milestones whose date is now known. For each, the forecast made closest to six months ahead.",
     el("p", { style: "margin:0 0 10px" }, r.summary),
-    el("div", { class: "table-wrap", style: "max-height:none" }, el("table", {},
-      el("thead", {}, el("tr", {}, ["Milestone", "Forecast in", "Predicted", "Happened", ""].map((h) => el("th", { scope: "col", style: "cursor:default" }, h)))),
-      el("tbody", {}, r.items.map((i) => el("tr", { style: "cursor:default" },
-        el("td", {}, i.title),
-        el("td", { class: "muted" }, fmt.monthYear(date(i.madeOn))),
-        el("td", {}, fmt.monthYear(date(i.predicted))),
-        el("td", {}, fmt.monthYear(date(i.reached))),
-        el("td", { class: i.inside ? "check" : "down" },
-          i.inside ? "✓ Within range" : i.errorMonths > 0 ? "✗ Later than range" : "✗ Earlier than range")))))));
+    el("div", { class: "table-wrap", style: "max-height:none" }, el("table", { class: "stack" },
+      el("thead", {}, el("tr", {}, heads.map((h, n) => el("th", { scope: "col" }, n === 4 ? el("span", { class: "sr-only" }, h) : h)))),
+      el("tbody", {}, r.items.map((i) => { const [cls, label] = outcome(i); return el("tr", {},
+        el("td", { "data-label": heads[0] }, i.title),
+        el("td", { class: "muted", "data-label": heads[1] }, month(i.madeOn)),
+        el("td", { "data-label": heads[2] }, month(i.predicted)),
+        el("td", { "data-label": heads[3] }, month(i.reached)),
+        el("td", { class: cls, "data-label": heads[4] }, label)); })))));
 }
 
 function claudeCard() {
   const when = new Date(CLAUDE.generatedAt);
+  const day = fmt.date(new Date(Date.UTC(when.getUTCFullYear(), when.getUTCMonth(), when.getUTCDate())));
+  // The outlook is written by a separate step that can fail on its own; say so when it's behind the data.
+  const through = date(CLAUDE.dataThrough);
+  const stale = (through && D.latestDataDate && D.latestDataDate - through > DAY) || Date.now() - when > 36 * 3600_000;
   return el("section", { class: "card claude" },
+    stale ? el("p", { class: "freshness stale", role: "status", style: "margin:0 0 8px" }, `⚠ Outlook from ${day}; newer data isn't covered yet.`) : null,
     el("div", { class: "card-head" },
       el("span", { class: "badge" }, "Written by Claude"),
       el("h3", {}, CLAUDE.headline)),
     el("p", { style: "margin:0" }, CLAUDE.outlook),
-    footnote(`Claude (${CLAUDE.model}) wrote this on ${fmt.date(new Date(Date.UTC(when.getUTCFullYear(), when.getUTCMonth(), when.getUTCDate())))} from the numbers on this site (data through ${fmt.date(date(CLAUDE.dataThrough))}). It's an AI-written reading of trend extrapolations, not a prediction you should rely on.`));
+    footnote(`Claude (${CLAUDE.model}) wrote this on ${day} from the numbers on this site${through ? ` (data through ${fmt.date(through)})` : ""}. It's an AI-written reading of trend extrapolations, not a prediction you should rely on.`));
 }
 
 function historyChart(f, now) {
@@ -448,13 +593,14 @@ function historyChart(f, now) {
         tip: { ...tip(C), format: { x: (d) => `computed ${fmt.date(d)}`, y: (d) => `predicted ${fmt.monthYear(d)}`, fill: false } } }),
     ],
   }))));
-  wrap.append(legend([["Recomputed from past data", "transparent"], ["Saved by the daily update", colors().series[0]]]));
-  wrap.querySelector(".legend i").style.border = `1.5px solid ${colors().series[0]}`;
+  wrap.append(legend([["Recomputed from past data", "transparent"], ["Saved by the daily update", "var(--s1)"]]));
+  wrap.querySelector(".legend i").style.border = "1.5px solid var(--s1)";
   if (pts.length) {
     const first = pts[0], last = pts[pts.length - 1];
     const moved = (last.p - first.p) / (30.44 * DAY);
-    const change = Math.abs(moved) < 1 ? "about the same" : `${Math.round(Math.abs(moved))} months ${moved < 0 ? "earlier" : "later"}`;
-    wrap.append(footnote(`In ${fmt.monthYear(first.asOf)} the trend pointed to ${fmt.monthYear(first.p)}; it now points to ${fmt.monthYear(last.p)}, ${change}. Daily log: ${D.history.filter((h) => h.live).length} day(s) so far.`));
+    const change = Math.abs(moved) < 1 ? "about the same" : `${plural(Math.round(Math.abs(moved)), "month")} ${moved < 0 ? "earlier" : "later"}`;
+    const logged = D.history.filter((h) => h.live).length;
+    wrap.append(footnote(`In ${fmt.monthYear(first.asOf)} the trend pointed to ${fmt.monthYear(first.p)}; it now points to ${fmt.monthYear(last.p)}, ${change}.` + (logged ? ` Daily log: ${plural(logged, "day")} so far.` : "")));
   }
   return wrap;
 }
@@ -468,7 +614,7 @@ pages.labs = () => {
   const standing = heatmap(labs.flatMap((l) => areas.map((a) => ({
     lab: l.name, col: a, value: l.standing[a],
     label: l.standing[a] == null ? "–" : fmt.pct(l.standing[a]) + (l.recordsHeld.some((b) => areaOf[b] === a) ? " ★" : ""),
-  }))), labs.map((l) => l.name), areas, 150, "Each lab's standing by capability area, as a share of the best score; a star marks a current record");
+  }))), labs.map((l) => l.name), areas, 110, "Each lab's standing by capability area, as a share of the best score; a star marks a current record");
 
   const quarters = [...new Set(labs.flatMap((l) => l.releasesByQuarter.map((q) => q.quarter)))]
     .sort((a, b) => { const [qa, ya] = a.split(" "), [qb, yb] = b.split(" "); return ya - yb || qa.localeCompare(qb); });
@@ -479,7 +625,7 @@ pages.labs = () => {
   })), labs.map((l) => l.name), quarters, 70, "New models first seen per lab per quarter");
 
   return el("div", {},
-    header("Who's working on what", "Where each major lab leads, how fast it ships, and what it says it's betting on. The charts update daily; the focus notes are researched and dated."),
+    header("Labs", "Who's working on what?", "Where each major lab leads, how fast it ships, and what it says it's betting on. The charts update daily; the focus notes are researched and dated."),
     freshnessNote(D.labNotesAsOf, "Lab focus notes researched"),
     card("Where each lab stands", "Each lab's best score as a share of the overall best, averaged over the area's benchmarks it has results on. – = not tested. ★ = holds a current record in that area.", standing),
     card("Release pace", "New models first seen each quarter, in Epoch's benchmark results or OpenRouter's listings.", pace),
@@ -498,19 +644,23 @@ function heatmap(cells, rows, cols, minColumn = 70, label = "Heatmap") {
     el("thead", {}, el("tr", {}, el("th", { scope: "col" }, "Lab"), cols.map((c) => el("th", { scope: "col" }, c)))),
     el("tbody", {}, rows.map((r) => el("tr", {}, el("th", { scope: "row" }, r),
       cols.map((c) => el("td", {}, cells.find((x) => x.lab === r && x.col === c)?.label || "none")))))));
-  return el("div", {}, table, el("div", { class: "scroll-x", "aria-hidden": "true" }, chart((w, C) => {
+  // Columns share the card's width; only below `minColumn` per column does the map scroll sideways (with a faded edge).
+  return el("div", {}, table, edgeFade(el("div", { class: "scroll-x", "aria-hidden": "true" }, chart((w, C) => {
     const width = Math.max(w, 140 + cols.length * minColumn);
+    const column = (width - 140) / cols.length;
+    const wrap = cols.some((c) => c.length * 7 > column - 8); // long column names wrap onto two lines
     return Plot.plot(plotBase(C, {
       ariaLabel: label,
-      width, height: rows.length * 32 + 40, marginLeft: 140, marginTop: 30,
-      x: { domain: cols, axis: "top", label: null, tickSize: 0 },
+      width, height: rows.length * 32 + (wrap ? 54 : 40), marginLeft: 140, marginTop: wrap ? 44 : 30,
+      x: { domain: cols, axis: null },
       y: { domain: rows, label: null, tickSize: 0 },
       marks: [
+        Plot.axisX({ anchor: "top", tickSize: 0, label: null, lineWidth: Math.max(4, (column - 8) / 12) }),
         Plot.cell(cells, { x: "col", y: "lab", inset: 1.5, rx: 3, fill: (c) => (c.value == null ? C.border : rampColor(c.value)[0]), fillOpacity: (c) => (c.value == null ? 0.5 : 1) }),
-        Plot.text(cells, { x: "col", y: "lab", text: "label", fill: (c) => (c.value == null ? C.muted : rampColor(c.value)[1] ? "#111" : "#fff"), fontSize: 11.5 }),
+        Plot.text(cells, { x: "col", y: "lab", text: "label", fill: (c) => (c.value == null ? C.text2 : rampColor(c.value)[1] ? "#111" : "#fff"), fontSize: 11.5 }),
       ],
     }));
-  })));
+  }))));
 }
 
 function labCard(l) {
@@ -542,15 +692,22 @@ pages.advances = () => {
   const shownNew = new Set(NEW_IDS);
   const now = new Date();
   const kinds = ["All", ...(shownNew.size ? ["New to you"] : []), "Highlights", "New records", "New models"];
-  if (state.kind === "New to you" && !shownNew.size) state.kind = "All";
-  const directions = ["All directions", ...[...new Set(D.feed.map((i) => i.direction))].sort()];
+  if (!kinds.includes(state.kind)) state.kind = "All";
+  const directions = ["All directions", ...[...new Set(D.feed.map((i) => i.direction).filter(Boolean))].sort()];
+  if (!directions.includes(state.direction)) state.direction = DEFAULTS.direction;
+  const controls = el("div", { class: "controls" });
   const list = el("ul", { class: "feed" });
   const count = el("span", { class: "muted" });
   const sym = { "Highlights": "✦", "New records": "🏆", "New models": "▣" };
   const renderList = () => {
     const shown = D.feed.filter((i) => (state.kind === "All" || i.kind === state.kind || (state.kind === "New to you" && shownNew.has(i.id)))
       && (state.direction === "All directions" || i.direction === state.direction));
-    count.textContent = `${shown.length} items`;
+    count.textContent = plural(shown.length, "item");
+    if (!shown.length) {
+      list.replaceChildren(el("li", { class: "empty" }, el("span", {}, "Nothing matches these filters. "),
+        el("button", { type: "button", onclick: () => { state.kind = "All"; state.direction = DEFAULTS.direction; controls.replaceChildren(...buildControls().childNodes); renderList(); } }, "Clear filters")));
+      return;
+    }
     list.replaceChildren(...shown.map((i) => el("li", {},
       el("span", { class: "date" }, fmt.date(i.date)),
       el("span", { class: "sym", "aria-hidden": "true" }, sym[i.kind]),
@@ -558,7 +715,7 @@ pages.advances = () => {
         shownNew.has(i.id) ? el("span", { class: "badge new" }, "New") : null,
         i.link ? el("a", { href: i.link, target: "_blank", rel: "noopener", style: "font-weight:550" }, i.title) : el("strong", {}, i.title),
         el("div", { class: "muted" }, i.detail),
-        el("div", { class: "meta" }, `${i.lab} · ${i.direction}`)))));
+        el("div", { class: "meta" }, [i.lab, i.direction].filter(Boolean).join(" · "))))));
   };
   renderList();
 
@@ -583,18 +740,23 @@ pages.advances = () => {
     }));
   });
 
+  function buildControls() {
+    return el("div", {},
+      segmented("kind", kinds.map((k) => [k, k === "All" ? "Everything" : k === "New to you" ? `New to you (${shownNew.size})` : k]), state.kind, (v) => { state.kind = v; renderList(); }, "Show"),
+      select(directions.map((d) => [d, d]), state.direction, (v) => { state.direction = v; renderList(); }, "Direction"),
+      count);
+  }
+  controls.replaceChildren(...buildControls().childNodes);
+
   // Seeing this page counts as seeing these items: they stay marked "New" for this visit only.
   markSeen();
   NEW_IDS = new Set();
   queueMicrotask(updateNewBadge);
   return el("div", {},
-    header("Latest advances", "Researched highlights, plus new benchmark records and newly listed models detected in the data every day."),
+    header("Latest Advances", "What's new?", "Researched highlights, plus new benchmark records and newly listed models detected in the data every day."),
     freshnessNote(D.highlightsThrough, "Researched highlights run through"),
     card("Highlights and records per month, by direction", "What the last year's advances have been about. New model listings are left out because they'd swamp the chart.", monthly),
-    el("div", { class: "controls" },
-      segmented("kind", kinds.map((k) => [k, k === "All" ? "Everything" : k === "New to you" ? `New to you (${shownNew.size})` : k]), state.kind, (v) => { state.kind = v; renderList(); }),
-      select(directions.map((d) => [d, d]), state.direction, (v) => { state.direction = v; renderList(); }, "Direction"),
-      count),
+    controls,
     list);
 };
 
@@ -612,10 +774,10 @@ pages.capabilities = () => {
   };
   render();
   return el("div", {},
-    header("Capabilities", "Every tracked model result by capability area."),
+    header("Capabilities", "What can models do?", "Every tracked model result by capability area. Tap the (i) by a benchmark for what it tests."),
     el("div", { class: "controls" },
       select(D.areas.map((a) => [a.name, a.name]), state.areaName, (v) => { state.areaName = v; render(); }, "Area"),
-      segmented("since", [[1, "1 year"], [2, "2 years"], [4, "4 years"]], state.since, (v) => { state.since = +v; render(); })),
+      segmented("since", [[1, "1 year"], [2, "2 years"], [4, "4 years"]], state.since, (v) => { state.since = +v; render(); }, "Time span")),
     slot);
 };
 
@@ -623,10 +785,13 @@ function leaderboard(benchmark) {
   const best = new Map();
   for (const r of D.results) if (r.b === benchmark && (!best.has(r.m) || best.get(r.m).s < r.s)) best.set(r.m, r);
   const top = [...best.values()].sort((a, b) => b.s - a.s).slice(0, 8);
-  const info = D.benchmarks.find((b) => b.name === benchmark);
-  return card(short(benchmark), info?.released ? `Benchmark published ${fmt.date(date(info.released))}` : null,
+  const meta = D.benchmarks.find((b) => b.name === benchmark);
+  const about = benchmarkInfo(short(benchmark));
+  const sub = [meta?.released ? `Benchmark published ${fmt.date(date(meta.released))}` : null,
+    meta?.inactive ? "no longer updated by Epoch, so left out of forecasts" : null].filter(Boolean).join("; ");
+  return card([short(benchmark), about ? info(short(benchmark), about) : null], sub || null,
     el("div", { class: "rows" }, top.map((r, i) => el("div", { class: "row" },
-      el("span", {}, el("span", { class: "muted tnum" }, `${i + 1}  `), r.m, el("span", { class: "small muted" }, ` · ${r.o}`)),
+      el("span", {}, el("span", { class: "muted tnum" }, `${i + 1}  `), r.m, r.o ? el("span", { class: "small muted" }, ` · ${r.o}`) : null),
       el("span", { class: "tnum" }, fmt.pct(r.s, 1))))));
 }
 
@@ -634,21 +799,32 @@ pages.models = () => {
   const keys = D.keyBenchmarks;
   const yearAgo = new Date(Date.now() - YEAR);
   const labCounts = new Map();
-  for (const m of D.models) labCounts.set(m.lab, (labCounts.get(m.lab) ?? 0) + 1);
+  for (const m of D.models) if (m.lab) labCounts.set(m.lab, (labCounts.get(m.lab) ?? 0) + 1);
   const labs = [...labCounts].sort((a, b) => b[1] - a[1]).slice(0, 14).map(([l]) => l);
+  if (state.lab !== "All labs" && !labCounts.has(state.lab)) state.lab = "All labs";
+  if (state.selected && !D.models.some((m) => m.name === state.selected)) state.selected = null;
+  if (state.lab !== "All labs" && !labs.includes(state.lab)) labs.push(state.lab); // a smaller lab from a link
 
+  // Getters return null for a missing value; missing values sort last in either direction.
   const cols = [
-    ["name", "Model", (m) => m.name], ["released", "Released", (m) => +m.released],
-    ["price", "$ / M tokens", (m) => m.price ?? Infinity], ["context", "Context", (m) => m.context ?? 0],
-    ...keys.map(([b, label]) => [b, label, (m) => m.scores[b] ?? -1]),
+    ["name", "Model", (m) => m.name], ["released", "First seen", (m) => (m.released ? +m.released : null)],
+    ["price", "$ / M tokens", (m) => m.price ?? null], ["context", "Context", (m) => m.context || null],
+    ...keys.map(([b, label]) => [b, label, (m) => m.scores[b] ?? null]),
   ];
+  if (!cols.some((c) => c[0] === state.sort[0])) state.sort = DEFAULTS.sort;
   const tableWrap = el("div", { class: "table-wrap" });
   const count = el("span", { class: "muted" });
   const detail = el("div");
   const comparison = el("div");
   state.compare = state.compare.filter((n) => D.models.some((m) => m.name === n)); // drop names a link got wrong
   const toggleCompare = (name, on) => {
-    state.compare = on ? [...state.compare.filter((n) => n !== name), name].slice(-4) : state.compare.filter((n) => n !== name);
+    state.compare = on ? [...state.compare.filter((n) => n !== name), name].slice(0, 4) : state.compare.filter((n) => n !== name);
+    render();
+    tableWrap.querySelector(`input[data-model="${CSS.escape(name)}"]`)?.focus();
+  };
+  const clearFilters = () => {
+    state.search = ""; state.lab = "All labs"; state.recent = false;
+    searchBox.value = ""; labSelect.value = "All labs"; recentBox.checked = false;
     render();
   };
 
@@ -660,48 +836,62 @@ pages.models = () => {
       .filter((m) => state.lab === "All labs" || m.lab === state.lab)
       .filter((m) => !state.search || (m.name + " " + m.lab).toLowerCase().includes(state.search.toLowerCase()))
       .filter((m) => keys.some(([b]) => m.scores[b] != null) || m.horizonMinutes != null)
-      .sort((a, b) => { const x = getter(a), y = getter(b); return (x < y ? -1 : x > y ? 1 : 0) * dir; });
-    count.textContent = `${rows.length} models`;
+      .sort((a, b) => {
+        const x = getter(a), y = getter(b);
+        if (x == null || y == null) return (x == null) - (y == null);
+        return (x < y ? -1 : x > y ? 1 : 0) * dir;
+      });
+    count.textContent = plural(rows.length, "model");
+    const full = state.compare.length >= 4;
     // Sort controls are real buttons so they work from the keyboard; aria-sort announces the order.
     const thead = el("thead", {}, el("tr", {}, el("th", { scope: "col", class: "compare-col" }, "Compare"), cols.map(([k, label]) => el("th", {
-      scope: "col", "aria-sort": k === key ? (dir > 0 ? "ascending" : "descending") : "none",
+      scope: "col", class: k === "name" ? "sticky-col sortable" : "sortable", "aria-sort": k === key ? (dir > 0 ? "ascending" : "descending") : "none",
     }, el("button", { type: "button", class: "sort", onclick: () => {
       state.sort = [k, k === key ? -dir : k === "name" ? 1 : -1];
       render();
       tableWrap.querySelector(`th:nth-child(${cols.findIndex((c) => c[0] === k) + 2}) button`)?.focus();
     } }, label)))));
-    const tbody = el("tbody", {}, rows.map((m) => el("tr", {
-      "aria-selected": state.selected === m.name ? "true" : null,
-      onclick: () => { state.selected = m.name; render(); detail.scrollIntoView({ behavior: "smooth", block: "nearest" }); },
-    },
+    const tbody = el("tbody", {}, rows.length ? rows.map((m) => {
+      const picked = state.compare.includes(m.name);
+      return el("tr", {
+        class: "clickable", "aria-current": state.selected === m.name ? "true" : null,
+        onclick: () => { state.selected = m.name; render(); detail.scrollIntoView({ behavior: "smooth", block: "nearest" }); },
+      },
       el("td", { class: "compare-col", onclick: (e) => e.stopPropagation() },
-        el("input", { type: "checkbox", "aria-label": `Compare ${m.name}`, checked: state.compare.includes(m.name),
+        el("input", { type: "checkbox", "aria-label": `Compare ${m.name}`, "data-model": m.name, checked: picked,
+          disabled: full && !picked, title: full && !picked ? "You can compare up to 4 models. Untick one to add another." : null,
           onchange: (e) => toggleCompare(m.name, e.target.checked) })),
-      el("td", {}, el("button", { type: "button", class: "linklike", "aria-label": `${m.name}, show full profile`,
+      el("td", { class: "sticky-col" }, el("button", { type: "button", class: "linklike", "aria-label": `${m.name}, show full profile`,
         onclick: (e) => { e.stopPropagation(); state.selected = m.name; render(); detail.querySelector("h3")?.setAttribute("tabindex", "-1"); detail.querySelector("h3")?.focus(); } }, m.name),
-        el("span", { class: "sub" }, m.lab)),
-      el("td", {}, fmt.date(m.released)),
+        m.lab ? el("span", { class: "sub" }, m.lab) : null),
+      el("td", {}, m.released ? fmt.date(m.released) : "–"),
       el("td", { class: m.price == null ? "na" : null }, m.price == null ? "–" : fmt.price(m.price)),
       el("td", { class: m.context ? null : "na" }, m.context ? fmt.tokens(m.context) : "–"),
-      keys.map(([b]) => el("td", { class: m.scores[b] == null ? "na" : null }, fmt.pct(m.scores[b]))))));
+      keys.map(([b]) => el("td", { class: m.scores[b] == null ? "na" : null }, fmt.pct(m.scores[b]))));
+    }) : el("tr", {}, el("td", { colspan: cols.length + 1, class: "empty" },
+      "No models match these filters. ", el("button", { type: "button", onclick: clearFilters }, "Clear filters"))));
     tableWrap.replaceChildren(el("table", {}, thead, tbody));
+    updateFade(tableWrap);
     const sel = D.models.find((m) => m.name === state.selected);
     detail.replaceChildren(sel ? modelDetail(sel) : el("span"));
     const picked = state.compare.map((n) => D.models.find((m) => m.name === n)).filter(Boolean);
     comparison.replaceChildren(picked.length >= 2 ? compareCard(picked, () => { state.compare = []; render(); })
       : picked.length === 1 ? footnote(`Comparing ${picked[0].name}: tick at least one more model.`) : el("span"));
+    limitNote.textContent = full ? "4 models picked, the most you can compare. Untick one to add another." : "";
   };
+  const limitNote = el("p", { class: "footnote", role: "status" });
+  const searchBox = el("input", { type: "search", placeholder: "Search models or labs", value: state.search, "aria-label": "Search", oninput: (e) => { state.search = e.target.value; render(); } });
+  const labSelect = select([["All labs", "All labs"], ...labs.map((l) => [l, l])], state.lab, (v) => { state.lab = v; render(); }, "Lab");
+  const recentBox = el("input", { type: "checkbox", checked: state.recent, onchange: (e) => { state.recent = e.target.checked; render(); } });
   render();
 
   return el("div", {},
-    header("Models", "What each model can do: its best score on the key benchmarks, with price and context window where the model is sold through an API."),
-    el("div", { class: "controls" },
-      el("input", { type: "search", placeholder: "Search models or labs", value: state.search, "aria-label": "Search", oninput: (e) => { state.search = e.target.value; render(); } }),
-      select([["All labs", "All labs"], ...labs.map((l) => [l, l])], state.lab, (v) => { state.lab = v; render(); }, "Lab"),
-      el("label", {}, el("input", { type: "checkbox", checked: state.recent, onchange: (e) => { state.recent = e.target.checked; render(); } }), "Released in the last year"),
-      count),
-    tableWrap,
-    footnote("Price is a 3:1 blend of input and output price per million tokens, from OpenRouter; it shows only when the names match. Scores are the best across reasoning-effort settings, from Epoch AI. Click a column to sort, select a row for the full profile, or tick up to 4 models to compare them."),
+    header("Models", "What can each model do?", "Its best score on the key benchmarks, with price and context window where the model is sold through an API."),
+    el("div", { class: "controls" }, searchBox, labSelect, el("label", {}, recentBox, "First seen in the last year"), count),
+    edgeFade(tableWrap),
+    limitNote,
+    footnote(["Price is a 3:1 blend ", info("blend"), " of input and output price per million tokens, from OpenRouter; it shows only when the names match. First seen ", info("firstSeen"),
+      " is the earliest date a model appears in the data. Scores are the best across reasoning-effort settings, from Epoch AI. Click a column to sort, select a row for the full profile, or tick up to 4 models to compare them."]),
     comparison,
     detail);
 };
@@ -718,7 +908,7 @@ function compareCard(models, clear) {
   const rows = shared.flatMap((b) => models.filter((m) => m.scores[b] != null).map((m) => ({ benchmark: short(b), model: m.name, score: m.scores[b] })));
   const facts = [
     ["Lab", (m) => m.lab],
-    ["First result", (m) => fmt.date(m.released)],
+    ["First seen", (m) => (m.released ? fmt.date(m.released) : "–")],
     ["Price / M tokens", (m) => fmt.price(m.price)],
     ["Context", (m) => (m.context ? fmt.tokens(m.context) : "–")],
     ["Task horizon", (m) => (m.horizonMinutes ? fmt.minutes(m.horizonMinutes) : "–")],
@@ -729,11 +919,11 @@ function compareCard(models, clear) {
   return card(`Comparing ${models.length} models`, "Best score on each benchmark at least two of them have results for. The leader on each row is bold.",
     el("div", { class: "controls", style: "margin-bottom:8px" }, el("button", { type: "button", onclick: clear }, "Clear comparison")),
     el("div", { class: "table-wrap", style: "max-height:none" }, el("table", {},
-      el("thead", {}, el("tr", {}, el("th", { scope: "col", style: "cursor:default" }, ""), names.map((n, i) => el("th", { scope: "col", style: "cursor:default" },
-        el("i", { class: "swatch", style: `background:${colors().series[i]}` }), n)))),
+      el("thead", {}, el("tr", {}, el("th", { scope: "col" }, el("span", { class: "sr-only" }, "Model")), names.map((n, i) => el("th", { scope: "col" },
+        el("i", { class: "swatch", style: `background:var(--s${i + 1})` }), n)))),
       el("tbody", {},
-        facts.map(([label, f]) => el("tr", { style: "cursor:default" }, el("th", { scope: "row" }, label), models.map((m) => el("td", {}, f(m))))),
-        shared.map((b) => el("tr", { style: "cursor:default" }, el("th", { scope: "row" }, short(b)),
+        facts.map(([label, f]) => el("tr", {}, el("th", { scope: "row" }, label), models.map((m) => el("td", {}, f(m))))),
+        shared.map((b) => el("tr", {}, el("th", { scope: "row" }, short(b)),
           models.map((m) => el("td", { class: m.scores[b] == null ? "na" : null, style: m.scores[b] === best(b) ? "font-weight:700" : null }, fmt.pct(m.scores[b], 1)))))))),
     shared.length ? chart((w, C) => Plot.plot(plotBase(C, {
       ariaLabel: `Grouped bar chart comparing ${names.join(", ")} on ${shared.map(short).join(", ")}.`,
@@ -754,13 +944,13 @@ function modelDetail(m) {
   const scores = Object.entries(m.scores).sort((a, b) => b[1] - a[1]);
   const facts = [];
   if (m.price != null) {
-    facts.push(["Price", `${fmt.price(m.inputPrice)} in · ${fmt.price(m.outputPrice)} out per M tokens`], ["Context", `${fmt.tokens(m.context)} tokens`],
-      ["Takes in", m.inputModalities.join(", ")], ["Produces", m.outputModalities.join(", ")]);
+    facts.push(["Price", `${fmt.price(m.inputPrice)} in · ${fmt.price(m.outputPrice)} out per M tokens`], ["Context", m.context ? `${fmt.tokens(m.context)} tokens` : "–"],
+      ["Takes in", (m.inputModalities ?? []).join(", ") || "–"], ["Produces", (m.outputModalities ?? []).join(", ") || "–"]);
   } else facts.push(["API", "Not listed on OpenRouter under this name"]);
   if (m.computeFLOP) facts.push(["Training compute", `${fmt.flop(m.computeFLOP)} FLOP`]);
   if (m.horizonMinutes) facts.push(["Task horizon", fmt.minutes(m.horizonMinutes)]);
   if (m.openWeights != null) facts.push(["Weights", m.openWeights ? "Open" : "Closed"]);
-  return card(m.name, `${m.lab} · first result ${fmt.date(m.released)} · ${scores.length} benchmarks`,
+  return card(m.name, [m.lab, m.released ? `first seen ${fmt.date(m.released)}` : null, plural(scores.length, "benchmark")].filter(Boolean).join(" · "),
     el("div", { class: "grid", style: "--min: 280px" },
       el("dl", { class: "facts" }, facts.map(([k, v]) => [el("dt", {}, k), el("dd", {}, v)])),
       chart((w, C) => Plot.plot(plotBase(C, {
@@ -776,38 +966,46 @@ function modelDetail(m) {
 
 pages.cost = () => {
   if (!D.keyBenchmarks.some(([b]) => b === state.costBench)) state.costBench = DEFAULTS.costBench;
-  state.threshold = Math.min(0.95, Math.max(0.1, state.threshold));
+  const round = (v) => Math.round(v * 100) / 100; // keep float noise (0.7000000000000001) out of the link
+  state.threshold = round(Math.min(0.95, Math.max(0.1, state.threshold)));
   const slot = el("div");
   const best = (b) => Math.max(0, ...D.results.filter((r) => r.b === b).map((r) => r.s));
   const thresholdLabel = el("span", { class: "tnum", style: "min-width:3em" });
   const slider = el("input", { type: "range", min: 0.1, max: 0.95, step: 0.05, value: state.threshold, "aria-label": "Score at least",
-    oninput: (e) => { state.threshold = +e.target.value; render(); } });
+    oninput: (e) => { state.threshold = round(+e.target.value); render(); } });
   const bestLabel = el("span", { class: "muted" });
+  const benchInfo = el("span");
 
   const render = () => {
     const b = state.costBench, t = state.threshold;
     thresholdLabel.textContent = fmt.pct(t);
     bestLabel.textContent = `Current best: ${fmt.pct(best(b))}`;
+    const about = benchmarkInfo(short(b));
+    benchInfo.replaceChildren(about ? info(short(b), about) : "");
     const steps = cheapestOverTime(b, t);
     const fit = expFit(steps.map((s) => [+s.d, s.price]));
     const sixMonths = new Date(Date.now() - YEAR / 2);
     const dots = D.models.filter((m) => m.price != null && m.scores[b] != null)
-      .map((m) => ({ name: m.name, lab: m.lab, price: m.price, score: m.scores[b], recent: m.released >= sixMonths ? "Released in the last 6 months" : "Older", released: m.released }));
+      .map((m) => ({ name: m.name, lab: m.lab, price: m.price, score: m.scores[b], recent: m.released >= sixMonths ? "First seen in the last 6 months" : "Older", released: m.released }));
     slot.replaceChildren(
       card(`Cheapest price to reach ${fmt.pct(t)} on ${short(b)}`,
         steps.length >= 3 && fit ? `Falling about ${(1 / fit.factorPerYear).toFixed(0)}× per year (exponential fit over ${steps.length} price drops).` : "Too few price drops yet to fit a trend.",
-        steps.length ? chart((w, C) => Plot.plot(plotBase(C, {
+        steps.length ? chart((w, C) => { const start = steps[0].d, end = new Date(), mid = new Date((+start + +end) / 2);
+          // Model names start right of a dot in the left half and end left of it in the right half, so none run off the edge.
+          const label = (left) => Plot.text(steps.filter((s) => (s.d < mid) === left), { x: "d", y: "price", text: "model", dx: left ? 6 : -6, dy: -7, lineAnchor: "bottom",
+            textAnchor: left ? "start" : "end", fill: C.text2, fontSize: 11, lineWidth: w < 500 ? 9 : 16 });
+          return Plot.plot(plotBase(C, {
           ariaLabel: `Step chart of the cheapest listed price for a model scoring at least ${fmt.pct(t)} on ${short(b)}: ${steps.map((s) => `${s.model} at ${fmt.price(s.price)} from ${fmt.monthYear(s.d)}`).join(", then ")}.`,
           width: w, height: 300, marginRight: 30, marginLeft: 56,
-          x: { type: "utc", label: null, domain: [steps[0].d, new Date()] },
+          x: { type: "utc", label: null, domain: [start, end] },
           y: { type: "log", label: null, grid: true, tickFormat: fmt.price },
           marks: [
             Plot.line([...steps, { ...steps[steps.length - 1], d: new Date() }], { x: "d", y: "price", curve: "step-after", stroke: C.series[0], strokeWidth: 2 }),
             Plot.dot(steps, { x: "d", y: "price", fill: C.series[0], r: 4.5,
               tip: { ...tip(C), format: { x: (d) => fmt.date(d), y: fmt.price } }, channels: { Model: "model", Score: (s) => fmt.pct(s.score, 1) } }),
-            Plot.text(steps, { x: "d", y: "price", text: "model", dx: 6, dy: -9, textAnchor: "start", fill: C.text2, fontSize: 11 }),
+            label(true), label(false),
           ],
-        }))) : el("p", { class: "muted" }, "No model with a listed price has reached this score yet. Lower the threshold.")),
+        })); }) : el("p", { class: "muted" }, "No model with a listed price has reached this score yet. Lower the threshold.")),
       card(`Price against score, ${short(b)}`, "Every model with both a score and a listed price. Up and to the left is better value.",
         chart((w, C) => Plot.plot(plotBase(C, {
           ariaLabel: `Scatter plot of price per million tokens against score on ${short(b)} for ${dots.length} models.` + (dots.length ? ` Highest score: ${[...dots].sort((x, y) => y.score - x.score)[0].name} at ${fmt.pct([...dots].sort((x, y) => y.score - x.score)[0].score, 1)}. Cheapest: ${[...dots].sort((x, y) => x.price - y.price)[0].name} at ${fmt.price([...dots].sort((x, y) => x.price - y.price)[0].price)}.` : ""),
@@ -818,19 +1016,19 @@ pages.cost = () => {
           marks: [Plot.dot(dots, { x: "price", y: "score", fill: "recent", r: 4,
             tip: { ...tip(C), format: { x: fmt.price, y: (v) => fmt.pct(v, 1), fill: false } }, channels: { Model: "name", Lab: "lab" } })],
         }))),
-        footnote("Prices are today's OpenRouter list prices (3:1 input:output blend), so older models show their current, often reduced, price.")));
+        footnote(["Prices are today's OpenRouter list prices (3:1 input:output blend ", info("blend"), "), so older models show their current, often reduced, price."])));
   };
   render();
   return el("div", {},
-    header("Cost", "How fast a given level of capability gets cheaper. Pick a benchmark and a score; the line shows the cheapest model that had reached it by each date."),
+    header("Cost", "How fast does capability get cheaper?", "Pick a benchmark and a score; the line shows the cheapest model that had reached it by each date."),
     el("div", { class: "controls" },
       select(D.keyBenchmarks.map(([b, l]) => [b, l]), state.costBench, (v) => {
         state.costBench = v;
-        state.threshold = Math.max(0.1, Math.round((best(v) * 0.75) / 0.05) * 0.05);
+        state.threshold = round(Math.max(0.1, Math.round((best(v) * 0.75) / 0.05) * 0.05));
         slider.value = state.threshold;
         render();
       }, "Benchmark"),
-      el("label", {}, "Score at least", slider, thresholdLabel), bestLabel),
+      el("label", {}, "Score at least", slider, thresholdLabel), bestLabel, benchInfo),
     slot);
 };
 
@@ -838,7 +1036,7 @@ pages.context = () => {
   const listed = D.listed.filter((l) => l.context > 0);
   const top = [...listed].sort((a, b) => b.context - a.context)[0];
   return el("div", {},
-    header("Context & Modalities", "How much text models can take in at once, and which kinds of input and output they handle. From every model listed on OpenRouter since 2024."),
+    header("Context & Modalities", "How much can models read, and what can they see and make?", "How much text models can take in at once, and which kinds of input and output they handle. From every model listed on OpenRouter since 2024."),
     card("Context window by release", "Each dot is a model. The line is the median for models listed that quarter.",
       chart((w, C) => Plot.plot(plotBase(C, {
         ariaLabel: `Scatter plot of context window against listing date for ${listed.length} models since 2024. The quarterly median went from ${fmt.tokens(D.contextMedians[0]?.value ?? 0)} to ${fmt.tokens(D.contextMedians[D.contextMedians.length - 1]?.value ?? 0)} tokens.` + (top ? ` Largest: ${top.name} at ${fmt.tokens(top.context)}.` : ""),
@@ -851,7 +1049,7 @@ pages.context = () => {
           Plot.line(D.contextMedians, { x: (p) => new Date(+p.date + 45 * DAY), y: "value", stroke: C.series[1], strokeWidth: 2, marker: "circle-stroke" }),
         ],
       }))),
-      legend([["Model", colors().series[0]], ["Quarterly median", colors().series[1], true]]),
+      legend([["Model", "var(--s1)"], ["Quarterly median", "var(--s2)", true]]),
       top ? footnote(`Largest so far: ${top.name} (${top.lab}) at ${fmt.tokens(top.context)} tokens, listed ${fmt.date(top.created)}.`) : null),
     card("Which modalities new models support", "Share of models first listed each quarter that accept or produce each kind of media.",
       chart((w, C) => {
@@ -865,11 +1063,13 @@ pages.context = () => {
           marks: [
             Plot.line(D.modalityShares, { x: "start", y: "share", stroke: "modality", strokeWidth: 2, marker: "circle-stroke" }),
             Plot.dot(D.modalityShares, Plot.pointerX({ x: "start", y: "share", fill: "modality", r: 4,
-              tip: { ...tip(C), format: { x: false, y: (v) => fmt.pct(v) } }, channels: { Quarter: "quarter", Models: "count" } })),
+              tip: { ...tip(C), format: { x: false, y: (v) => fmt.pct(v) } },
+              channels: { Quarter: (s) => (s.partial ? `${s.quarter} (so far)` : s.quarter), Models: "count" } })),
           ],
         }));
       }),
-      footnote("Models later removed from OpenRouter aren't counted, so older quarters are thinner.")));
+      footnote("Models later removed from OpenRouter aren't counted, so older quarters are thinner."
+        + (D.modalityShares.some((s) => s.partial) ? " The latest quarter isn't over yet, so its shares can still move." : ""))));
 };
 
 pages.compute = () => {
@@ -879,26 +1079,38 @@ pages.compute = () => {
     const since = date(`${state.computeSince}-01-01`);
     const models = D.notable.filter((n) => n.date >= since).map((n) => ({ ...n, kind: n.frontier ? "Frontier model" : "Other notable model" }));
     const t = D.tiles;
+    // The fitted trend is a straight line on the log scale: draw it across whatever range is visible,
+    // extrapolating back from the fit's own endpoints when the view starts after them.
+    const fit = [...D.computeFit].sort((a, b) => a.date - b.date);
+    let trend = [];
+    if (fit.length >= 2) {
+      const [a, b] = [fit[0], fit[fit.length - 1]];
+      const at = (d) => 10 ** (Math.log10(a.value) + (Math.log10(b.value) - Math.log10(a.value)) * ((d - a.date) / (b.date - a.date)));
+      const from = new Date(Math.max(+since, +a.date));
+      trend = [{ date: from, value: at(from) }, ...fit.filter((p) => p.date > from)];
+    }
     slot.replaceChildren(card("Training compute over time",
       t.computeFactorPerYear ? `Frontier runs grow about ${t.computeFactorPerYear.toFixed(1)}× per year, doubling every ${fmt.months(t.computeDoublingMonths)} (dashed line, fit since 2020).` : null,
       chart((w, C) => Plot.plot(plotBase(C, {
         ariaLabel: `Scatter plot of training compute for ${models.length} notable models since ${state.computeSince}, frontier models highlighted, with a trend line.` + (t.computeFactorPerYear ? ` Frontier runs grow about ${t.computeFactorPerYear.toFixed(1)}x per year.` : "") + (models.length ? ` Largest: ${[...models].sort((a, b) => b.flop - a.flop)[0].name}.` : ""),
         width: w, height: 380, marginLeft: 52,
         x: { type: "utc", label: null },
-        y: { type: "log", label: null, grid: true, tickFormat: (v) => `10^${Math.round(Math.log10(v))}`, ticks: 8 },
+        y: { type: "log", label: null, grid: true, tickFormat: (v) => pow10(Math.round(Math.log10(v))), ticks: 8 },
         color: { domain: ["Frontier model", "Other notable model"], range: [C.series[1], C.series[0]], legend: true },
         marks: [
           Plot.dot(models, { x: "date", y: "flop", fill: "kind", r: (n) => (n.frontier ? 3.5 : 2.5), fillOpacity: (n) => (n.frontier ? 0.9 : 0.35),
             tip: { ...tip(C), format: { x: (d) => fmt.date(d), y: (v) => `${fmt.flop(v)} FLOP`, fill: false, r: false, fillOpacity: false } },
             channels: { Model: "name", Org: "org" } }),
-          Plot.line(D.computeFit.filter((p) => p.date >= since || D.computeFit.indexOf(p) === 1), { x: "date", y: "value", stroke: C.muted, strokeDasharray: "5,4", strokeWidth: 1.5 }),
+          Plot.line(trend, { x: "date", y: "value", stroke: C.muted, strokeDasharray: "5,4", strokeWidth: 1.5 }),
         ],
       })))));
   };
   render();
   return el("div", {},
-    header("Compute", "Training compute of notable AI models, from Epoch AI. Frontier models are those among the ten largest training runs when they were released."),
-    segmented("csince", [[2012, "2012"], [2018, "2018"], [2022, "2022"]], state.computeSince, (v) => { state.computeSince = +v; render(); }),
+    header("Compute", "How much compute goes into training?", ["Training compute ", info("flop"), " of notable AI models, from Epoch AI. Frontier models are those among the ten largest training runs when they were released."]),
+    el("div", { class: "controls" },
+      el("span", { id: "csince-label", class: "control-label" }, "Show models since"),
+      segmented("csince", COMPUTE_SINCE.map((y) => [y, String(y)]), state.computeSince, (v) => { state.computeSince = +v; render(); }, { labelledby: "csince-label" })),
     slot,
     card("Largest training runs", "Estimated by Epoch AI from disclosures, hardware and timing; most labs don't publish these figures.",
       el("div", { class: "rows" }, largest.map((n, i) => el("div", { class: "row" },
@@ -918,13 +1130,20 @@ function route() {
   for (const [param, key, parse] of LINKED[page[0]] ?? []) {
     if (!params.has(param)) continue;
     const value = parse(params.get(param));
-    if (!(typeof value === "number" && Number.isNaN(value))) state[key] = value;
+    state[key] = value === undefined ? DEFAULTS[key] : value;
   }
   currentPage = page[0];
+  closePopovers();
   document.querySelectorAll("#nav a").forEach((a) => {
     if (a.dataset.page === page[0]) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
   });
+  // On phones the nav scrolls sideways: bring the current page's link into view.
+  const nav = $("#nav"), current = nav.querySelector('a[aria-current="page"]');
+  if (current && nav.scrollWidth > nav.clientWidth) {
+    nav.scrollLeft = current.offsetLeft - nav.offsetLeft - (nav.clientWidth - current.offsetWidth) / 2;
+    updateFade(nav);
+  }
   $("#page-name").textContent = page[1];
   document.title = page[0] === "trends" ? "AI Advances" : `${page[1]} · AI Advances`;
   $("#page").replaceChildren(pages[page[0]]());
@@ -934,6 +1153,8 @@ function route() {
 
 function shell() {
   $("#nav").replaceChildren(...PAGES.map(([id, name]) => el("li", {}, el("a", { href: `#/${id}`, "data-page": id }, name))));
+  edgeFade($("#nav"));
+  addEventListener("resize", () => updateFade($("#nav")));
   // The site is rebuilt every morning; if that stops, say so rather than quietly showing old data.
   const age = Math.floor((Date.now() - D.generatedAt) / DAY);
   if (age > 2) {
@@ -945,18 +1166,36 @@ function shell() {
   } else {
     $("#status").textContent = `Data through ${fmt.date(D.latestDataDate)} · updated ${fmt.date(D.generatedAt)}`;
   }
+  // A source that couldn't be downloaded today falls back to the copy saved with the build.
+  const fellBack = Array.isArray(D.sourcesFellBack) ? D.sourcesFellBack.filter(Boolean) : [];
+  if (fellBack.length) {
+    $("#page").before(el("p", { class: "freshness stale site-stale", role: "status", id: "fallback-banner" },
+      `⚠ ${fellBack.length === 1 ? "One data source" : `${fellBack.length} data sources`} couldn't be downloaded today (${fellBack.join(", ")}), `
+      + `so ${fellBack.length === 1 ? "it uses" : "they use"} the last saved copy. Pages built from ${fellBack.length === 1 ? "it" : "them"} may be missing the newest results.`));
+  }
   $("#sources-panel").replaceChildren(
     el("strong", {}, "Data sources"),
     ...D.sources.map((s) => el("p", {}, el("a", { href: s.page, target: "_blank", rel: "noopener" }, s.name), el("br"), el("span", { class: "small muted" }, s.credit))),
+    fellBack.length ? el("p", { class: "small" }, `Today's download failed for ${fellBack.join(", ")}; the last saved copy is used instead.`) : null,
     el("p", { class: "small muted" }, "A GitHub Action downloads the sources, recomputes every trend and forecast, and republishes this site daily. The same analysis runs in the AI Advances Mac app."));
+  // The sources popover (and any (i) definition) closes on Escape or a click elsewhere.
+  document.addEventListener("click", closePopovers);
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    const open = document.querySelector(".info-wrap.open");
+    if (open) { setInfo(open, false); open.querySelector("button.info").focus(); return; }
+    const sources = $(".sources");
+    if (sources.open) { sources.open = false; sources.querySelector("summary").focus(); }
+  });
 }
 
 function feedback() {
   const dialog = $("#feedback"), text = $("#feedback-text"), send = $("#feedback-send");
-  $("#feedback-open").addEventListener("click", () => dialog.showModal());
+  // returnValue survives between openings, so Escape after an earlier send would send again: reset it on open.
+  $("#feedback-open").addEventListener("click", () => { dialog.returnValue = ""; send.disabled = !text.value.trim(); dialog.showModal(); });
   text.addEventListener("input", () => { send.disabled = !text.value.trim(); });
   dialog.addEventListener("close", () => {
-    if (dialog.returnValue !== "send") return;
+    if (dialog.returnValue !== "send" || !text.value.trim()) return;
     const kind = dialog.querySelector("input[name=kind]:checked").value;
     const firstLine = text.value.trim().split("\n")[0].slice(0, 70);
     const url = new URL(ISSUES_URL);
@@ -967,17 +1206,32 @@ function feedback() {
   });
 }
 
+function fail(message) {
+  $("#status").textContent = "Couldn't load";
+  $("#page").replaceChildren(el("div", { class: "card", role: "alert" },
+    el("h1", { style: "font-size:22px" }, "This page couldn't load"),
+    el("p", {}, message),
+    el("p", {}, el("button", { type: "button", onclick: () => location.reload() }, "Try again"))));
+}
+
 async function main() {
   feedback();
   $(".skip-link").addEventListener("click", (e) => { e.preventDefault(); $("#page").focus(); });
+  // Both files load at once. The Claude outlook is optional: missing, empty or broken means no card.
+  const outlook = fetch("data/outlook.json", { cache: "no-cache" })
+    .then((r) => (r.ok ? r.json() : null)).then((o) => (o?.headline && o?.outlook ? o : null)).catch(() => null);
   try {
     const res = await fetch("data/site.json", { cache: "no-cache" });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     D = prepare(await res.json());
-    // The Claude outlook is optional: missing or broken just means the card isn't shown.
-    CLAUDE = await fetch("data/outlook.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   } catch (e) {
-    $("#page").replaceChildren(el("p", {}, `Couldn't load the data (${e.message}).`));
+    fail(`The site's data couldn't be loaded (${e.message}). Check your connection and try again.`);
+    return;
+  }
+  CLAUDE = await outlook;
+  Plot = globalThis.Plot;
+  if (!Plot?.plot) {
+    fail("The charting library couldn't be loaded. Check your connection (or any content blocker) and try again.");
     return;
   }
   shell();
@@ -986,8 +1240,8 @@ async function main() {
   route();
   addEventListener("hashchange", route);
   let t;
-  addEventListener("resize", () => { clearTimeout(t); t = setTimeout(rerenderCharts, 150); });
-  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", rerenderCharts);
+  addEventListener("resize", () => { clearTimeout(t); t = setTimeout(() => rerenderCharts(), 150); });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => rerenderCharts(true));
 }
 
 main();
