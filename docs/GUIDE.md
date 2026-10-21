@@ -218,4 +218,4 @@ You can also edit `Labs.json` and `Advances.json` by hand. Each lab note needs `
 
 ## Feedback
 
-Click **Feedback** at the bottom of the sidebar (on the website, the menu on phones), or choose **Help → Send Feedback…** in the app. It opens a pre-filled GitHub issue that you can review before posting.
+On the website, click **Feedback** in the navigation; in the app, choose **Help → Send Feedback…** in the app. It opens a pre-filled GitHub issue that you can review before posting.
