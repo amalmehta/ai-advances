@@ -48,12 +48,28 @@ enum Feed {
             let base = m.name
             let variants = sorted.map(\.name).filter { $0 != base }
             let also = variants.isEmpty ? "" : " (also as " + variants.map { String($0.dropFirst(base.count)).trimmingCharacters(in: .whitespaces) }.joined(separator: ", ") + ")"
-            return FeedItem(id: "m" + m.id, date: group.map(\.created).min()!, title: "\(m.lab) lists \(base)\(also)",
+            let lab = Labs.canonical(openRouter: m.lab)
+            return FeedItem(id: "m" + m.id, date: group.map(\.created).min()!, title: "\(lab) lists \(base)\(also)",
                             detail: "\(Format.tokens(m.contextLength)) context · \(m.isFree ? "free" : Format.price(m.blendedPrice) + " / M tokens") · takes \(m.inputModalities.sorted().joined(separator: ", "))",
-                            lab: m.lab, kind: .models, direction: "New models",
+                            lab: lab, kind: .models, direction: "New models",
                             link: "https://openrouter.ai/\(m.id)")
         }
     }
+
+    /// "a" or "an" for the sound `word` starts with: "an APEX-Agents record", "an HLE record",
+    /// "a GPQA record", "a METR record" (said "meter").
+    static func article(_ word: String) -> String {
+        let first = word.split(whereSeparator: { $0 == " " || $0 == "-" }).first.map(String.init) ?? word
+        guard let c = first.first else { return "a" }
+        if spokenAsWords.contains(first.uppercased()) { return "aeiou".contains(c.lowercased()) ? "an" : "a" }
+        let isAcronym = first.count <= 4 && first.allSatisfy { $0.isUppercase || $0.isNumber }
+        if isAcronym { return "AEFHILMNORSX".contains(c) ? "an" : "a" }   // letters whose names start with a vowel sound
+        if first.lowercased().hasPrefix("uni") || first.lowercased().hasPrefix("one") { return "a" }
+        return "aeiouAEIOU".contains(c) ? "an" : "a"
+    }
+
+    /// Acronyms read as words, not letter by letter.
+    static let spokenAsWords: Set<String> = ["METR", "NASA", "SWE", "VPCT"]
 
     static let areaDirection: [String: String] = [
         "Reasoning & knowledge": "Reasoning", "Math": "Reasoning", "Novel problem solving": "Reasoning",
@@ -67,11 +83,12 @@ enum Feed {
                      kind: .curated, direction: $0.direction, link: $0.source)
         }
         let areaOf = Dictionary(data.areas.flatMap { a in a.benchmarks.map { ($0, a.name) } }, uniquingKeysWith: { a, _ in a })
-        let records = Analysis.recentRecords(data, since: yearAgo).map { r in
-            FeedItem(id: "r" + r.id, date: r.point.date,
-                     title: "\(r.point.model) sets a \(Analysis.shortName(r.point.benchmark)) record",
+        let records = Analysis.recentRecords(data, since: yearAgo, now: now).map { r in
+            let short = Analysis.shortName(r.point.benchmark)
+            return FeedItem(id: "r" + r.id, date: r.date,
+                     title: "\(r.point.model) sets \(article(short)) \(short) record",
                      detail: "\(Format.percent(r.point.score, digits: 1)), up from \(Format.percent(r.previous, digits: 1)). \(areaOf[r.point.benchmark] ?? "") benchmark.",
-                     lab: r.point.organization, kind: .records,
+                     lab: Labs.canonical(epoch: r.point.organization), kind: .records,
                      direction: areaDirection[areaOf[r.point.benchmark] ?? ""] ?? "Reasoning",
                      link: "https://epoch.ai/benchmarks")
         }

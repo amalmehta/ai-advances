@@ -8,17 +8,14 @@ final class CalibrationExperiment: XCTestCase {
         guard ProcessInfo.processInfo.environment["CALIBRATE"] != nil else { throw XCTSkip("Set CALIBRATE to run") }
         let data = SnapshotTests.data!
         let now = Dates.parse("2026-09-30")!
-        let saved = Forecasts.rangeZ
-        defer { Forecasts.rangeZ = saved }
         var rows: [(z: Double, items: [TrackRecord.Item])] = []
         for z in stride(from: 1.0, through: 6.0, by: 0.25) {
-            Forecasts.rangeZ = z
-            let current = Forecasts.all(data, profiles: Analysis.profiles(data), asOf: now)
-            let history = Forecasts.reconstructed(data, now: now, months: 18)
+            let current = Forecasts.all(data, profiles: Analysis.profiles(data), asOf: now, z: z)
+            let history = Forecasts.reconstructed(data, now: now, months: 18, z: z)
             // Every scored forecast, not just one per milestone.
             var all: [TrackRecord.Item] = []
             for f in current where f.reached != nil {
-                all += TrackRecord.score(history: history, current: [f]).allItems
+                all += TrackRecord.score(history: history, current: [f], now: now).allItems
             }
             rows.append((z, all))
             let cov = Double(all.filter(\.inside).count) / Double(max(1, all.count))
