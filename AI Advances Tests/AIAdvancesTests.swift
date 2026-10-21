@@ -24,17 +24,23 @@ final class AnalysisTests: XCTestCase {
 
     func testMatchKeyJoinsEpochAndOpenRouterNames() {
         XCTAssertEqual(Analysis.matchKey("Claude Opus 5.5"), Analysis.matchKey("Anthropic: Claude Opus 5.5"))
-        XCTAssertEqual(Analysis.matchKey("Gemini 3.1 Pro"), Analysis.matchKey("Google: Gemini 3.1 Pro Preview"))
-        XCTAssertNotEqual(Analysis.matchKey("GPT-6 Sol"), Analysis.matchKey("GPT-6.1 Sol"))
-        // Snapshot dates and labels on listings don't make a different model.
-        XCTAssertEqual(Analysis.matchKey("DeepSeek-V4-Pro"), Analysis.matchKey("DeepSeek: DeepSeek V4 Pro 0423"))
-        XCTAssertEqual(Analysis.matchKey("Mistral Large 3"), Analysis.matchKey("Mistral: Mistral Large 3 2512"))
         XCTAssertEqual(Analysis.matchKey("Gemma 4 31B IT"), Analysis.matchKey("Google: Gemma 4 31B"))
-        XCTAssertEqual(Analysis.matchKey("Grok 4.3 Beta"), Analysis.matchKey("SpaceXAI: Grok 4.3"))
-        XCTAssertEqual(Analysis.matchKey("Qwen 3.5 Plus (hosted 397B-A17B)"), Analysis.matchKey("Qwen: Qwen3.5 Plus 2026-02-15"))
-        // ...but real differences still count.
-        XCTAssertNotEqual(Analysis.matchKey("Muse Spark"), Analysis.matchKey("Meta: Muse Spark 1.2"))
-        XCTAssertNotEqual(Analysis.matchKey("Qwen3.5-27B"), Analysis.matchKey("Qwen: Qwen3.6 27B"))
+        XCTAssertNotEqual(Analysis.matchKey("GPT-6 Sol"), Analysis.matchKey("GPT-6.1 Sol"))
+        // Previews, snapshot stamps, dates and notes now only match through the loose key, which
+        // profiles use only when there's no exact match (so a preview never takes a release's place).
+        XCTAssertEqual(Analysis.looseKey("Gemini 3.1 Pro"), Analysis.looseKey("Google: Gemini 3.1 Pro Preview"))
+        XCTAssertEqual(Analysis.looseKey("DeepSeek-V4-Pro"), Analysis.looseKey("DeepSeek: DeepSeek V4 Pro 0423"))
+        XCTAssertEqual(Analysis.looseKey("Mistral Large 3"), Analysis.looseKey("Mistral: Mistral Large 3 2512"))
+        XCTAssertEqual(Analysis.looseKey("Grok 4.3 Beta"), Analysis.looseKey("SpaceXAI: Grok 4.3"))
+        XCTAssertEqual(Analysis.looseKey("Qwen 3.5 Plus (hosted 397B-A17B)"), Analysis.looseKey("Qwen: Qwen3.5 Plus 2026-02-15"))
+        XCTAssertNotEqual(Analysis.matchKey("Gemini 3.1 Pro"), Analysis.matchKey("Google: Gemini 3.1 Pro Preview"))
+        XCTAssertNotEqual(Analysis.matchKey("DeepSeek V4 Pro 0423"), Analysis.matchKey("DeepSeek V4 Pro 0813"))
+        // ...and real differences count in both.
+        for key in [Analysis.matchKey, Analysis.looseKey] {
+            XCTAssertNotEqual(key("Muse Spark"), key("Meta: Muse Spark 1.2"))
+            XCTAssertNotEqual(key("Qwen3.5-27B"), key("Qwen: Qwen3.6 27B"))
+            XCTAssertNotEqual(key("GPT-6 Sol"), key("GPT-6.1 Sol"))
+        }
     }
 
     func testFrontierKeepsOnlyRecords() {
@@ -56,7 +62,7 @@ final class AnalysisTests: XCTestCase {
 
     func testMomentumMeasuresHeadroomClosed() {
         let area = CapabilityArea(name: "A", summary: "", benchmarks: ["B"])
-        let now = Dates.parse("2026-01-01")!
+        let now = Dates.parse("2025-07-01")!   // within 120 days of the last result, so still active
         let rs = [result("B", "old", "2024-06-01", 0.5), result("B", "new", "2025-06-01", 0.75)]
         let m = Analysis.momentum(area: area, results: rs, infos: [], now: now, months: 12)!
         XCTAssertEqual(m.gapClosed, 0.5, accuracy: 1e-9)
@@ -118,8 +124,18 @@ final class SnapshotTests: XCTestCase {
         XCTAssert((2...10).contains(compute.factorPerYear), "compute grows \(compute.factorPerYear)x/yr")
         let horizons = Analysis.horizonFrontier(Self.data.horizons)
         XCTAssertGreaterThan(horizons.last!.minutes, 60)
+        // As of the snapshot (not today, or every benchmark would eventually look inactive).
+        // An area whose benchmarks are all past 90% or no longer updated has no momentum to show.
+        let now = Self.data.results.map(\.releaseDate).max()!
+        let inactive = Analysis.inactiveBenchmarks(Self.data.results, now: now)
         for area in Self.data.areas {
-            XCTAssertNotNil(Analysis.momentum(area: area, results: Self.data.results, infos: Self.data.benchmarks, now: Date()), area.name)
+            let open = area.benchmarks.filter { b in
+                let best = Analysis.frontier(Self.data.results, benchmark: b).last?.score ?? 1
+                let ceiling = Self.data.benchmarks.first { $0.name == b }?.ceiling ?? 1
+                return !inactive.contains(b) && best < Forecasts.saturation * ceiling
+            }
+            let m = Analysis.momentum(area: area, results: Self.data.results, infos: Self.data.benchmarks, now: now)
+            XCTAssertEqual(m != nil, !open.isEmpty, area.name)
         }
     }
 
@@ -222,12 +238,14 @@ final class TrackRecordTests: XCTestCase {
         }
         let history = [
             entry("2025-12-01", "2026-04-01", "2026-03-01", "2026-05-01"),  // outside: reached after the late end
-            entry("2026-01-01", "2026-05-01", "2026-03-01", nil),           // inside: open-ended range
+            entry("2026-01-01", "2026-05-01", "2026-03-01", nil),           // open-ended: reported, not scored
             entry("2026-05-01", "2026-06-01", "2026-05-15", "2026-07-01"),  // too close to the event; ignored
         ]
-        let r = TrackRecord.score(history: history, current: [f])
-        XCTAssertEqual(r.scored, 2)
-        XCTAssertEqual(r.inside, 1)
+        let r = TrackRecord.score(history: history, current: [f], now: Dates.parse("2026-10-01")!)
+        XCTAssertEqual(r.scored, 1)
+        XCTAssertEqual(r.inside, 0)
+        XCTAssertEqual(r.openEnded, 1)
+        XCTAssertEqual(r.milestones, 1)
         XCTAssertEqual(r.items.first?.madeOn, Dates.parse("2025-12-01"))   // closest to six months ahead
         XCTAssertEqual(r.items.first?.errorMonths ?? 0, 2, accuracy: 0.1)  // happened ~2 months later than forecast
     }
@@ -238,7 +256,8 @@ final class TrackRecordTests: XCTestCase {
         let now = Dates.parse("2026-09-30")!
         let current = Forecasts.all(data, profiles: Analysis.profiles(data), asOf: now)
         let history = Forecasts.reconstructed(data, now: now, months: 18)
-        let r = TrackRecord.score(history: history, current: current)
+        let r = TrackRecord.score(history: history, current: current, now: now)
+        print("HINDCAST \(r.summary)")
         print("HINDCAST scored \(r.scored), inside \(r.inside), coverage \(Format.percent(r.coverage)), median error \(r.medianAbsErrorMonths.map { String(format: "%.1f", $0) } ?? "–") months")
         for i in r.items {
             print("HINDCAST \(i.forecastID): made \(Format.monthYear(i.madeOn)), predicted \(Format.monthYear(i.predicted)), reached \(Format.monthYear(i.reached)), \(i.inside ? "inside" : "outside")")
@@ -324,7 +343,7 @@ final class FeedTests: XCTestCase {
             listing("google/gemini-3.1-pro", "Gemini 3.1 Pro", "2026-09-22", lab: "Google"),  // a tier, not a variant
         ])
         XCTAssertEqual(items.count, 5)
-        XCTAssertTrue(items.contains { $0.title == "Google lists Gemini 3.1 Pro" })
+        XCTAssertTrue(items.contains { $0.title == "Google DeepMind lists Gemini 3.1 Pro" })   // canonical lab name
         XCTAssertTrue(items.contains { $0.title == "OpenAI lists GPT-6.1 Sol Pro" })   // alone that day
         XCTAssertTrue(items.contains { $0.title == "OpenAI lists GPT-6.1 Sol (also as Pro)" && $0.link == "https://openrouter.ai/openai/gpt-6.1-sol" })
         XCTAssertTrue(items.contains { $0.title == "OpenAI lists GPT-6 Luna Mini" })
