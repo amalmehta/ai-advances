@@ -145,7 +145,8 @@ final class DataStoreTests: XCTestCase {
         let day: TimeInterval = 86_400
         XCTAssertNil(DataStore.staleDays(lastRefresh: now - day, latestData: now - day, now: now))
         XCTAssertEqual(DataStore.staleDays(lastRefresh: now - 5 * day, latestData: now - day, now: now), 5)
-        XCTAssertEqual(DataStore.staleDays(lastRefresh: now - day, latestData: now - 4 * day, now: now), 4)
+        XCTAssertNil(DataStore.staleDays(lastRefresh: now - day, latestData: now - 4 * day, now: now), "newest entries trail by a few days")
+        XCTAssertEqual(DataStore.staleDays(lastRefresh: now - day, latestData: now - 20 * day, now: now), 20)
         XCTAssertEqual(DataStore.staleDays(lastRefresh: nil, latestData: now - 20 * day, now: now), 20, "never refreshed: the snapshot's age")
     }
 }

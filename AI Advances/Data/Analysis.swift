@@ -578,7 +578,13 @@ enum Format {
 
     static func flop(_ v: Double) -> String {
         let e = Int(floor(log10(v)))
-        return String(format: "%.1f × 10^%d", v / pow(10, Double(e)), e)
+        return String(format: "%.1f × ", v / pow(10, Double(e))) + power10(e)
+    }
+
+    /// "10²⁸" rather than "10^28".
+    static func power10(_ e: Int) -> String {
+        let sup: [Character: Character] = ["-": "⁻", "0": "⁰", "1": "¹", "2": "²", "3": "³", "4": "⁴", "5": "⁵", "6": "⁶", "7": "⁷", "8": "⁸", "9": "⁹"]
+        return "10" + String(String(e).map { sup[$0] ?? $0 })
     }
 
     static func minutes(_ m: Double) -> String {

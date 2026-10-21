@@ -50,7 +50,7 @@ struct ComputeView: View {
                 .chartYScale(type: .log)
                 .chartYAxis { AxisMarks(values: stride(from: 12.0, through: 30.0, by: 2.0).map { pow(10, $0) }) { v in
                     AxisGridLine().foregroundStyle(Palette.grid)
-                    AxisValueLabel { Text(v.as(Double.self).map { "10^\(Int(log10($0).rounded()))" } ?? "") }.foregroundStyle(Palette.muted)
+                    AxisValueLabel { Text(v.as(Double.self).map { Format.power10(Int(log10($0).rounded())) } ?? "") }.foregroundStyle(Palette.muted)
                 } }
                 .quietAxes()
                 .chartOverlay { proxy in HoverLayer(proxy: proxy, points: models.map { ($0.id, $0.date, $0.computeFLOP!) }, selection: $hover, radius: 12) }

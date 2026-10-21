@@ -548,12 +548,19 @@ final class DataStore {
 
     // MARK: Staleness
 
-    /// Days since the data was last refreshed or since its newest entry, whichever is longer, when
-    /// that's more than `staleAfterDays`; nil when the data is current. Never refreshed means the
-    /// bundled snapshot, whose age is its newest entry's.
+    /// The newest benchmark result or listing usually trails today by a few days (it's dated by
+    /// model release), so the sources only count as stalled after this long without a new entry.
+    nonisolated static let staleSourcesAfterDays = 14
+
+    /// How many days old the data is when that's worth a warning, else nil: more than
+    /// `staleAfterDays` since the last refresh, or more than `staleSourcesAfterDays` since the
+    /// newest entry (never refreshed means the bundled snapshot, whose age is its newest entry's).
     nonisolated static func staleDays(lastRefresh: Date?, latestData: Date?, now: Date) -> Int? {
-        let age = [lastRefresh, latestData].compactMap { $0 }.map { Int(now.timeIntervalSince($0) / 86_400) }.max() ?? 0
-        return age > staleAfterDays ? age : nil
+        let days = { (d: Date) in Int(now.timeIntervalSince(d) / 86_400) }
+        let refreshAge = lastRefresh.map(days) ?? 0
+        let dataAge = latestData.map(days) ?? 0
+        if refreshAge > staleAfterDays || dataAge > staleSourcesAfterDays { return max(refreshAge, dataAge) }
+        return nil
     }
 }
 

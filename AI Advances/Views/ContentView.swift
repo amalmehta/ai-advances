@@ -189,10 +189,13 @@ struct ContentView: View {
 /// Above every page: a warning when the data is out of date, and why the last refresh failed.
 struct StatusBanner: View {
     @Environment(DataStore.self) private var store
+    /// Advanced every minute so the banner appears once data goes stale. (A TimelineView here made
+    /// the window's content taller than the window, shifting every page and the sidebar up.)
+    @State private var now = Date()
 
     var body: some View {
-        TimelineView(.everyMinute) { context in
-            let stale = DataStore.staleDays(lastRefresh: store.lastRefresh, latestData: store.latestDataDate, now: context.date)
+        let stale = DataStore.staleDays(lastRefresh: store.lastRefresh, latestData: store.latestDataDate, now: now)
+        VStack(spacing: 0) {
             if store.refreshError != nil || stale != nil {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -205,8 +208,7 @@ struct StatusBanner: View {
                                 .textSelection(.enabled)
                         }
                     }
-                    .fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: 8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     if store.isRefreshing {
                         ProgressView().controlSize(.small)
                     } else {
@@ -219,6 +221,7 @@ struct StatusBanner: View {
                 .accessibilityElement(children: .combine)
             }
         }
+        .onReceive(Timer.publish(every: 60, on: .main, in: .common).autoconnect()) { now = $0 }
     }
 
     private func staleText(days: Int) -> String {

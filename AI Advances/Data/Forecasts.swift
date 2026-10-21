@@ -199,8 +199,8 @@ enum Forecasts {
         return computeTargets.map { t in
             let e = Int(log10(t).rounded())
             return make(id: "compute-1e\(e)", kind: .scale, area: "Compute",
-                        title: "A training run reaches 10^\(e) FLOP",
-                        target: "Largest known training run ≥ 10^\(e) FLOP",
+                        title: "A training run reaches \(Format.power10(e)) FLOP",
+                        target: "Largest known training run ≥ \(Format.power10(e)) FLOP",
                         current: biggest.map { "\(Format.flop($0.computeFLOP!)) now (\($0.name))" } ?? "no data",
                         basis: "Exponential fit to \(pts.count) record-setting training runs since 2020" + (fit.map { String(format: ", %.1f× per year", pow(10, $0.slope)) } ?? ""),
                         reached: data.notable.filter { ($0.computeFLOP ?? 0) >= t }.map(\.date).min(),
