@@ -10,7 +10,7 @@
 |---|---|
 | ![The AI Advances website on the Forecasts page](docs/images/website.jpg) | Same nine pages as the Mac app, in the browser, on phones too. A GitHub Action rebuilds it every day with the same Swift analysis code. |
 
-| Direction Trends | Labs |
+| Trends | Labs |
 |---|---|
 | ![Headline trends and fastest-moving capability areas](docs/images/direction-trends.png) | ![Heatmap of where each lab leads, plus lab focus cards](docs/images/labs.png) |
 

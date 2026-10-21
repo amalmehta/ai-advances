@@ -31,14 +31,14 @@ The app updates its data once each morning: when you open it, at 7:00 AM local t
 | **Labs** | Who's working on what. Each lab's standing per capability area (★ = holds a record), release pace by quarter, and a card per lab with its researched focus, bets and flagship models, plus live facts: latest model, records held, modalities, open-weights share, price range and largest training run. |
 | **Latest Advances** | What happened recently. Researched highlights with sources, plus new benchmark records and newly listed models, detected on every update. Filter by kind, by direction (Reasoning, Coding, Agents, and so on), or to items new since your last visit. |
 | **Capabilities** | Pick an area to see every model result, the record line on top, and a top-8 leaderboard for each benchmark. |
-| **Models** | A sortable table of recent models with price, context window and their best score on seven key benchmarks. Select a row for the model's full profile; select up to four to compare them side by side. |
+| **Models** | A sortable table of recent models with price, context window and their best score on seven key benchmarks. Select a row for the model's full profile, or pick up to four to compare them side by side. |
 | **Cost** | Pick a benchmark and a score to see the cheapest model that had reached it by each date, and price against score. |
 | **Context & Modalities** | Context windows over time, and the share of new models taking image, file, audio or video input, or producing images. |
 | **Compute** | Training compute of notable models on a log scale, with the trend of the largest runs. |
 
 Hover or tap any chart for details. Every chart also has a text description for screen readers.
 
-**Comparing models:** on the Models page, tick up to four models (or open one's profile and choose *Compare*). The comparison shows each model's price, context window, modalities and scores side by side, with the best value in each row highlighted. A fifth pick replaces the oldest one, and the page says so.
+**Comparing models:** on the Models page, tick up to four models on the website, or ⌘-click them in the app. The comparison shows each model's price, context window and modalities, and their scores on benchmarks at least two of them have, with the leader in each row in bold. Once four are picked, the page says so and the others can't be picked until you remove one.
 
 **New since your last visit:** Latest Advances marks items that appeared since you last opened it, shows a count in the navigation, and adds a *New to you* filter. Nothing is marked on a first visit. The website remembers this in your browser; the app in its preferences.
 
@@ -218,4 +218,4 @@ You can also edit `Labs.json` and `Advances.json` by hand. Each lab note needs `
 
 ## Feedback
 
-Click **Feedback** at the bottom of the sidebar (in the app) or the page footer (on the website). It opens a pre-filled GitHub issue that you can review before posting.
+Click **Feedback** at the bottom of the sidebar (on the website, the menu on phones), or choose **Help → Send Feedback…** in the app. It opens a pre-filled GitHub issue that you can review before posting.
