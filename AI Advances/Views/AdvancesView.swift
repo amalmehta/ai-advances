@@ -3,8 +3,8 @@ import Charts
 
 struct AdvancesView: View {
     @Environment(DataStore.self) private var store
-    @State private var kind: Kind = .all
-    @State private var direction = "All directions"
+    @SceneStorage("advances.kind") private var kind: Kind = .all
+    @SceneStorage("advances.direction") private var direction = "All directions"
     /// What was new when this page opened; it stays marked for the visit after being recorded as seen.
     @State private var shownNew: Set<String> = []
 
@@ -21,7 +21,7 @@ struct AdvancesView: View {
 
     var body: some View {
         let now = Date()
-        let all = Feed.items(store.data, now: now)
+        let all = store.derived.feed // built once per data load
         let directions = ["All directions"] + Array(Set(all.map(\.direction))).sorted()
         let shown = all.filter { (kind == .all || $0.kind.rawValue == kind.rawValue || (kind == .new && shownNew.contains($0.id)))
             && (direction == "All directions" || $0.direction == direction) }
@@ -48,11 +48,19 @@ struct AdvancesView: View {
                 Picker("Direction", selection: $direction) { ForEach(directions, id: \.self) { Text($0).tag($0) } }
                     .frame(maxWidth: 220)
                 Spacer()
-                Text("\(shown.count) items").foregroundStyle(Palette.text2)
+                Text(counted(shown.count, "item")).foregroundStyle(Palette.text2)
             }
 
             if store.data.advances.isEmpty && kind == .curated {
                 ContentUnavailableView("No highlights bundled", systemImage: "sparkles")
+            } else if shown.isEmpty {
+                ContentUnavailableView {
+                    Label("Nothing matches these filters", systemImage: "line.3.horizontal.decrease.circle")
+                } description: {
+                    Text("No \(kind == .all ? "items" : kind.rawValue.lowercased()) in \(direction == "All directions" ? "any direction" : direction).")
+                } actions: {
+                    Button("Clear Filters") { kind = .all; direction = "All directions" }
+                }
             }
 
             LazyVStack(alignment: .leading, spacing: 0) {
@@ -62,6 +70,7 @@ struct AdvancesView: View {
                 }
             }
         }
+        .keepSelection($direction, among: directions)
         .onAppear {
             shownNew = store.newFeedIDs
             if shownNew.isEmpty && kind == .new { kind = .all }

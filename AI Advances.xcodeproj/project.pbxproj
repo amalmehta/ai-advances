@@ -37,6 +37,7 @@
 		C56D470E41163E3A3A42B491 /* CapabilityAreas.json in Resources */ = {isa = PBXBuildFile; fileRef = F8C3EC2B5D6B0F0581BFA243 /* CapabilityAreas.json */; };
 		C615A414BD7E6C61CE0ACF01 /* Labs.json in Resources */ = {isa = PBXBuildFile; fileRef = F5B301DDFC8B5E2B8CD10102 /* Labs.json */; };
 		C9A15942ACDD64BA83988B68 /* CSV.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3A4A06288BF252B291D4972 /* CSV.swift */; };
+		CBF3AE8A6B7AAFF4C216D422 /* Support.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0462860A9C2EF396A9A9B95A /* Support.swift */; };
 		CFF5F2C644FC2811E3E21AEB /* AIAdvancesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F14677CCEE26AA3A4E8094 /* AIAdvancesTests.swift */; };
 		D3A6C4127FBF4D7F4058367A /* AccessibilityAuditTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05AE753A238E1E4F3F7CF481 /* AccessibilityAuditTests.swift */; };
 		DCB089D8019334DF8D4AB1F1 /* Feed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A84757CD3E5BB83C7313D20 /* Feed.swift */; };
@@ -68,6 +69,7 @@
 /* Begin PBXFileReference section */
 		012F19DFF2596D74158B02C7 /* Analysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analysis.swift; sourceTree = "<group>"; };
 		024F58F4940912A8D6334400 /* Loading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Loading.swift; sourceTree = "<group>"; };
+		0462860A9C2EF396A9A9B95A /* Support.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Support.swift; sourceTree = "<group>"; };
 		05AE753A238E1E4F3F7CF481 /* AccessibilityAuditTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityAuditTests.swift; sourceTree = "<group>"; };
 		0C022C9D23C87A45A21957C2 /* FrontierChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrontierChart.swift; sourceTree = "<group>"; };
 		10F03F0EBAD89DEDD9DC07EA /* AI Advances UI Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AI Advances UI Tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -145,6 +147,7 @@
 				0C022C9D23C87A45A21957C2 /* FrontierChart.swift */,
 				95C9CCD4EFF1A1688E30E3E0 /* LabsView.swift */,
 				ECCE094D777591301829656E /* ModelsView.swift */,
+				0462860A9C2EF396A9A9B95A /* Support.swift */,
 				3941A03A148EC0D834977D74 /* Theme.swift */,
 				FB23824C56A207579553B9A7 /* TrendsView.swift */,
 			);
@@ -372,6 +375,7 @@
 				28CF3C611EE61B9D46A3A856 /* Parsers.swift in Sources */,
 				257A0F0D08FC966DD8567D38 /* Records.swift in Sources */,
 				4EC0490CC696CFE7E563E6BC /* Schedule.swift in Sources */,
+				CBF3AE8A6B7AAFF4C216D422 /* Support.swift in Sources */,
 				16EABE5FB5194C7E8BC5BDCD /* Theme.swift in Sources */,
 				4A55CD83AD1EBDF20C96834B /* TrackRecord.swift in Sources */,
 				ADE259A8A8FCEF68BC0B28EA /* TrendsView.swift in Sources */,

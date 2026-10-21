@@ -4,7 +4,6 @@ import Charts
 /// Best score so far on each benchmark in an area, as a step line; optionally every result as dots.
 struct FrontierChart: View {
     let area: CapabilityArea
-    let results: [BenchmarkResult]
     let since: Date
     var showAllResults = false
     var height: CGFloat = 180
@@ -20,14 +19,27 @@ struct FrontierChart: View {
         let model: String
     }
 
-    private var names: [String] { area.benchmarks.filter { b in results.contains { $0.benchmark == b } } }
-    private var labels: [String] { names.map(Analysis.shortName) }
-    private var colors: [Color] { names.indices.map(Palette.color) }
+    private let labels: [String]
+    private let colors: [Color]
+    private let steps: [Step]
+    private let dots: [BenchmarkResult]
 
-    private var steps: [Step] {
+    /// - Parameters:
+    ///   - frontiers: record-setting results per benchmark, precomputed by the store.
+    ///   - results: every result, needed only for `showAllResults`.
+    /// Everything is worked out here, once per input, so hovering only redraws.
+    init(area: CapabilityArea, frontiers: [String: [FrontierPoint]], results: [BenchmarkResult] = [],
+         since: Date, showAllResults: Bool = false, height: CGFloat = 180) {
+        self.area = area
+        self.since = since
+        self.showAllResults = showAllResults
+        self.height = height
+        let names = area.benchmarks.filter { frontiers[$0]?.isEmpty == false }
+        labels = names.map(Analysis.shortName)
+        colors = names.indices.map(Palette.color)
         let now = Date()
-        return names.flatMap { b -> [Step] in
-            let f = Analysis.frontier(results, benchmark: b)
+        steps = names.flatMap { b -> [Step] in
+            let f = frontiers[b] ?? []
             let label = Analysis.shortName(b)
             var out: [Step] = []
             if let start = f.last(where: { $0.date <= since }) {
@@ -37,17 +49,11 @@ struct FrontierChart: View {
             if let last = out.last { out.append(Step(benchmark: label, date: now, score: last.score, model: last.model)) }
             return out
         }
-    }
-
-    private var dots: [BenchmarkResult] {
-        guard showAllResults else { return [] }
         let set = Set(names)
-        return results.filter { set.contains($0.benchmark) && $0.releaseDate >= since }
+        dots = showAllResults ? results.filter { set.contains($0.benchmark) && $0.releaseDate >= since } : []
     }
 
     var body: some View {
-        let steps = steps
-        let dots = dots
         Chart {
             ForEach(dots) { r in
                 PointMark(x: .value("Released", r.releaseDate), y: .value("Score", r.score))
@@ -93,7 +99,29 @@ struct FrontierChart: View {
             }
         }
         .frame(height: height)
-        .chartSummary("Line chart of the best score so far on \(labels.joined(separator: ", ")) since \(Format.monthYear(since)). Current bests: " + labels.compactMap { l in steps.last { $0.benchmark == l }.map { "\(l) \(Format.percent($0.score)) (\($0.model))" } }.joined(separator: "; ") + ".")
+        .chartSummary(summary)
+        .accessibilityChartDescriptor(chartData)
+    }
+
+    private var summary: String {
+        "Line chart of the best score so far on \(labels.joined(separator: ", ")) since \(Format.monthYear(since)). Current bests: " + labels.compactMap { l in steps.last { $0.benchmark == l }.map { "\(l) \(Format.percent($0.score)) (\($0.model))" } }.joined(separator: "; ") + "."
+    }
+
+    /// Each benchmark's record line, plus every result when they're shown, for VoiceOver and Audio Graphs.
+    private var chartData: ChartData {
+        let percent: (Double) -> String = { Format.percent($0, digits: 1) }
+        var series = labels.map { l in
+            ChartData.Series(name: "\(l) best so far", continuous: true,
+                             points: steps.filter { $0.benchmark == l }.map { .init(x: ChartData.x($0.date), y: $0.score, label: $0.model) })
+        }
+        if showAllResults {
+            series += Dictionary(grouping: dots, by: { Analysis.shortName($0.benchmark) }).sorted { $0.key < $1.key }.map { l, rs in
+                ChartData.Series(name: "\(l) results", continuous: false,
+                                 points: rs.sorted { $0.releaseDate < $1.releaseDate }.map { .init(x: ChartData.x($0.releaseDate), y: $0.score, label: $0.modelGroup) })
+            }
+        }
+        return ChartData(title: "\(area.name): best score over time", summary: summary,
+                         x: .date("Date"), y: .number("Score", format: percent), series: series)
     }
 
     private func tooltipLines(at date: Date, steps: [Step]) -> [String] {

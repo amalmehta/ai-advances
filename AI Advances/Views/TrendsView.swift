@@ -3,23 +3,20 @@ import Charts
 
 struct TrendsView: View {
     @Environment(DataStore.self) private var store
-    @State private var windowMonths = 12
+    @SceneStorage("trends.window") private var windowMonths = 12
     @State private var hoverArea: String?
 
     private var data: Dataset { store.data }
 
     var body: some View {
-        let now = Date()
-        let momentum = data.areas.compactMap {
-            Analysis.momentum(area: $0, results: data.results, infos: data.benchmarks, now: now, months: windowMonths)
-        }
-        .sorted { $0.gapClosed > $1.gapClosed }
+        // Computed once per data load; hovering only re-reads it.
+        let momentum = store.derived.momentum[windowMonths] ?? store.derived.momentum[12] ?? []
 
         VStack(alignment: .leading, spacing: 20) {
             PageHeader(title: "Where AI is heading",
                        summary: "The four long-run trends, and which capabilities are moving fastest. Everything here recalculates when new data arrives.")
 
-            tiles(now: now)
+            tiles
 
             Card(title: "Where progress is fastest",
                  subtitle: "Share of the remaining headroom closed on each area's benchmarks, averaged. 100% would mean the benchmarks are solved.") {
@@ -67,20 +64,23 @@ struct TrendsView: View {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 380), spacing: 16)], spacing: 16) {
                 ForEach(data.areas) { area in
                     Card(title: area.name, subtitle: area.summary) {
-                        FrontierChart(area: area, results: data.results, since: Dates.parse("2024-01-01")!)
+                        FrontierChart(area: area, frontiers: store.derived.frontiers, since: Self.frontierStart)
                     }
                 }
             }
         }
     }
 
-    @ViewBuilder private func tiles(now: Date) -> some View {
-        let compute = Analysis.computeFit(data.notable, since: Dates.parse("2020-01-01")!)
-        let horizons = Analysis.horizonFrontier(data.horizons)
-        let horizonFit = ExpFit.fit(horizons.filter { $0.releaseDate >= Dates.parse("2023-01-01")! }.map { ($0.releaseDate, $0.minutes) })
-        let price = Analysis.cheapestOverTime(store.profiles, benchmark: "GPQA diamond", threshold: 0.8)
-        let maxContext = data.listed.map(\.contextLength).max() ?? 0
-        let recentMedian = Analysis.medianContextByQuarter(data.listed, since: yearsAgo(1, from: now)).last?.1
+    static let frontierStart = Dates.parse("2024-01-01")!
+
+    @ViewBuilder private var tiles: some View {
+        let d = store.derived
+        let compute = d.computeFit
+        let horizons = d.horizons
+        let horizonFit = d.horizonFit
+        let price = d.gpqaPrice
+        let maxContext = d.maxContext
+        let recentMedian = d.recentMedianContext
 
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 220), spacing: 16)], spacing: 16) {
             StatTile(label: "Training compute",
