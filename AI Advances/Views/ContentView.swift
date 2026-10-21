@@ -97,15 +97,10 @@ struct ContentView: View {
                 } else {
                     VStack(spacing: 0) {
                         StatusBanner()
-                        if page == .models {
-                            // The table scrolls itself; its details sit in an inspector.
-                            ModelsView().padding(24)
-                        } else {
-                            ScrollView {
-                                detail.padding(24).frame(maxWidth: 1300, alignment: .leading)
-                            }
-                            .id(page) // each page starts at the top
+                        ScrollView {
+                            detail.padding(24).frame(maxWidth: page == .models ? .infinity : 1300, alignment: .leading)
                         }
+                        .id(page) // each page starts at the top
                     }
                 }
             }

@@ -74,7 +74,7 @@ Found by five audits on Oct 20, 2026 (website, Mac app, data and forecasting, CI
 62. ✅ Page settings reset when switching pages.
 63. ✅ Scroll position carried over between pages.
 64. ✅ The selected model's detail could go stale or be hard to find.
-65. ◐ Missing keyboard shortcuts and menus (pages, search, help, updates). Left: ⌘F reaches the search field only through the system Find on the Models page, since macOS 14 has no API to focus a toolbar search field.
+65. ◐ Missing keyboard shortcuts and menus (pages, search, help, updates). Left: no ⌘F shortcut to the Models search field. (A toolbar search field and an inspector for model details were tried, but an inspector in the split view's detail column left the Models page blank, so the search field and details stay on the page.)
 66. ✅ Chart details were hover-only: add accessible chart descriptors (and Audio Graphs).
 67. ✅ No model comparison (the website has it).
 68. ✅ Launching with `-page` locked the sidebar to that page.

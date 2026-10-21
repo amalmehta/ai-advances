@@ -57,6 +57,7 @@ struct ModelsView: View {
                        summary: "What each model can do: its best score on the key benchmarks, with price and context window where the model is sold through an API.")
 
             HStack {
+                TextField("Search models or labs", text: $search).textFieldStyle(.roundedBorder).frame(maxWidth: 260)
                 Picker("Lab", selection: $lab) {
                     Text("All labs").tag("All labs")
                     ForEach(labs, id: \.self) { Text($0).tag($0) }
@@ -77,7 +78,7 @@ struct ModelsView: View {
                         Button("Clear Filters") { search = ""; lab = "All labs"; recentOnly = false }
                     }
                 }
-                .frame(maxHeight: .infinity)
+                .frame(height: 520)
             } else {
                 Table(rows, selection: $selection, sortOrder: $sortOrder) {
                     TableColumn("Model", value: \.name) { r in
@@ -105,14 +106,21 @@ struct ModelsView: View {
                         scoreColumn(6, \.s6)
                     }
                 }
-                .frame(minHeight: 260, maxHeight: .infinity)
+                .frame(height: 520)
             }
 
             Footnote(text: (hitCap ? "You can compare up to \(Self.maxCompare) models at once. " : "")
                      + "Price is a 3:1 blend of input and output price per million tokens, from OpenRouter; it shows only when the names match. Scores are the best across reasoning-effort settings, from Epoch AI. Select a row for the full profile, or ⌘-click up to \(Self.maxCompare) models to compare them.")
+
+            // Below the table rather than in an inspector: an inspector inside the split view's
+            // detail column left the whole page blank.
+            if picked.count == 1 {
+                ModelDetail(profile: picked[0], infos: store.data.benchmarks)
+            } else if picked.count > 1 {
+                ModelComparison(models: picked, infos: store.data.benchmarks) { selection = [] }
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .searchable(text: $search, placement: .toolbar, prompt: "Search models or labs")
+        .frame(maxWidth: .infinity, alignment: .topLeading)
         .onChange(of: selection) { old, new in
             if new.count > Self.maxCompare {
                 selection = old
@@ -125,19 +133,6 @@ struct ModelsView: View {
         // A model hidden by the filters can't stay selected (its details would be stale).
         .onChange(of: visible, initial: true) { _, visible in
             if !selection.isSubset(of: visible) { selection.formIntersection(visible) }
-        }
-        .inspector(isPresented: Binding(get: { !selection.isEmpty }, set: { if !$0 { selection = [] } })) {
-            ScrollView {
-                Group {
-                    if picked.count == 1 {
-                        ModelDetail(profile: picked[0], infos: store.data.benchmarks)
-                    } else if picked.count > 1 {
-                        ModelComparison(models: picked, infos: store.data.benchmarks) { selection = [] }
-                    }
-                }
-                .padding(16)
-            }
-            .inspectorColumnWidth(min: 340, ideal: 460, max: 800)
         }
     }
 
