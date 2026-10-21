@@ -3,19 +3,21 @@ import Charts
 
 struct CapabilitiesView: View {
     @Environment(DataStore.self) private var store
-    @State private var areaName = ""
-    @State private var sinceYears = 2.0
+    @SceneStorage("capabilities.area") private var areaName = ""
+    @SceneStorage("capabilities.since") private var sinceYears = 2.0
 
     var body: some View {
         let data = store.data
-        let area = data.areas.first { $0.name == areaName } ?? data.areas.first!
+        let names = data.areas.map(\.name)
+        let selected = effectiveSelection(areaName, among: names)
+        let area = data.areas.first { $0.name == selected } ?? data.areas.first!
 
         VStack(alignment: .leading, spacing: 20) {
             PageHeader(title: "Capabilities",
                        summary: "Every tracked model result by capability area. Lines trace the best score so far; dots are individual models.")
 
             HStack {
-                Picker("Area", selection: $areaName) {
+                Picker("Area", selection: Binding(get: { selected ?? "" }, set: { areaName = $0 })) {
                     ForEach(data.areas) { Text($0.name).tag($0.name) }
                 }
                 .frame(maxWidth: 300)
@@ -29,7 +31,7 @@ struct CapabilitiesView: View {
             }
 
             Card(title: area.name, subtitle: area.summary) {
-                FrontierChart(area: area, results: data.results, since: yearsAgo(sinceYears), showAllResults: true, height: 380)
+                FrontierChart(area: area, frontiers: store.derived.frontiers, results: data.results, since: yearsAgo(sinceYears), showAllResults: true, height: 380)
                 Footnote(text: "Scores come from Epoch AI's benchmarking hub, which mixes its own runs with results reported by benchmark authors. Each model's best reasoning-effort setting is shown.")
             }
 
@@ -39,7 +41,7 @@ struct CapabilitiesView: View {
                 }
             }
         }
-        .onAppear { if areaName.isEmpty { areaName = data.areas.first?.name ?? "" } }
+        .keepSelection($areaName, among: names)
     }
 
     private func leaderboard(_ benchmark: String, data: Dataset) -> some View {
