@@ -31,7 +31,7 @@ struct ForecastsView: View {
 
                 Card(title: store.claudeOutlook == nil ? "Outlook" : "Computed outlook",
                      subtitle: "Written by a fixed template from the numbers below; changes when they do.") {
-                    Text(Forecasts.outlook(upcoming, shifts: shifts, now: now))
+                    Text(Forecasts.outlook(upcoming, shifts: shifts, now: now, all: store.forecasts))
                         .fixedSize(horizontal: false, vertical: true)
                         .textSelection(.enabled)
                 }
@@ -140,7 +140,7 @@ struct ForecastsView: View {
 
     private func trackRecordCard(_ record: TrackRecord) -> some View {
         Card(title: "Track record",
-             subtitle: "How earlier forecasts did on milestones that have since been reached. For each, the forecast made closest to six months ahead.") {
+             subtitle: "How earlier forecasts did on milestones that have since been reached, and on ranges that ran out first. For each, the forecast made closest to six months ahead.") {
             Text(record.summary).fixedSize(horizontal: false, vertical: true)
             Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 6) {
                 GridRow {
@@ -152,15 +152,25 @@ struct ForecastsView: View {
                         Text(i.title)
                         Text(Format.monthYear(i.madeOn)).foregroundStyle(Palette.text2)
                         Text(Format.monthYear(i.predicted))
-                        Text(Format.monthYear(i.reached))
-                        Label(i.inside ? "Within range" : (i.errorMonths > 0 ? "Later than range" : "Earlier than range"),
-                              systemImage: i.inside ? "checkmark.circle.fill" : "xmark.circle")
-                            .foregroundStyle(i.inside ? Palette.color(2) : Palette.color(1))
+                        Text(i.outcome == .expired ? "Not yet" : Format.monthYear(i.reached))
+                        outcomeLabel(i.outcome)
                     }
                     .monospacedDigit()
                 }
             }
         }
+    }
+
+    private func outcomeLabel(_ o: TrackRecord.Outcome) -> some View {
+        let (text, symbol, good): (String, String, Bool?) = switch o {
+        case .inside: ("Within range", "checkmark.circle.fill", true)
+        case .early: ("Earlier than range", "xmark.circle", false)
+        case .late: ("Later than range", "xmark.circle", false)
+        case .expired: ("Range ran out", "xmark.circle", false)
+        case .openEnded: ("Open-ended, not scored", "circle.dashed", nil)
+        }
+        return Label(text, systemImage: symbol)
+            .foregroundStyle(good == true ? Palette.color(2) : good == false ? Palette.color(1) : Palette.text2)
     }
 
     private func detail(_ f: Forecast) -> some View {

@@ -54,7 +54,11 @@ struct TrendsView: View {
                    let m = momentum.first(where: { $0.area == area }) {
                     Footnote(text: "\(a.name): \(a.summary) Based on \(m.benchmarksUsed) benchmark\(m.benchmarksUsed == 1 ? "" : "s"): \(a.benchmarks.map(Analysis.shortName).joined(separator: ", ")).")
                 } else {
-                    Footnote(text: "Hover a bar for the benchmarks behind it. Benchmarks newer than the window count from their first result.")
+                    let left = momentum.reduce(0) { $0 + $1.excludedReached + $1.excludedInactive }
+                    let missing = data.areas.map(\.name).filter { n in !momentum.contains { $0.area == n } }
+                    Footnote(text: "Hover a bar for the benchmarks behind it. Benchmarks newer than the window count from their first result."
+                             + (left > 0 ? " \(left) benchmark\(left == 1 ? " is" : "s are") left out because they're already past 90% or no longer updated." : "")
+                             + (missing.isEmpty ? "" : " No bar for \(missing.joined(separator: ", ")): every benchmark there is past 90% or no longer updated."))
                 }
             }
 
@@ -88,8 +92,8 @@ struct TrendsView: View {
                      detail: compute.map { "Frontier training runs double every \(Format.months($0.doublingMonths)) (fit since 2020, \($0.n) models)." } ?? "",
                      symbol: "cpu")
             StatTile(label: "Longest task AI can do",
-                     value: horizons.last.map { Format.minutes($0.minutes) } ?? "–",
-                     detail: (horizons.last.map { "\($0.modelGroup), METR 50% time horizon. " } ?? "")
+                     value: horizons.last.map { (Analysis.horizonIsLowerBound($0) ? "≥ " : "") + Format.minutes($0.minutes) } ?? "–",
+                     detail: (horizons.last.map { "\($0.modelGroup), released \(Format.monthYear($0.releaseDate)), METR 50% time horizon" + (Analysis.horizonIsLowerBound($0) ? " (the top of what METR's tasks can measure, so at least this). " : ". ") } ?? "")
                         + (horizonFit.map { "Doubles every \(Format.months($0.doublingMonths))." } ?? ""),
                      symbol: "timer")
             StatTile(label: "Price of GPQA ≥ 80%",

@@ -573,6 +573,8 @@ struct Derived: @unchecked Sendable {
     var gpqaPrice: [PriceStep] = []
     var maxContext = 0
     var recentMedianContext: Double?
+    /// The Models table's benchmark columns, with superseded benchmarks replaced by their successors.
+    var keyBenchmarks = Analysis.keyBenchmarks
     /// Newest entry per source file.
     var newestEntry: [String: Date] = [:]
 
@@ -592,6 +594,7 @@ struct Derived: @unchecked Sendable {
         computeFit = Analysis.computeFit(data.notable, since: Dates.parse("2020-01-01")!)
         horizons = Analysis.horizonFrontier(data.horizons)
         horizonFit = ExpFit.fit(horizons.filter { $0.releaseDate >= Dates.parse("2023-01-01")! }.map { ($0.releaseDate, $0.minutes) })
+        keyBenchmarks = Analysis.keyBenchmarks(for: data)
         gpqaPrice = Analysis.cheapestOverTime(profiles, benchmark: "GPQA diamond", threshold: 0.8)
         maxContext = data.listed.map(\.contextLength).max() ?? 0
         recentMedianContext = Analysis.medianContextByQuarter(data.listed, since: now.addingTimeInterval(-365.25 * 86_400)).last?.1

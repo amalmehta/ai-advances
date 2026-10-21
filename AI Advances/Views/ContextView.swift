@@ -12,13 +12,14 @@ struct ContextView: View {
         let frontier = Analysis.contextFrontier(store.data.listed).filter { $0.created >= since }
         let medians = Analysis.medianContextByQuarter(store.data.listed, since: since)
         let shares = Analysis.modalityShares(store.data.listed, since: since)
+        let partial = Analysis.contextMedians(store.data.listed, since: since).last?.partial == true
         let labels = Analysis.modalities.map(\.label)
 
         VStack(alignment: .leading, spacing: 20) {
             PageHeader(title: "Context & Modalities",
                        summary: "How much text models can take in at once, and which kinds of input and output they handle. From every model listed on OpenRouter since 2024.")
 
-            Card(title: "Context window by release", subtitle: "Each dot is a model. The line is the median for models listed that quarter.") {
+            Card(title: "Context window by release", subtitle: "Each dot is a model. The line is the median for models listed that quarter" + (partial ? "; the last quarter is still in progress." : ".")) {
                 Chart {
                     ForEach(listed) { m in
                         PointMark(x: .value("Listed", m.created), y: .value("Context", Double(m.contextLength)))

@@ -33,7 +33,7 @@ struct CostView: View {
 
             HStack(spacing: 16) {
                 Picker("Benchmark", selection: $benchmark) {
-                    ForEach(Analysis.keyBenchmarks, id: \.name) { Text($0.label).tag($0.name) }
+                    ForEach(store.derived.keyBenchmarks, id: \.name) { Text($0.label).tag($0.name) }
                 }
                 .frame(maxWidth: 220)
                 Text("Score at least").foregroundStyle(Palette.text2)

@@ -17,13 +17,15 @@ struct ModelsView: View {
     struct ModelRow: Identifiable {
         var id: String { profile.name }
         let profile: ModelProfile
+        /// Benchmark names behind the score columns.
+        let keys: [String]
         var name: String { profile.name }
         var lab: String { profile.lab }
         var released: Date { profile.released }
         var price: Double { profile.listing?.blendedPrice ?? .infinity }
         var context: Int { profile.listing?.contextLength ?? 0 }
         var horizon: Double { profile.horizonMinutes ?? -1 }
-        func score(_ i: Int) -> Double { profile.score(Analysis.keyBenchmarks[i].name) ?? -1 }
+        func score(_ i: Int) -> Double { profile.score(keys[i]) ?? -1 }
         var s0: Double { score(0) }
         var s1: Double { score(1) }
         var s2: Double { score(2) }
@@ -37,14 +39,15 @@ struct ModelsView: View {
 
     var body: some View {
         let profiles = store.profiles
-        let labs = Dictionary(grouping: profiles, by: \.lab).sorted { $0.value.count > $1.value.count }.prefix(14).map(\.key)
+        let keys = store.derived.keyBenchmarks.map(\.name)
+        let labs = Dictionary(grouping: profiles.filter { !$0.lab.isEmpty }, by: \.lab).sorted { $0.value.count > $1.value.count }.prefix(14).map(\.key)
         let cutoff = yearsAgo(1)
         let rows = profiles
             .filter { !recentOnly || $0.released >= cutoff }
             .filter { lab == "All labs" || $0.lab == lab }
             .filter { search.isEmpty || $0.name.localizedCaseInsensitiveContains(search) || $0.lab.localizedCaseInsensitiveContains(search) }
-            .filter { p in Analysis.keyBenchmarks.contains { p.score($0.name) != nil } || p.horizonMinutes != nil }
-            .map(ModelRow.init)
+            .filter { p in keys.contains { p.score($0) != nil } || p.horizonMinutes != nil }
+            .map { ModelRow(profile: $0, keys: keys) }
             .sorted(using: sortOrder)
         let visible = Set(rows.map(\.id))
         let picked = order.compactMap { name in profiles.first { $0.name == name } }
