@@ -28,8 +28,9 @@ def problems(site_dir: str, now: dt.datetime) -> dict[str, str | None]:
     found: dict[str, str | None] = {OUTLOOK_TITLE: None, SOURCES_TITLE: None}
 
     outlook_path = os.path.join(site_dir, "data", "outlook.json")
-    if os.path.exists(outlook_path):
-        written = dt.datetime.fromisoformat(json.load(open(outlook_path))["generatedAt"])
+    outlook = json.load(open(outlook_path)) if os.path.exists(outlook_path) else {}
+    if outlook.get("generatedAt"):  # {} = no outlook yet (no key set)
+        written = dt.datetime.fromisoformat(outlook["generatedAt"].replace("Z", "+00:00"))
         if now - written > OUTLOOK_MAX_LAG:
             found[OUTLOOK_TITLE] = (
                 f"The Claude-written outlook was last written {written:%b %d, %Y %H:%M} UTC, "

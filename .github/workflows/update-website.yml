@@ -140,6 +140,10 @@ jobs:
             --previous data-branch/outlook.json
           if [ -f site/data/outlook.json ]; then cp site/data/outlook.json data-branch/outlook.json; fi
 
+      - name: Always publish an outlook file
+        # An empty {} means "no outlook" to the site and the app; without a file the browser logs a 404.
+        run: '[ -s site/data/outlook.json ] || echo "{}" > site/data/outlook.json'
+
       - uses: actions/upload-pages-artifact@v5
         with:
           path: site
