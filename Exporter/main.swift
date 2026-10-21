@@ -40,6 +40,7 @@ do {
 } catch {
     fail("Couldn't parse sources: \(error.localizedDescription)")
 }
+for w in data.warnings { FileHandle.standardError.write(("warning: " + w + "\n").data(using: .utf8)!) }
 let notes = (try? Loader.decode([LabNote].self, from: resources.appendingPathComponent("Labs.json"))) ?? []
 
 let fellBack = argument("--fell-back").map { $0.split(separator: ",").map(String.init).filter { !$0.isEmpty } } ?? []

@@ -25,6 +25,7 @@
 		6CF48239D1C3C9B34B7520A6 /* Advances.json in Resources */ = {isa = PBXBuildFile; fileRef = C1882CB7004FEC7E2C6C23B3 /* Advances.json */; };
 		704E9E4BCACE91821D882104 /* ModelsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECCE094D777591301829656E /* ModelsView.swift */; };
 		795BFD2536D0CAA0DE73CEE2 /* CalibrationExperiment.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28F7E59C9569630B749DD87 /* CalibrationExperiment.swift */; };
+		81722622B504B5AED7A7B8DA /* CoreCorrectnessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB0C76CA6D84C8B24B25FFBF /* CoreCorrectnessTests.swift */; };
 		8254946A84C83E0F074E0BA7 /* openrouter_models.json in Resources */ = {isa = PBXBuildFile; fileRef = 9EC2B8F8D51EDA36FEE1944E /* openrouter_models.json */; };
 		8FA2ECE8EBA210AFB09AF215 /* ContextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8E71E26FD97C819E95FD40C /* ContextView.swift */; };
 		A3AE5FDFAB4F97F15A54927B /* CapabilitiesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CD35CF3AD0A8C576F676851 /* CapabilitiesView.swift */; };
@@ -110,6 +111,7 @@
 		F5B301DDFC8B5E2B8CD10102 /* Labs.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Labs.json; sourceTree = "<group>"; };
 		F8C3EC2B5D6B0F0581BFA243 /* CapabilityAreas.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = CapabilityAreas.json; sourceTree = "<group>"; };
 		FA01C296DB4A75E7B5C621D8 /* Freshness.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Freshness.swift; sourceTree = "<group>"; };
+		FB0C76CA6D84C8B24B25FFBF /* CoreCorrectnessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreCorrectnessTests.swift; sourceTree = "<group>"; };
 		FB23824C56A207579553B9A7 /* TrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsView.swift; sourceTree = "<group>"; };
 		FC55FDECE34989CBAE37EAAF /* notable_ai_models.csv */ = {isa = PBXFileReference; path = notable_ai_models.csv; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -131,6 +133,7 @@
 				96F14677CCEE26AA3A4E8094 /* AIAdvancesTests.swift */,
 				608694EFA0B6300E71F80C5E /* AppTests.swift */,
 				E28F7E59C9569630B749DD87 /* CalibrationExperiment.swift */,
+				FB0C76CA6D84C8B24B25FFBF /* CoreCorrectnessTests.swift */,
 				7BFB571626E2AAF1ED798416 /* PageRenderTests.swift */,
 			);
 			path = "AI Advances Tests";
@@ -393,6 +396,7 @@
 				CFF5F2C644FC2811E3E21AEB /* AIAdvancesTests.swift in Sources */,
 				3CC77793EAD5872D71055B6B /* AppTests.swift in Sources */,
 				795BFD2536D0CAA0DE73CEE2 /* CalibrationExperiment.swift in Sources */,
+				81722622B504B5AED7A7B8DA /* CoreCorrectnessTests.swift in Sources */,
 				4A3A09A6CADB1935BD309F13 /* PageRenderTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
