@@ -14,8 +14,8 @@ enum Loader {
         defer { try? FileManager.default.removeItem(at: unzipped) }
         try unzip(files["benchmark_data.zip"]!, to: unzipped)
         let areas = try decode([CapabilityArea].self, from: resources.capabilityAreas)
-        let tracked = Set(areas.flatMap(\.benchmarks) + Analysis.keyBenchmarks.map(\.name)
-                          + Analysis.curatedSuccessors.values)
+        let tracked = Set(areas.flatMap(\.benchmarks) + Analysis.keyBenchmarks.map(\.name))
+            .union(Analysis.curatedSuccessors.values)
         let epoch = try EpochParser.parse(in: unzipped, tracked: tracked)
         (d.benchmarks, d.results, d.horizons) = (epoch.infos, epoch.results, epoch.horizons)
         d.warnings = epoch.warnings
