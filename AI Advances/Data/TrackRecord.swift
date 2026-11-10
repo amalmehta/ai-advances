@@ -23,6 +23,8 @@ struct TrackRecord: Hashable {
     let scored: Int
     let inside: Int
     let medianAbsErrorMonths: Double?
+    /// All scored forecasts (several per milestone), for calibration.
+    let allItems: [Item]
 
     var coverage: Double? { scored == 0 ? nil : Double(inside) / Double(scored) }
 
@@ -57,6 +59,6 @@ struct TrackRecord: Hashable {
         let median = errors.isEmpty ? nil : errors.count % 2 == 1 ? errors[errors.count / 2]
             : (errors[errors.count / 2 - 1] + errors[errors.count / 2]) / 2
         return TrackRecord(items: items.sorted { $0.reached > $1.reached }, scored: all.count,
-                           inside: all.filter(\.inside).count, medianAbsErrorMonths: median)
+                           inside: all.filter(\.inside).count, medianAbsErrorMonths: median, allItems: all)
     }
 }

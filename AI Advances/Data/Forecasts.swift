@@ -95,6 +95,14 @@ enum Forecasts {
     static let saturation = 0.9
     /// Furthest a forecast date is allowed to sit before it's reported as "not on the current trend".
     static let maxYearsOut = 15.0
+    /// Width of the likely range, in standard errors, calibrated on past forecasts
+    /// (CalibrationExperiment, Oct 2026): over 18 months of reconstructed forecasts, z = 2.75 put
+    /// 84% of real dates inside the range (the old 1.645 put 58%). Tested on milestones it wasn't
+    /// tuned on, coverage was about 2 in 3, because some misses are regime changes (a benchmark
+    /// stalling, or jumping years early) that no smooth trend anticipates.
+    static let calibratedZ = 2.75
+    /// A variable only so the calibration experiment can sweep it.
+    nonisolated(unsafe) static var rangeZ = calibratedZ
 
     private static func date(_ years: Double?) -> Date? {
         years.map { Date(timeIntervalSinceReferenceDate: $0 * 365.25 * 86_400) }
@@ -138,7 +146,7 @@ enum Forecasts {
                 } else if p > limit {
                     note = "More than \(Int(maxYearsOut)) years out on the current trend"
                 } else {
-                    let r = fit.range(reaching: targetY)
+                    let r = fit.range(reaching: targetY, z: rangeZ)
                     predicted = date(p)
                     early = date(min(p, max(r.early ?? p, now)))
                     late = date(r.late.flatMap { $0 <= limit ? max($0, p) : nil })

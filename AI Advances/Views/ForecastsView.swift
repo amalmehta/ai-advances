@@ -102,7 +102,7 @@ struct ForecastsView: View {
                     }
                 }
 
-                Footnote(text: "Method: compute, task horizon and price use straight-line fits on a log scale (steady exponential change). Benchmarks use an S-curve fitted to the record-setting scores of the last two years, since scores flatten as they near 100%. Likely ranges combine the uncertainty in the fitted slope with how far records scatter around the trend; they don't account for breakthroughs, benchmark changes or slowdowns, and the track record shows how often they've held. Extrapolations, not guarantees.")
+                Footnote(text: "Method: compute, task horizon and price use straight-line fits on a log scale (steady exponential change). Benchmarks use an S-curve fitted to the record-setting scores of the last two years, since scores flatten as they near 100%. Likely ranges combine the uncertainty in the fitted slope with how far records scatter around the trend, widened so that on past forecasts they caught about 80% of real dates. Tested on milestones the width wasn't tuned on, about 2 in 3 held: sudden stalls and jumps aren't predictable from a trend. Extrapolations, not guarantees.")
             }
         }
         .onAppear { if selectedID.isEmpty { selectedID = upcoming.first?.id ?? "" } }

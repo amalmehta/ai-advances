@@ -208,7 +208,7 @@ function cheapestOverTime(benchmark, threshold) {
 
 const DEFAULTS = { window: "12", areaName: null, since: 2, kind: "All", direction: "All directions",
   search: "", lab: "All labs", recent: true, sort: ["released", -1], selected: null,
-  costBench: "GPQA diamond", threshold: 0.8, computeSince: 2018, forecastId: null };
+  costBench: "GPQA diamond", threshold: 0.8, computeSince: 2018, forecastId: null, compare: [] };
 
 // Settings that belong in each page's link, so a copied URL opens the same view:
 // [link parameter, state key, parse].
@@ -217,7 +217,8 @@ const LINKED = {
   forecasts: [["forecast", "forecastId", String]],
   advances: [["show", "kind", String], ["direction", "direction", String]],
   capabilities: [["area", "areaName", String], ["years", "since", Number]],
-  models: [["model", "selected", String], ["lab", "lab", String], ["q", "search", String]],
+  models: [["model", "selected", String], ["lab", "lab", String], ["q", "search", String],
+    ["compare", "compare", (s) => s.split("|").filter(Boolean).slice(0, 4)]],
   cost: [["benchmark", "costBench", String], ["score", "threshold", Number]],
   compute: [["since", "computeSince", Number]],
 };
@@ -228,7 +229,9 @@ function syncLink() {
   if (!currentPage) return;
   const params = new URLSearchParams();
   for (const [param, key] of LINKED[currentPage] ?? []) {
-    if (state[key] != null && state[key] !== "" && String(state[key]) !== String(DEFAULTS[key])) params.set(param, state[key]);
+    if (state[key] != null && state[key] !== "" && String(state[key]) !== String(DEFAULTS[key])) {
+      params.set(param, Array.isArray(state[key]) ? state[key].join("|") : state[key]);
+    }
   }
   const hash = `#/${currentPage}${params.size ? "?" + params : ""}`;
   if (location.hash !== hash) history.replaceState(null, "", hash);
@@ -383,7 +386,7 @@ pages.forecasts = () => {
           el("span", {}, el("span", { class: "check" }, "✓ "), f.title), el("span", { class: "muted tnum" }, fmt.monthYear(f.reached)))))),
       stalled.length ? card("Stalled or off trend", "Milestones the current trend can't date: progress has stopped short of them, or they're too far out.",
         el("div", { class: "rows" }, stalled.map((f) => el("div", {}, el("div", {}, f.title), el("div", { class: "small muted" }, `${f.current}. ${f.note ?? ""}.`))))) : null),
-    footnote("Method: compute, task horizon and price use straight-line fits on a log scale (steady exponential change). Benchmarks use an S-curve fitted to the record-setting scores of the last two years, since scores flatten as they near 100%. Likely ranges combine the uncertainty in the fitted slope with how far records scatter around the trend; they don't account for breakthroughs, benchmark changes or slowdowns, and the track record shows how often they've held. Extrapolations, not guarantees."));
+    footnote("Method: compute, task horizon and price use straight-line fits on a log scale (steady exponential change). Benchmarks use an S-curve fitted to the record-setting scores of the last two years, since scores flatten as they near 100%. Likely ranges combine the uncertainty in the fitted slope with how far records scatter around the trend, widened so that on past forecasts they caught about 80% of real dates. Tested on milestones the width wasn't tuned on, about 2 in 3 held: sudden stalls and jumps aren't predictable from a trend. Extrapolations, not guarantees."));
 };
 
 /** When hand-researched content was last updated; a warning once it's more than 45 days old. */
@@ -642,6 +645,12 @@ pages.models = () => {
   const tableWrap = el("div", { class: "table-wrap" });
   const count = el("span", { class: "muted" });
   const detail = el("div");
+  const comparison = el("div");
+  state.compare = state.compare.filter((n) => D.models.some((m) => m.name === n)); // drop names a link got wrong
+  const toggleCompare = (name, on) => {
+    state.compare = on ? [...state.compare.filter((n) => n !== name), name].slice(-4) : state.compare.filter((n) => n !== name);
+    render();
+  };
 
   const render = () => {
     const [key, dir] = state.sort;
@@ -654,17 +663,20 @@ pages.models = () => {
       .sort((a, b) => { const x = getter(a), y = getter(b); return (x < y ? -1 : x > y ? 1 : 0) * dir; });
     count.textContent = `${rows.length} models`;
     // Sort controls are real buttons so they work from the keyboard; aria-sort announces the order.
-    const thead = el("thead", {}, el("tr", {}, cols.map(([k, label]) => el("th", {
+    const thead = el("thead", {}, el("tr", {}, el("th", { scope: "col", class: "compare-col" }, "Compare"), cols.map(([k, label]) => el("th", {
       scope: "col", "aria-sort": k === key ? (dir > 0 ? "ascending" : "descending") : "none",
     }, el("button", { type: "button", class: "sort", onclick: () => {
       state.sort = [k, k === key ? -dir : k === "name" ? 1 : -1];
       render();
-      tableWrap.querySelector(`th:nth-child(${cols.findIndex((c) => c[0] === k) + 1}) button`)?.focus();
+      tableWrap.querySelector(`th:nth-child(${cols.findIndex((c) => c[0] === k) + 2}) button`)?.focus();
     } }, label)))));
     const tbody = el("tbody", {}, rows.map((m) => el("tr", {
       "aria-selected": state.selected === m.name ? "true" : null,
       onclick: () => { state.selected = m.name; render(); detail.scrollIntoView({ behavior: "smooth", block: "nearest" }); },
     },
+      el("td", { class: "compare-col", onclick: (e) => e.stopPropagation() },
+        el("input", { type: "checkbox", "aria-label": `Compare ${m.name}`, checked: state.compare.includes(m.name),
+          onchange: (e) => toggleCompare(m.name, e.target.checked) })),
       el("td", {}, el("button", { type: "button", class: "linklike", "aria-label": `${m.name}, show full profile`,
         onclick: (e) => { e.stopPropagation(); state.selected = m.name; render(); detail.querySelector("h3")?.setAttribute("tabindex", "-1"); detail.querySelector("h3")?.focus(); } }, m.name),
         el("span", { class: "sub" }, m.lab)),
@@ -675,6 +687,9 @@ pages.models = () => {
     tableWrap.replaceChildren(el("table", {}, thead, tbody));
     const sel = D.models.find((m) => m.name === state.selected);
     detail.replaceChildren(sel ? modelDetail(sel) : el("span"));
+    const picked = state.compare.map((n) => D.models.find((m) => m.name === n)).filter(Boolean);
+    comparison.replaceChildren(picked.length >= 2 ? compareCard(picked, () => { state.compare = []; render(); })
+      : picked.length === 1 ? footnote(`Comparing ${picked[0].name}: tick at least one more model.`) : el("span"));
   };
   render();
 
@@ -686,9 +701,54 @@ pages.models = () => {
       el("label", {}, el("input", { type: "checkbox", checked: state.recent, onchange: (e) => { state.recent = e.target.checked; render(); } }), "Released in the last year"),
       count),
     tableWrap,
-    footnote("Price is a 3:1 blend of input and output price per million tokens, from OpenRouter; it shows only when the names match. Scores are the best across reasoning-effort settings, from Epoch AI. Click a column to sort; select a row for the full profile."),
+    footnote("Price is a 3:1 blend of input and output price per million tokens, from OpenRouter; it shows only when the names match. Scores are the best across reasoning-effort settings, from Epoch AI. Click a column to sort, select a row for the full profile, or tick up to 4 models to compare them."),
+    comparison,
     detail);
 };
+
+/** Side by side: facts as a table, and scores on the benchmarks at least two of the models share. */
+function compareCard(models, clear) {
+  const keyOrder = D.keyBenchmarks.map(([b]) => b);
+  const shared = [...new Set(models.flatMap((m) => Object.keys(m.scores)))]
+    .filter((b) => models.filter((m) => m.scores[b] != null).length >= 2)
+    .sort((a, b) => (keyOrder.indexOf(a) + 1 || 99) - (keyOrder.indexOf(b) + 1 || 99)
+      || models.filter((m) => m.scores[b] != null).length - models.filter((m) => m.scores[a] != null).length)
+    .slice(0, 12);
+  const names = models.map((m) => m.name);
+  const rows = shared.flatMap((b) => models.filter((m) => m.scores[b] != null).map((m) => ({ benchmark: short(b), model: m.name, score: m.scores[b] })));
+  const facts = [
+    ["Lab", (m) => m.lab],
+    ["First result", (m) => fmt.date(m.released)],
+    ["Price / M tokens", (m) => fmt.price(m.price)],
+    ["Context", (m) => (m.context ? fmt.tokens(m.context) : "–")],
+    ["Task horizon", (m) => (m.horizonMinutes ? fmt.minutes(m.horizonMinutes) : "–")],
+    ["Training compute", (m) => (m.computeFLOP ? `${fmt.flop(m.computeFLOP)} FLOP` : "–")],
+    ["Weights", (m) => (m.openWeights == null ? "–" : m.openWeights ? "Open" : "Closed")],
+  ];
+  const best = (b) => Math.max(...models.map((m) => m.scores[b] ?? -1));
+  return card(`Comparing ${models.length} models`, "Best score on each benchmark at least two of them have results for. The leader on each row is bold.",
+    el("div", { class: "controls", style: "margin-bottom:8px" }, el("button", { type: "button", onclick: clear }, "Clear comparison")),
+    el("div", { class: "table-wrap", style: "max-height:none" }, el("table", {},
+      el("thead", {}, el("tr", {}, el("th", { scope: "col", style: "cursor:default" }, ""), names.map((n, i) => el("th", { scope: "col", style: "cursor:default" },
+        el("i", { class: "swatch", style: `background:${colors().series[i]}` }), n)))),
+      el("tbody", {},
+        facts.map(([label, f]) => el("tr", { style: "cursor:default" }, el("th", { scope: "row" }, label), models.map((m) => el("td", {}, f(m))))),
+        shared.map((b) => el("tr", { style: "cursor:default" }, el("th", { scope: "row" }, short(b)),
+          models.map((m) => el("td", { class: m.scores[b] == null ? "na" : null, style: m.scores[b] === best(b) ? "font-weight:700" : null }, fmt.pct(m.scores[b], 1)))))))),
+    shared.length ? chart((w, C) => Plot.plot(plotBase(C, {
+      ariaLabel: `Grouped bar chart comparing ${names.join(", ")} on ${shared.map(short).join(", ")}.`,
+      width: w, height: shared.length * (models.length * 13 + 18) + 40, marginLeft: Math.min(150, w * 0.32), marginRight: 50,
+      x: { domain: [0, 1], axis: "top", tickFormat: (v) => fmt.pct(v), grid: true, label: null },
+      y: { domain: names, axis: null },
+      fy: { domain: shared.map(short), label: null, padding: 0.15 },
+      color: { domain: names, range: names.map((_, i) => C.series[i]), legend: true },
+      marks: [
+        Plot.barX(rows, { x: "score", y: "model", fy: "benchmark", fill: "model", rx: 2,
+          tip: { ...tip(C), format: { x: (v) => fmt.pct(v, 1), y: true, fy: true, fill: false } } }),
+        Plot.text(rows, { x: "score", y: "model", fy: "benchmark", text: (r) => fmt.pct(r.score), dx: 4, textAnchor: "start", fill: C.text2, fontSize: 10 }),
+      ],
+    }))) : footnote("These models don't share any benchmark results yet."));
+}
 
 function modelDetail(m) {
   const scores = Object.entries(m.scores).sort((a, b) => b[1] - a[1]);
